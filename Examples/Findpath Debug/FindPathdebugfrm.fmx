@@ -1,0 +1,22 @@
+object MovementDebugForm: TMovementDebugForm
+  Left = 0
+  Top = 0
+  Caption = 'debug'
+  ClientHeight = 320
+  ClientWidth = 480
+  Fill.Color = claBlack
+  Fill.Kind = Solid
+  FormFactor.Width = 480
+  FormFactor.Height = 320
+  FormFactor.Orientations = [Portrait, Landscape, InvertedPortrait, InvertedLandscape]
+  FormFactor.Devices = [Desktop, iPhone]
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  DesignerMasterStyle = 0
+  object Timer: TTimer
+    Interval = 20
+    OnTimer = TimerTimer
+    Left = 368
+    Top = 40
+  end
+end

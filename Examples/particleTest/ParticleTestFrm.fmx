@@ -1,0 +1,27 @@
+object ParticleTestForm: TParticleTestForm
+  Left = 0
+  Top = 0
+  Caption = 'Particles test...'
+  ClientHeight = 480
+  ClientWidth = 640
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object PaintBox: TPaintBox
+    Align = Client
+    Size.Width = 640.000000000000000000
+    Size.Height = 480.000000000000000000
+    Size.PlatformDefault = False
+    OnMouseDown = PaintBoxMouseDown
+    OnMouseMove = PaintBoxMouseMove
+    OnMouseUp = PaintBoxMouseUp
+    OnPaint = PaintBoxPaint
+  end
+  object RenderTimer: TTimer
+    Interval = 10
+    OnTimer = RenderTimerTimer
+    Left = 80
+    Top = 40
+  end
+end

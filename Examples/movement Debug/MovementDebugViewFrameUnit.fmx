@@ -1,0 +1,119 @@
+object MovementDebugViewFrame: TMovementDebugViewFrame
+  Size.Width = 900.000000000000000000
+  Size.Height = 400.000000000000000000
+  Size.PlatformDefault = False
+  OnResize = FrameResize
+  object ClientLayout: TLayout
+    Align = Client
+    Size.Width = 900.000000000000000000
+    Size.Height = 400.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object PaintBox: TPaintBox
+      Align = Client
+      Size.Width = 900.000000000000000000
+      Size.Height = 400.000000000000000000
+      Size.PlatformDefault = False
+      OnMouseDown = PaintBoxMouseDown
+      OnPaint = PaintBoxPaint
+      object Layout1: TLayout
+        Anchors = [akLeft, akBottom]
+        Position.X = 16.000000000000000000
+        Position.Y = 288.000000000000000000
+        Size.Width = 289.000000000000000000
+        Size.Height = 97.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        object DrawPathCheckBox: TCheckBox
+          StyledSettings = [Style, FontColor]
+          IsChecked = True
+          Position.X = 16.000000000000000000
+          Position.Y = 16.000000000000000000
+          Size.Width = 121.000000000000000000
+          Size.Height = 19.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 1
+          Text = 'Draw Path'
+        end
+        object StartButton: TButton
+          CanFocus = False
+          DisableFocusEffect = True
+          StyledSettings = [Style, FontColor]
+          Position.X = 8.000000000000000000
+          Position.Y = 40.000000000000000000
+          Size.Width = 49.000000000000000000
+          Size.Height = 22.000000000000000000
+          Size.PlatformDefault = False
+          StyleLookup = 'playtoolbutton'
+          TabOrder = 3
+          Text = 'Start'
+          OnClick = StartButtonClick
+        end
+        object ClearButton: TButton
+          CanFocus = False
+          DisableFocusEffect = True
+          StyledSettings = [Style, FontColor]
+          Position.X = 64.000000000000000000
+          Position.Y = 40.000000000000000000
+          Size.Width = 49.000000000000000000
+          Size.Height = 22.000000000000000000
+          Size.PlatformDefault = False
+          StyleLookup = 'refreshtoolbutton'
+          TabOrder = 4
+          Text = 'Clear'
+          OnClick = ClearButtonClick
+        end
+        object MoveSpeedTrackBar: TTrackBar
+          CanParentFocus = True
+          DisableFocusEffect = True
+          Max = 200.000000000000000000
+          Min = 10.000000000000000000
+          Orientation = Horizontal
+          Position.X = 120.000000000000000000
+          Position.Y = 8.000000000000000000
+          Size.Width = 153.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 6
+          Value = 10.000000000000000000
+          OnChange = MoveSpeedTrackBarChange
+          object Label1: TLabel
+            Align = Center
+            AutoSize = True
+            StyledSettings = [Family, Style, FontColor]
+            Size.Width = 32.000000000000000000
+            Size.Height = 16.000000000000000000
+            Size.PlatformDefault = False
+            TextSettings.WordWrap = False
+            Text = 'speed'
+          end
+        end
+        object RollMoveRatioTrackBar: TTrackBar
+          CanParentFocus = True
+          DisableFocusEffect = True
+          Max = 1.000000000000000000
+          Min = 0.100000001490116100
+          Orientation = Horizontal
+          Position.X = 120.000000000000000000
+          Position.Y = 48.000000000000000000
+          Size.Width = 153.000000000000000000
+          Size.Height = 20.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 5
+          Value = 0.100000001490116100
+          OnChange = RollMoveRatioTrackBarChange
+          object Label2: TLabel
+            Align = Center
+            AutoSize = True
+            StyledSettings = [Family, Style, FontColor]
+            Size.Width = 46.000000000000000000
+            Size.Height = 16.000000000000000000
+            Size.PlatformDefault = False
+            TextSettings.WordWrap = False
+            Text = 'Rotation'
+          end
+        end
+      end
+    end
+  end
+end

@@ -1,0 +1,486 @@
+object seqGenForm: TseqGenForm
+  Left = 0
+  Top = 0
+  Caption = 'Sequence Animation Gen...by QQ600585'
+  ClientHeight = 650
+  ClientWidth = 400
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnClose = FormClose
+  DesignerMasterStyle = 2
+  object OpenDialog: TOpenDialog
+    Options = [ofReadOnly, ofHideReadOnly, ofAllowMultiSelect, ofPathMustExist, ofFileMustExist, ofEnableSizing]
+    Left = 232
+    Top = 328
+  end
+  object DrawTimer: TTimer
+    Interval = 10
+    OnTimer = DrawTimerTimer
+    Left = 232
+    Top = 248
+  end
+  object SaveSequenceDialog: TSaveDialog
+    DefaultExt = '.seq'
+    Filter = 'seq(*.seq)|*.seq|png(*.png)|*.png'
+    Options = [ofOverwritePrompt, ofHideReadOnly, ofPathMustExist, ofEnableSizing]
+    Left = 112
+    Top = 328
+  end
+  object TabControl: TTabControl
+    Align = Client
+    FullSize = True
+    Size.Width = 400.000000000000000000
+    Size.Height = 650.000000000000000000
+    Size.PlatformDefault = False
+    TabHeight = 49.000000000000000000
+    TabIndex = 0
+    TabOrder = 4
+    TabPosition = Top
+    Sizes = (
+      400s
+      601s
+      400s
+      601s
+      400s
+      601s
+      400s
+      601s)
+    object TabItem_preview: TTabItem
+      CustomIcon = <
+        item
+        end>
+      IsSelected = True
+      Size.Width = 100.000000000000000000
+      Size.Height = 49.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 0
+      Text = 'Preview'
+      ExplicitSize.cx = 133.000000000000000000
+      ExplicitSize.cy = 49.000000000000000000
+      object ClientLayout: TLayout
+        Align = Client
+        Size.Width = 400.000000000000000000
+        Size.Height = 601.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        object ListBox: TListBox
+          Align = Top
+          Margins.Top = 3.000000000000000000
+          Margins.Bottom = 3.000000000000000000
+          Position.Y = 3.000000000000000000
+          Size.Width = 400.000000000000000000
+          Size.Height = 121.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 0
+          CanFocus = False
+          DisableFocusEffect = True
+          DefaultItemStyles.ItemStyle = ''
+          DefaultItemStyles.GroupHeaderStyle = ''
+          DefaultItemStyles.GroupFooterStyle = ''
+          ListStyle = Horizontal
+          Viewport.Width = 400.000000000000000000
+          Viewport.Height = 121.000000000000000000
+        end
+        object PaintBox: TPaintBox
+          Align = Client
+          Size.Width = 400.000000000000000000
+          Size.Height = 474.000000000000000000
+          Size.PlatformDefault = False
+          OnPaint = PaintBoxPaint
+          object Layout1: TLayout
+            Anchors = [akRight, akBottom]
+            Position.X = 243.000000000000000000
+            Position.Y = 424.000000000000000000
+            Size.Width = 153.000000000000000000
+            Size.Height = 40.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 2
+            object ColumnSpinBox: TSpinBox
+              Touch.InteractiveGestures = [LongTap, DoubleTap]
+              Align = VertCenter
+              TabOrder = 0
+              Cursor = crIBeam
+              Min = 1.000000000000000000
+              Value = 2.000000000000000000
+              Position.X = 57.000000000000000000
+              Position.Y = 5.000000000000000000
+              Size.Width = 96.000000000000000000
+              Size.Height = 30.000000000000000000
+              Size.PlatformDefault = False
+              OnChange = ParamChange
+            end
+            object Label1: TLabel
+              Align = Left
+              StyledSettings = [Family, Style, FontColor]
+              Size.Width = 57.000000000000000000
+              Size.Height = 40.000000000000000000
+              Size.PlatformDefault = False
+              Text = 'column'
+            end
+          end
+          object Layout2: TLayout
+            Anchors = [akRight, akBottom]
+            Position.X = 113.000000000000000000
+            Position.Y = 424.000000000000000000
+            Size.Width = 129.000000000000000000
+            Size.Height = 40.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 1
+            object TransparentCheckBox: TCheckBox
+              Align = Center
+              StyledSettings = [Family, Style, FontColor]
+              Size.Width = 119.000000000000000000
+              Size.Height = 23.000000000000000000
+              Size.PlatformDefault = False
+              TabOrder = 0
+              Text = 'force Transparent'
+              OnChange = ParamChange
+            end
+          end
+          object Layout3: TLayout
+            Anchors = [akLeft, akBottom]
+            Position.X = 4.000000000000000000
+            Position.Y = 424.000000000000000000
+            Size.Width = 105.000000000000000000
+            Size.Height = 40.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 0
+            object SaveButton: TButton
+              Align = Right
+              Position.X = 56.000000000000000000
+              Size.Width = 49.000000000000000000
+              Size.Height = 40.000000000000000000
+              Size.PlatformDefault = False
+              TabOrder = 1
+              Text = 'save'
+              OnClick = SaveButtonClick
+            end
+            object LoadButton: TButton
+              Align = Left
+              Size.Width = 49.000000000000000000
+              Size.Height = 40.000000000000000000
+              Size.PlatformDefault = False
+              TabOrder = 0
+              Text = 'load'
+              OnClick = LoadButtonClick
+            end
+          end
+          object ColorPanel: TColorPanel
+            Anchors = [akLeft, akBottom]
+            Color = claBlack
+            Opacity = 0.400000005960464400
+            Position.Y = 344.000000000000000000
+            Size.Width = 177.000000000000000000
+            Size.Height = 78.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 3
+          end
+          object ReverseButton: TButton
+            Anchors = [akRight, akBottom]
+            Position.X = 320.000000000000000000
+            Position.Y = 392.000000000000000000
+            Size.Width = 73.000000000000000000
+            Size.Height = 28.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 5
+            Text = 'Reverse'
+            OnClick = ReverseButtonClick
+          end
+          object MakeGradientFrameButton: TButton
+            Anchors = [akRight, akBottom]
+            Position.X = 176.000000000000000000
+            Position.Y = 392.000000000000000000
+            Size.Width = 137.000000000000000000
+            Size.Height = 28.000000000000000000
+            Size.PlatformDefault = False
+            TabOrder = 4
+            Text = 'Gradient Frame'
+            OnClick = MakeGradientFrameButtonClick
+          end
+        end
+      end
+    end
+    object TabItem_Gen: TTabItem
+      CustomIcon = <
+        item
+        end>
+      IsSelected = False
+      Size.Width = 100.000000000000000000
+      Size.Height = 49.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 0
+      Text = 'Batch File'
+      ExplicitSize.cx = 133.000000000000000000
+      ExplicitSize.cy = 49.000000000000000000
+      object TopLayout: TLayout
+        Align = MostTop
+        Margins.Left = 3.000000000000000000
+        Margins.Top = 3.000000000000000000
+        Margins.Bottom = 3.000000000000000000
+        Position.X = 3.000000000000000000
+        Position.Y = 3.000000000000000000
+        Size.Width = 397.000000000000000000
+        Size.Height = 41.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        object AddPicFileButton: TButton
+          Align = Left
+          Size.Width = 121.000000000000000000
+          Size.Height = 41.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 1
+          Text = 'Add Picture'
+          OnClick = AddPicFileButtonClick
+        end
+        object ClearPictureButton: TButton
+          Align = Left
+          Margins.Left = 5.000000000000000000
+          Position.X = 126.000000000000000000
+          Size.Width = 121.000000000000000000
+          Size.Height = 41.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 0
+          Text = 'Clear'
+          OnClick = ClearPictureButtonClick
+        end
+      end
+      object Memo: TMemo
+        Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+        DataDetectorTypes = []
+        Align = Client
+        Bounces = False
+        CanFocus = False
+        Size.Width = 400.000000000000000000
+        Size.Height = 554.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        Viewport.Width = 392.000000000000000000
+        Viewport.Height = 546.000000000000000000
+      end
+    end
+    object TabItem_Import: TTabItem
+      CustomIcon = <
+        item
+        end>
+      IsSelected = False
+      Size.Width = 100.000000000000000000
+      Size.Height = 49.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 0
+      Text = 'Import Sprite'
+      ExplicitSize.cx = 134.000000000000000000
+      ExplicitSize.cy = 49.000000000000000000
+      object Layout4: TLayout
+        Align = Top
+        Size.Width = 400.000000000000000000
+        Size.Height = 161.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        object Layout6: TLayout
+          Position.X = 176.000000000000000000
+          Position.Y = 57.000000000000000000
+          Size.Width = 153.000000000000000000
+          Size.Height = 40.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 3
+          object ImportColumnSpinBox: TSpinBox
+            Touch.InteractiveGestures = [LongTap, DoubleTap]
+            Align = VertCenter
+            TabOrder = 0
+            Cursor = crIBeam
+            Min = 1.000000000000000000
+            Value = 1.000000000000000000
+            Position.X = 57.000000000000000000
+            Position.Y = 5.000000000000000000
+            Size.Width = 96.000000000000000000
+            Size.Height = 30.000000000000000000
+            Size.PlatformDefault = False
+          end
+          object Label3: TLabel
+            Align = Left
+            StyledSettings = [Family, Style, FontColor]
+            Size.Width = 57.000000000000000000
+            Size.Height = 40.000000000000000000
+            Size.PlatformDefault = False
+            Text = 'column'
+          end
+        end
+        object Layout7: TLayout
+          Position.X = 16.000000000000000000
+          Position.Y = 57.000000000000000000
+          Size.Width = 153.000000000000000000
+          Size.Height = 40.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 2
+          object ImportTotalSpinBox: TSpinBox
+            Touch.InteractiveGestures = [LongTap, DoubleTap]
+            Align = VertCenter
+            TabOrder = 0
+            Cursor = crIBeam
+            Min = 1.000000000000000000
+            Value = 1.000000000000000000
+            Position.X = 57.000000000000000000
+            Position.Y = 5.000000000000000000
+            Size.Width = 96.000000000000000000
+            Size.Height = 30.000000000000000000
+            Size.PlatformDefault = False
+          end
+          object Label4: TLabel
+            Align = Left
+            StyledSettings = [Family, Style, FontColor]
+            Size.Width = 57.000000000000000000
+            Size.Height = 40.000000000000000000
+            Size.PlatformDefault = False
+            Text = 'total fps'
+          end
+        end
+        object BuildImportAsSequenceButton: TButton
+          Position.X = 16.000000000000000000
+          Position.Y = 104.000000000000000000
+          Size.Width = 129.000000000000000000
+          Size.Height = 44.000000000000000000
+          Size.PlatformDefault = False
+          StyleLookup = 'listitemdeletebutton'
+          TabOrder = 4
+          Text = 'Do Import!'
+          OnClick = BuildImportAsSequenceButtonClick
+        end
+      end
+      object ImportPreviewImage: TImage
+        MultiResBitmap = <
+          item
+          end>
+        Align = Client
+        Size.Width = 400.000000000000000000
+        Size.Height = 440.000000000000000000
+        Size.PlatformDefault = False
+      end
+      object Layout5: TLayout
+        Anchors = [akLeft, akTop, akRight]
+        Position.X = 16.000000000000000000
+        Position.Y = 8.000000000000000000
+        Size.Width = 372.000000000000000000
+        Size.Height = 41.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 2
+        object Label2: TLabel
+          Align = Left
+          StyledSettings = [Family, Style, FontColor]
+          Size.Width = 57.000000000000000000
+          Size.Height = 41.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'picture'
+        end
+        object ImportEdit: TEdit
+          Touch.InteractiveGestures = [LongTap, DoubleTap]
+          Align = VertCenter
+          TabOrder = 1
+          Position.X = 57.000000000000000000
+          Position.Y = 5.000000000000000000
+          Size.Width = 271.000000000000000000
+          Size.Height = 30.000000000000000000
+          Size.PlatformDefault = False
+          StyledSettings = [Family, Style, FontColor]
+        end
+        object ImportBrowseButton: TButton
+          Align = Right
+          Position.X = 328.000000000000000000
+          Size.Width = 44.000000000000000000
+          Size.Height = 44.000000000000000000
+          Size.PlatformDefault = False
+          StyleLookup = 'detailstoolbutton'
+          TabOrder = 2
+          OnClick = ImportBrowseButtonClick
+        end
+      end
+    end
+    object ExpTabItem: TTabItem
+      CustomIcon = <
+        item
+        end>
+      IsSelected = False
+      Size.Width = 100.000000000000000000
+      Size.Height = 49.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = ''
+      TabOrder = 0
+      Text = 'Export'
+      ExplicitSize.cx = 100.000000000000000000
+      ExplicitSize.cy = 49.000000000000000000
+      object Layout8: TLayout
+        Align = Top
+        Size.Width = 400.000000000000000000
+        Size.Height = 113.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 0
+        object Exp2PathButton: TButton
+          Position.X = 16.000000000000000000
+          Position.Y = 8.000000000000000000
+          Size.Width = 265.000000000000000000
+          Size.Height = 44.000000000000000000
+          Size.PlatformDefault = False
+          StyleLookup = 'listitemdeletebutton'
+          TabOrder = 3
+          Text = 'Export sequence to directory...'
+          OnClick = Exp2PathButtonClick
+        end
+        object Layout9: TLayout
+          Anchors = [akLeft, akTop, akRight]
+          Position.X = 16.000000000000000000
+          Position.Y = 56.000000000000000000
+          Size.Width = 372.000000000000000000
+          Size.Height = 41.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 2
+          object Label5: TLabel
+            Align = Left
+            StyledSettings = [Family, Style, FontColor]
+            Size.Width = 57.000000000000000000
+            Size.Height = 41.000000000000000000
+            Size.PlatformDefault = False
+            Text = 'exp to'
+          end
+          object TempPathEdit: TEdit
+            Touch.InteractiveGestures = [LongTap, DoubleTap]
+            Align = VertCenter
+            TabOrder = 1
+            Position.X = 57.000000000000000000
+            Position.Y = 5.000000000000000000
+            Size.Width = 315.000000000000000000
+            Size.Height = 30.000000000000000000
+            Size.PlatformDefault = False
+            StyledSettings = [Family, Style, FontColor]
+          end
+        end
+      end
+      object ExpMemo: TMemo
+        Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+        DataDetectorTypes = []
+        Align = Client
+        Size.Width = 400.000000000000000000
+        Size.Height = 488.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 1
+        Viewport.Width = 392.000000000000000000
+        Viewport.Height = 480.000000000000000000
+      end
+    end
+  end
+  object ImportFileBrowseDialog: TOpenDialog
+    Options = [ofReadOnly, ofHideReadOnly, ofPathMustExist, ofFileMustExist, ofEnableSizing]
+    Left = 232
+    Top = 408
+  end
+  object OpenSequenceDialog: TOpenDialog
+    DefaultExt = '.seq'
+    Filter = 'seq(*.seq)|*.seq'
+    Options = [ofHideReadOnly, ofPathMustExist, ofFileMustExist, ofEnableSizing]
+    Left = 112
+    Top = 408
+  end
+end

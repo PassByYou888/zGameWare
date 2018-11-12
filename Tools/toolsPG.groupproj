@@ -1,0 +1,108 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{0858B451-3E27-44A3-9FEE-DF8A8F928C9C}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="ConvFile2RESCode\ConvFile2Pascal.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="SequenceGen\seqGen.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="MemoryBitmap conver\BitmapConver.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="ImagingFormatConvert2PNG\ImgFmtConver2PNG.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="tileMapTool\TileDraw.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="FilePackageWithZDB\FilePackageWithZDB.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="StringTranslate\StringTranslate.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="ConvFile2Pascal">
+        <MSBuild Projects="ConvFile2RESCode\ConvFile2Pascal.dproj"/>
+    </Target>
+    <Target Name="ConvFile2Pascal:Clean">
+        <MSBuild Projects="ConvFile2RESCode\ConvFile2Pascal.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ConvFile2Pascal:Make">
+        <MSBuild Projects="ConvFile2RESCode\ConvFile2Pascal.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="seqGen">
+        <MSBuild Projects="SequenceGen\seqGen.dproj"/>
+    </Target>
+    <Target Name="seqGen:Clean">
+        <MSBuild Projects="SequenceGen\seqGen.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="seqGen:Make">
+        <MSBuild Projects="SequenceGen\seqGen.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="BitmapConver">
+        <MSBuild Projects="MemoryBitmap conver\BitmapConver.dproj"/>
+    </Target>
+    <Target Name="BitmapConver:Clean">
+        <MSBuild Projects="MemoryBitmap conver\BitmapConver.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="BitmapConver:Make">
+        <MSBuild Projects="MemoryBitmap conver\BitmapConver.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ImgFmtConver2PNG">
+        <MSBuild Projects="ImagingFormatConvert2PNG\ImgFmtConver2PNG.dproj"/>
+    </Target>
+    <Target Name="ImgFmtConver2PNG:Clean">
+        <MSBuild Projects="ImagingFormatConvert2PNG\ImgFmtConver2PNG.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ImgFmtConver2PNG:Make">
+        <MSBuild Projects="ImagingFormatConvert2PNG\ImgFmtConver2PNG.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="TileDraw">
+        <MSBuild Projects="tileMapTool\TileDraw.dproj"/>
+    </Target>
+    <Target Name="TileDraw:Clean">
+        <MSBuild Projects="tileMapTool\TileDraw.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="TileDraw:Make">
+        <MSBuild Projects="tileMapTool\TileDraw.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FilePackageWithZDB">
+        <MSBuild Projects="FilePackageWithZDB\FilePackageWithZDB.dproj"/>
+    </Target>
+    <Target Name="FilePackageWithZDB:Clean">
+        <MSBuild Projects="FilePackageWithZDB\FilePackageWithZDB.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FilePackageWithZDB:Make">
+        <MSBuild Projects="FilePackageWithZDB\FilePackageWithZDB.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="StringTranslate">
+        <MSBuild Projects="StringTranslate\StringTranslate.dproj"/>
+    </Target>
+    <Target Name="StringTranslate:Clean">
+        <MSBuild Projects="StringTranslate\StringTranslate.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="StringTranslate:Make">
+        <MSBuild Projects="StringTranslate\StringTranslate.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="ConvFile2Pascal;seqGen;BitmapConver;ImgFmtConver2PNG;TileDraw;FilePackageWithZDB;StringTranslate"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="ConvFile2Pascal:Clean;seqGen:Clean;BitmapConver:Clean;ImgFmtConver2PNG:Clean;TileDraw:Clean;FilePackageWithZDB:Clean;StringTranslate:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="ConvFile2Pascal:Make;seqGen:Make;BitmapConver:Make;ImgFmtConver2PNG:Make;TileDraw:Make;FilePackageWithZDB:Make;StringTranslate:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

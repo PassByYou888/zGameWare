@@ -1,0 +1,84 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{9C973A94-AA02-439F-9F45-F627A55D9880}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="particleTest\ParticleTest.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="TexturePacker\TextureAtlas.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="PropsTest\PropsTest.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="movement Debug\movementdebug.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Findpath Debug\findpathdebug.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="ParticleTest">
+        <MSBuild Projects="particleTest\ParticleTest.dproj"/>
+    </Target>
+    <Target Name="ParticleTest:Clean">
+        <MSBuild Projects="particleTest\ParticleTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ParticleTest:Make">
+        <MSBuild Projects="particleTest\ParticleTest.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="TextureAtlas">
+        <MSBuild Projects="TexturePacker\TextureAtlas.dproj"/>
+    </Target>
+    <Target Name="TextureAtlas:Clean">
+        <MSBuild Projects="TexturePacker\TextureAtlas.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="TextureAtlas:Make">
+        <MSBuild Projects="TexturePacker\TextureAtlas.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="PropsTest">
+        <MSBuild Projects="PropsTest\PropsTest.dproj"/>
+    </Target>
+    <Target Name="PropsTest:Clean">
+        <MSBuild Projects="PropsTest\PropsTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="PropsTest:Make">
+        <MSBuild Projects="PropsTest\PropsTest.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="movementdebug">
+        <MSBuild Projects="movement Debug\movementdebug.dproj"/>
+    </Target>
+    <Target Name="movementdebug:Clean">
+        <MSBuild Projects="movement Debug\movementdebug.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="movementdebug:Make">
+        <MSBuild Projects="movement Debug\movementdebug.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="findpathdebug">
+        <MSBuild Projects="Findpath Debug\findpathdebug.dproj"/>
+    </Target>
+    <Target Name="findpathdebug:Clean">
+        <MSBuild Projects="Findpath Debug\findpathdebug.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="findpathdebug:Make">
+        <MSBuild Projects="Findpath Debug\findpathdebug.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="ParticleTest;TextureAtlas;PropsTest;movementdebug;findpathdebug"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="ParticleTest:Clean;TextureAtlas:Clean;PropsTest:Clean;movementdebug:Clean;findpathdebug:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="ParticleTest:Make;TextureAtlas:Make;PropsTest:Make;movementdebug:Make;findpathdebug:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

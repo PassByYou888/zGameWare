@@ -1,0 +1,32 @@
+bmp当前你的序列帧图片
+total总帧数
+column单行帧数
+index索引号
+返回序列帧图片切割坐标
+function GetSequenceFrameRect(bmp: TBitmap; Total, Column, index: Integer): TRect;
+var
+  rowIdx, colIdx: Integer;
+  row: Integer;
+  AWidth, AHeight: Integer;
+begin
+  if Total <= 1 then
+      Exit(bmp.BoundsRect);
+  if Column > Total then
+      Column := Total;
+
+  if index > Total - 1 then
+      index := Total - 1;
+  if index < 0 then
+      index := 0;
+
+  colIdx := index mod Column;
+  rowIdx := index div Column;
+  row := Total div Column;
+  if Total mod Column > 0 then
+      Inc(row);
+
+  AWidth := bmp.Width div Column;
+  AHeight := bmp.Height div row;
+
+  Result := rect(colIdx * AWidth, rowIdx * AHeight, (colIdx + 1) * AWidth, (rowIdx + 1) * AHeight);
+end;

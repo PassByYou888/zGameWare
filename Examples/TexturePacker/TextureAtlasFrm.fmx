@@ -1,0 +1,36 @@
+object TexturePackingForm: TTexturePackingForm
+  Left = 0
+  Top = 0
+  Caption = 'texture Atlas...'
+  ClientHeight = 480
+  ClientWidth = 640
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnPaint = FormPaint
+  DesignerMasterStyle = 0
+  object Button1: TButton
+    Anchors = [akTop, akRight]
+    Position.X = 552.000000000000000000
+    Position.Y = 16.000000000000000000
+    TabOrder = 1
+    Text = 'build'
+    OnClick = Button1Click
+  end
+  object SortButton: TButton
+    Anchors = [akTop, akRight]
+    Position.X = 552.000000000000000000
+    Position.Y = 40.000000000000000000
+    TabOrder = 0
+    Text = 'sort'
+    OnClick = SortButtonClick
+  end
+  object Timer1: TTimer
+    Interval = 20
+    OnTimer = Timer1Timer
+    Left = 304
+    Top = 224
+  end
+end
