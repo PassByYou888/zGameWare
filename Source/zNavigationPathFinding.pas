@@ -18,18 +18,17 @@ interface
 uses CoreClasses, zNavigationPass, Geometry2DUnit;
 
 type
-  TStepStackData = record
-    PassIndex: Integer;
-  end;
-
-  PStepStackData = ^TStepStackData;
-
-  TDecisionInt = -1 .. 1;
-
   TNavStepFinding = class(TCoreClassPersistent)
+  private type
+    TStepStackData = record
+      PassIndex: Integer;
+    end;
+
+    PStepStackData = ^TStepStackData;
+
+    TDecisionInt = -1 .. 1;
   private
     FPassManager: TPolyPassManager;
-  private
     FStackList: TCoreClassList;
     FSourcePositionPass, FTargetPositionPass: TPointPass;
     FSourcePositionPassIndex, FTargetPositionPassIndex: Integer;
@@ -736,6 +735,4 @@ begin
   Result := (not Abort) and (FDone)
 end;
 
-end. 
- 
- 
+end.
