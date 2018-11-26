@@ -8,16 +8,16 @@ uses
   FMX.StdCtrls, FMX.Layouts, FMX.TabControl, FMX.Controls.Presentation,
   FMX.Objects, FMX.Colors, FMX.Ani, FMX.ListBox,
 
-  zDrawEngineInterface_FMX, MemoryRaster, CoreClasses, UnicodeMixedLib;
+  zDrawEngineInterface_FMX, MemoryRaster, Geometry2DUnit, CoreClasses, UnicodeMixedLib, FMX.ExtCtrls;
 
 type
   TBMPConverForm = class(TForm)
     converbmpButton: TButton;
+    StyleBook1: TStyleBook;
     Layout1: TLayout;
     DestDirEdit: TEdit;
     Label1: TLabel;
     seldirEditButton: TEditButton;
-    Rectangle: TRectangle;
     SameDirCheckBox: TCheckBox;
     AddFileButton: TButton;
     ClearButton: TButton;
@@ -28,6 +28,7 @@ type
     RadioButton_JLS8: TRadioButton;
     RadioButton_JLS24: TRadioButton;
     RadioButton_JLS32: TRadioButton;
+    Image: TImageViewer;
     procedure AddFileButtonClick(Sender: TObject);
     procedure ClearButtonClick(Sender: TObject);
     procedure ListBoxChange(Sender: TObject);
@@ -219,9 +220,12 @@ begin
 
   b := TMemoryRaster.Create;
   LoadMemoryBitmap(ListBox.Selected.TagString, b);
-  Rectangle.Fill.Kind := TBrushKind.Bitmap;
-  MemoryBitmapToBitmap(b, Rectangle.Fill.Bitmap.Bitmap);
+  b.DrawText(Format('%s' + #10 + 'width: %d * height: %d' + #10 + 'size:%s', [umlGetFileName(ListBox.Selected.TagString).Text,
+    b.Width, b.Height, umlSizetoStr(umlGetFileSize(ListBox.Selected.TagString)).Text]),
+    0, 0, Vec2(1.0, 0.0), -10, 0.9, 12, RasterColorF(1.0, 0.5, 0.5, 1));
+  MemoryBitmapToBitmap(b, Image.Bitmap);
   DisposeObject(b);
 end;
 
 end.
+
