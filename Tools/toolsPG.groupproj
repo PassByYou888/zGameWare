@@ -3,6 +3,9 @@
         <ProjectGuid>{0858B451-3E27-44A3-9FEE-DF8A8F928C9C}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
+        <Projects Include="DPRSourceSort\DPRCodeSort.dproj">
+            <Dependencies/>
+        </Projects>
         <Projects Include="ConvFile2RESCode\ConvFile2Pascal.dproj">
             <Dependencies/>
         </Projects>
@@ -27,6 +30,9 @@
         <Projects Include="StringTranslate\StringTranslate.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="PascalCodeUnification\PascalCodeUnification.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -35,6 +41,15 @@
             <Default.Personality/>
         </BorlandProject>
     </ProjectExtensions>
+    <Target Name="DPRCodeSort">
+        <MSBuild Projects="DPRSourceSort\DPRCodeSort.dproj"/>
+    </Target>
+    <Target Name="DPRCodeSort:Clean">
+        <MSBuild Projects="DPRSourceSort\DPRCodeSort.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DPRCodeSort:Make">
+        <MSBuild Projects="DPRSourceSort\DPRCodeSort.dproj" Targets="Make"/>
+    </Target>
     <Target Name="ConvFile2Pascal">
         <MSBuild Projects="ConvFile2RESCode\ConvFile2Pascal.dproj"/>
     </Target>
@@ -107,14 +122,23 @@
     <Target Name="StringTranslate:Make">
         <MSBuild Projects="StringTranslate\StringTranslate.dproj" Targets="Make"/>
     </Target>
+    <Target Name="PascalCodeUnification">
+        <MSBuild Projects="PascalCodeUnification\PascalCodeUnification.dproj"/>
+    </Target>
+    <Target Name="PascalCodeUnification:Clean">
+        <MSBuild Projects="PascalCodeUnification\PascalCodeUnification.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="PascalCodeUnification:Make">
+        <MSBuild Projects="PascalCodeUnification\PascalCodeUnification.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="ConvFile2Pascal;seqGen;BitmapConver;ImgFmtConver2PNG;FontBuild;TileDraw;FilePackageWithZDB;StringTranslate"/>
+        <CallTarget Targets="DPRCodeSort;ConvFile2Pascal;seqGen;BitmapConver;ImgFmtConver2PNG;FontBuild;TileDraw;FilePackageWithZDB;StringTranslate;PascalCodeUnification"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="ConvFile2Pascal:Clean;seqGen:Clean;BitmapConver:Clean;ImgFmtConver2PNG:Clean;FontBuild:Clean;TileDraw:Clean;FilePackageWithZDB:Clean;StringTranslate:Clean"/>
+        <CallTarget Targets="DPRCodeSort:Clean;ConvFile2Pascal:Clean;seqGen:Clean;BitmapConver:Clean;ImgFmtConver2PNG:Clean;FontBuild:Clean;TileDraw:Clean;FilePackageWithZDB:Clean;StringTranslate:Clean;PascalCodeUnification:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="ConvFile2Pascal:Make;seqGen:Make;BitmapConver:Make;ImgFmtConver2PNG:Make;FontBuild:Make;TileDraw:Make;FilePackageWithZDB:Make;StringTranslate:Make"/>
+        <CallTarget Targets="DPRCodeSort:Make;ConvFile2Pascal:Make;seqGen:Make;BitmapConver:Make;ImgFmtConver2PNG:Make;FontBuild:Make;TileDraw:Make;FilePackageWithZDB:Make;StringTranslate:Make;PascalCodeUnification:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
