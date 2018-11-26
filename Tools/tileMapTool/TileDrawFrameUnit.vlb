@@ -1,0 +1,16 @@
+﻿[Timer]
+Coordinates=158,78,47,36
+
+[CurrSelTile_Rectangle]
+Coordinates=10,232,144,36
+
+[]
+Coordinates=159,10,103,58
+Visible=True
+
+[ToolLayout]
+Coordinates=164,232,60,36
+
+[TileListBox]
+Coordinates=10,10,139,212
+

@@ -73,9 +73,8 @@ object TileDrawForm: TTileDrawForm
           object RefreshOpenFileListButton: TButton
             Align = Left
             CanFocus = False
-            Position.Y = 5.000000000000000000
             Size.Width = 44.000000000000000000
-            Size.Height = 44.000000000000000000
+            Size.Height = 54.000000000000000000
             Size.PlatformDefault = False
             StyleLookup = 'refreshtoolbutton'
             TabOrder = 1
@@ -414,9 +413,8 @@ object TileDrawForm: TTileDrawForm
         object ReturnToTileDrawButton: TButton
           Align = Left
           CanFocus = False
-          Position.Y = 5.000000000000000000
           Size.Width = 44.000000000000000000
-          Size.Height = 44.000000000000000000
+          Size.Height = 54.000000000000000000
           Size.PlatformDefault = False
           StyleLookup = 'priortoolbutton'
           TabOrder = 3

@@ -2,8 +2,6 @@ program TileDraw;
 
 
 
-
-
 {$R *.dres}
 
 uses

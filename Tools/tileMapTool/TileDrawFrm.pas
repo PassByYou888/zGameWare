@@ -9,6 +9,7 @@ uses
 
   FMX.Surfaces,
 
+  PascalStrings,
   LibraryManager, StreamList, zDrawEngine, MemoryRaster, ObjectDataManager,
   zDrawEngineInterface_FMX, DataFrameEngine, UnicodeMixedLib, CoreClasses,
   MemoryStream64,
@@ -92,7 +93,7 @@ type
 var
   TileDrawForm: TTileDrawForm = nil;
 
-procedure BuildFileList2ListBox(filePath, fileFilter: string; output: TListBox; CanSel: Boolean; size: Integer; Click: TNotify);
+procedure BuildFileList2ListBox(FilePath, fileFilter: string; output: TListBox; CanSel: Boolean; Size: Integer; Click: TNotify);
 
 implementation
 
@@ -101,33 +102,33 @@ implementation
 uses MediaCenter;
 
 
-procedure BuildFileList2ListBox(filePath, fileFilter: string; output: TListBox; CanSel: Boolean; size: Integer; Click: TNotify);
+procedure BuildFileList2ListBox(FilePath, fileFilter: string; output: TListBox; CanSel: Boolean; Size: Integer; Click: TNotify);
 var
   fs: TStringDynArray;
-  f: string;
-  l: TListBoxItem;
-  n_fil: umlArrayString;
+  F: string;
+  L: TListBoxItem;
+  n_fil: TArrayPascalString;
 begin
   umlGetSplitArray(fileFilter, n_fil, ';');
 
   output.BeginUpdate;
   output.Clear;
 
-  fs := System.IOUtils.TDirectory.GetFiles(filePath);
-  for f in fs do
+  fs := System.IOUtils.TDirectory.GetFiles(FilePath);
+  for F in fs do
     begin
-      if umlMultipleMatch(n_fil, System.IOUtils.TPath.GetFileName(f)) then
+      if umlMultipleMatch(n_fil, System.IOUtils.TPath.GetFileName(F)) then
         begin
-          l := TListBoxItem.Create(output);
-          l.Height := size;
-          l.Width := size;
-          output.AddObject(l);
-          l.Text := System.IOUtils.TPath.GetFileName(f);
-          l.TagString := f;
-          l.Selectable := CanSel;
-          l.StyledSettings := l.StyledSettings - [TStyledSetting.size];
-          l.Margins.Rect := Rectf(1, 1, 1, 1);
-          l.OnClick := Click;
+          L := TListBoxItem.Create(output);
+          L.height := Size;
+          L.width := Size;
+          output.AddObject(L);
+          L.Text := System.IOUtils.TPath.GetFileName(F);
+          L.TagString := F;
+          L.Selectable := CanSel;
+          L.StyledSettings := L.StyledSettings - [TStyledSetting.Size];
+          L.MARGINS.Rect := Rectf(1, 1, 1, 1);
+          L.OnClick := Click;
         end;
     end;
 
@@ -140,7 +141,7 @@ end;
 procedure TTileDrawForm.RefreshOpenFileListButtonClick(Sender: TObject);
 begin
   BuildTileMapPreviewList2ListBox(System.IOUtils.TPath.GetDocumentsPath, TileLibrary,
-    OpenFileListBox, Round(OpenFileListBox.Width / OpenFileListBox.Columns) - OpenFileListBox.Columns * 4, OpenFileListClick);
+    OpenFileListBox, Round(OpenFileListBox.width / OpenFileListBox.columns) - OpenFileListBox.columns * 4, OpenFileListClick);
   OpenTileMapButton.Enabled := False;
 end;
 
@@ -148,15 +149,15 @@ procedure TTileDrawForm.OpenTileMapButtonClick(Sender: TObject);
 var
   ms: TMemoryStream;
 begin
-  if OpenFileListBox.Selected <> nil then
+  if OpenFileListBox.selected <> nil then
     begin
       ms := TMemoryStream.Create;
-      ms.LoadFromFile(OpenFileListBox.Selected.TagString);
+      ms.LoadFromFile(OpenFileListBox.selected.TagString);
       ms.Position := 0;
       TileDrawFrame.LoadFromStream(ms);
       DisposeObject(ms);
       TabControl.ActiveTab := TabItem_TileDraw;
-      FileNameEdit.Text := System.IOUtils.TPath.GetFileName(OpenFileListBox.Selected.TagString);
+      FileNameEdit.Text := System.IOUtils.TPath.GetFileName(OpenFileListBox.selected.TagString);
     end;
 end;
 
@@ -166,7 +167,7 @@ begin
 
   if InitTileListBox.Count = 0 then
       BuildTileList2ListBox(TileLibrary, '*',
-      InitTileListBox, Round(InitTileListBox.Width / InitTileListBox.Columns) - InitTileListBox.Columns * 4,
+      InitTileListBox, Round(InitTileListBox.width / InitTileListBox.columns) - InitTileListBox.columns * 4,
       CreateMap_TileListClick);
 end;
 
@@ -188,9 +189,9 @@ end;
 procedure TTileDrawForm.CreateMapButtonClick(Sender: TObject);
 var
   i: Integer;
-  l: TListBoxItem;
-  fs: umlArrayString;
-  def_ext: umlString;
+  L: TListBoxItem;
+  fs: TArrayPascalString;
+  def_ext: U_String;
   fn: string;
 begin
   TileDrawFrame.InternalNewMap(
@@ -200,8 +201,8 @@ begin
   TabControl.ActiveTab := TabItem_TileDraw;
 
   FormatComboBox.ItemIndex := FormatComboBox.ListBox.Count - 1;
-  l := FormatComboBox.ListBox.ListItems[FormatComboBox.ItemIndex];
-  umlGetSplitArray(l.TagString, fs, ';');
+  L := FormatComboBox.ListBox.ListItems[FormatComboBox.ItemIndex];
+  umlGetSplitArray(L.TagString, fs, ';');
   def_ext := '.' + umlGetLastStr(fs[0], '.');
 
   fn := System.IOUtils.TPath.ChangeExtension('utility', def_ext);
@@ -223,13 +224,13 @@ end;
 
 procedure TTileDrawForm.FormatComboBoxChange(Sender: TObject);
 var
-  l: TListBoxItem;
-  fs: umlArrayString;
-  def_ext: umlString;
+  L: TListBoxItem;
+  fs: TArrayPascalString;
+  def_ext: U_String;
 begin
-  l := FormatComboBox.ListBox.ListItems[FormatComboBox.ItemIndex];
+  L := FormatComboBox.ListBox.ListItems[FormatComboBox.ItemIndex];
 
-  umlGetSplitArray(l.TagString, fs, ';');
+  umlGetSplitArray(L.TagString, fs, ';');
   def_ext := '.' + umlGetLastStr(fs[0], '.');
 
   FileNameEdit.Text := System.IOUtils.TPath.ChangeExtension(FileNameEdit.Text, def_ext);
@@ -237,17 +238,17 @@ end;
 
 procedure TTileDrawForm.SaveButtonClick(Sender: TObject);
 var
-  l: TListBoxItem;
-  fs: umlArrayString;
-  def_ext: umlString;
+  L: TListBoxItem;
+  fs: TArrayPascalString;
+  def_ext: U_String;
   fn: string;
 
   bmpSurface: TBitmapSurface;
   bmp: TMemoryRaster;
   ms: TMemoryStream64;
 begin
-  l := FormatComboBox.ListBox.ListItems[FormatComboBox.ItemIndex];
-  umlGetSplitArray(l.TagString, fs, ';');
+  L := FormatComboBox.ListBox.ListItems[FormatComboBox.ItemIndex];
+  umlGetSplitArray(L.TagString, fs, ';');
   def_ext := '.' + umlGetLastStr(fs[0], '.');
 
   fn := System.IOUtils.TPath.ChangeExtension(FileNameEdit.Text, def_ext);
@@ -286,16 +287,16 @@ end;
 
 procedure TTileDrawForm.FileNameEditChange(Sender: TObject);
 var
-  l: TListBoxItem;
-  fs: umlArrayString;
-  def_ext: umlString;
+  L: TListBoxItem;
+  fs: TArrayPascalString;
+  def_ext: U_String;
   fn: string;
 
   bmpSurface: TBitmapSurface;
   bmp: TMemoryRaster;
 begin
-  l := FormatComboBox.ListBox.ListItems[FormatComboBox.ItemIndex];
-  umlGetSplitArray(l.TagString, fs, ';');
+  L := FormatComboBox.ListBox.ListItems[FormatComboBox.ItemIndex];
+  umlGetSplitArray(L.TagString, fs, ';');
   def_ext := '.' + umlGetLastStr(fs[0], '.');
 
   fn := System.IOUtils.TPath.ChangeExtension(FileNameEdit.Text, def_ext);
@@ -304,7 +305,7 @@ begin
     begin
       SaveButton.Text := 'do overwrite!';
       HitInfoLabel.Text := Format('same filename:%s', [fn]);
-      exit;
+      Exit;
     end;
 
   HitInfoLabel.Text := Format('...', [fn]);
@@ -319,14 +320,14 @@ end;
 
 procedure TTileDrawForm.CreateMap_TileListClick(Sender: TObject);
 var
-  l: TListBoxItem;
-  r: TRectangle;
+  L: TListBoxItem;
+  R: TRectangle;
 begin
-  l := TListBoxItem(Sender);
-  r := TRectangle(l.TagObject);
+  L := TListBoxItem(Sender);
+  R := TRectangle(L.TagObject);
 
-  SelInitTile_Rectangle.Fill.Bitmap.Bitmap.Assign(r.Fill.Bitmap.Bitmap);
-  SelInitTile_Rectangle.TagString := l.TagString;
+  SelInitTile_Rectangle.fill.Bitmap.Bitmap.Assign(R.fill.Bitmap.Bitmap);
+  SelInitTile_Rectangle.TagString := L.TagString;
 end;
 
 procedure TTileDrawForm.TileDrawReturnClick(Sender: TObject);
@@ -343,8 +344,8 @@ end;
 
 constructor TTileDrawForm.Create(AOwner: TComponent);
 var
-  n, n_desc, n_ext: umlString;
-  l: TListBoxItem;
+  n, n_desc, n_ext: U_String;
+  L: TListBoxItem;
 begin
   TileTerrainDefaultBitmapClass := TDETexture_FMX;
   InitGlobalMedia([gmtTile]);
@@ -352,7 +353,7 @@ begin
   inherited Create(AOwner);
 
   case CurrentPlatform of
-    TExecutePlatform.epIOS, TExecutePlatform.epIOSSIM, TExecutePlatform.epANDROID:
+    TExecutePlatform.epIOS, TExecutePlatform.epIOSSIM, TExecutePlatform.epANDROID32:
       begin
         BorderStyle := TFmxFormBorderStyle.None;
         InitUIScale := Round(((ClientWidth / 480) + (ClientHeight / 320)) * 0.5 * 10) * 0.1;
@@ -383,22 +384,22 @@ begin
       n_ext := umlGetFirstStr(n, '|');
       n := umlDeleteFirstStr(n, '|');
 
-      l := TListBoxItem.Create(FormatComboBox.ListBox);
-      l.Height := 30;
-      l.Text := n_desc;
-      l.TagString := n_ext;
-      FormatComboBox.ListBox.AddObject(l);
+      L := TListBoxItem.Create(FormatComboBox.ListBox);
+      L.height := 30;
+      L.Text := n_desc;
+      L.TagString := n_ext;
+      FormatComboBox.ListBox.AddObject(L);
     end;
 
-  l := TListBoxItem.Create(FormatComboBox.ListBox);
-  l.Height := 30;
-  l.Text := 'tileMap format';
-  l.TagString := '*.tm';
-  FormatComboBox.ListBox.AddObject(l);
+  L := TListBoxItem.Create(FormatComboBox.ListBox);
+  L.height := 30;
+  L.Text := 'tileMap format';
+  L.TagString := '*.tm';
+  FormatComboBox.ListBox.AddObject(L);
 
   FormatComboBox.ListBox.EndUpdate;
 
-  FormatComboBox.ItemIndex := l.Index;
+  FormatComboBox.ItemIndex := L.Index;
 end;
 
 destructor TTileDrawForm.Destroy;
@@ -406,4 +407,4 @@ begin
   inherited Destroy;
 end;
 
-end.
+end. 

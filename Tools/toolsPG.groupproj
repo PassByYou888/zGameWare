@@ -15,6 +15,9 @@
         <Projects Include="ImagingFormatConvert2PNG\ImgFmtConver2PNG.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="FontBuild\FontBuild.dproj">
+            <Dependencies/>
+        </Projects>
         <Projects Include="tileMapTool\TileDraw.dproj">
             <Dependencies/>
         </Projects>
@@ -68,6 +71,15 @@
     <Target Name="ImgFmtConver2PNG:Make">
         <MSBuild Projects="ImagingFormatConvert2PNG\ImgFmtConver2PNG.dproj" Targets="Make"/>
     </Target>
+    <Target Name="FontBuild">
+        <MSBuild Projects="FontBuild\FontBuild.dproj"/>
+    </Target>
+    <Target Name="FontBuild:Clean">
+        <MSBuild Projects="FontBuild\FontBuild.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FontBuild:Make">
+        <MSBuild Projects="FontBuild\FontBuild.dproj" Targets="Make"/>
+    </Target>
     <Target Name="TileDraw">
         <MSBuild Projects="tileMapTool\TileDraw.dproj"/>
     </Target>
@@ -96,13 +108,13 @@
         <MSBuild Projects="StringTranslate\StringTranslate.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="ConvFile2Pascal;seqGen;BitmapConver;ImgFmtConver2PNG;TileDraw;FilePackageWithZDB;StringTranslate"/>
+        <CallTarget Targets="ConvFile2Pascal;seqGen;BitmapConver;ImgFmtConver2PNG;FontBuild;TileDraw;FilePackageWithZDB;StringTranslate"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="ConvFile2Pascal:Clean;seqGen:Clean;BitmapConver:Clean;ImgFmtConver2PNG:Clean;TileDraw:Clean;FilePackageWithZDB:Clean;StringTranslate:Clean"/>
+        <CallTarget Targets="ConvFile2Pascal:Clean;seqGen:Clean;BitmapConver:Clean;ImgFmtConver2PNG:Clean;FontBuild:Clean;TileDraw:Clean;FilePackageWithZDB:Clean;StringTranslate:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="ConvFile2Pascal:Make;seqGen:Make;BitmapConver:Make;ImgFmtConver2PNG:Make;TileDraw:Make;FilePackageWithZDB:Make;StringTranslate:Make"/>
+        <CallTarget Targets="ConvFile2Pascal:Make;seqGen:Make;BitmapConver:Make;ImgFmtConver2PNG:Make;FontBuild:Make;TileDraw:Make;FilePackageWithZDB:Make;StringTranslate:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
