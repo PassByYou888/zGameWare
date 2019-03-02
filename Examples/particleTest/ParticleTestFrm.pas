@@ -61,7 +61,8 @@ begin
   FCadencerEng := TCadencer.Create;
   FCadencerEng.OnProgress := CadencerProgress;
   FDrawEngineInterface := TDrawEngineInterface_FMX.Create;
-  FDrawEngine := TDrawEngine.Create(FDrawEngineInterface);
+  FDrawEngine := TDrawEngine.Create;
+  FDrawEngine.DrawInterface := FDrawEngineInterface;
   FSeqAni := TDETexture_FMX.Create;
 
   PaintBox.Canvas.Font.Style := [TFontStyle.fsBold];

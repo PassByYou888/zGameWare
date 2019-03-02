@@ -25,7 +25,7 @@ const
 type
   TCoreRULEDrawEngine = class;
 
-  TCoreRULEDrawOption  = (crdoNavSceneEditor);
+  TCoreRULEDrawOption = (crdoNavSceneEditor);
   TCoreRULEDrawOptions = set of TCoreRULEDrawOption;
 
   TNavSceneEditorMode = (nsemScene, nsemPoly, nsemNone);
@@ -92,7 +92,7 @@ type
     function DoTapMove(x, y: TDEFloat): Boolean; override;
     function DoTapUp(x, y: TDEFloat): Boolean; override;
   public
-    constructor Create(ADrawInterface: IDrawEngineInterface); override;
+    constructor Create;
     destructor Destroy; override;
 
     property Region: TRegion read FRegion write FRegion;
@@ -343,7 +343,7 @@ begin
             for i := 0 to r.LocationCount - 1 do
               begin
                 L := r.Location[i];
-                if PointInCircle(ScenePt, L.Position, NavSceneEditor_PointDrawRadius * FScale) then
+                if PointInCircle(ScenePt, L.Position, NavSceneEditor_PointDrawRadius * Scale) then
                   begin
                     NavScene_PickStyle := nsepsLocationCenter;
                     NavScene_PickLocation := L;
@@ -359,7 +359,7 @@ begin
                   end;
               end;
 
-            if PointInCircle(ScenePt, NavScene.PolyManager.Scene.Position, FScenePolyDrawOption.PointScreenRadius * FScale) then
+            if PointInCircle(ScenePt, NavScene.PolyManager.Scene.Position, FScenePolyDrawOption.PointScreenRadius * Scale) then
               begin
                 NavScene_PickStyle := nsepsPoly;
                 NavScene_PickPoly := NavScene.PolyManager.Scene;
@@ -368,7 +368,7 @@ begin
 
             for i := 0 to NavScene.PolyManager.Count - 1 do
               begin
-                if PointInCircle(ScenePt, NavScene.PolyManager[i].Position, FScenePolyDrawOption.PointScreenRadius * FScale) then
+                if PointInCircle(ScenePt, NavScene.PolyManager[i].Position, FScenePolyDrawOption.PointScreenRadius * Scale) then
                   begin
                     NavScene_PickStyle := nsepsPoly;
                     NavScene_PickPoly := NavScene.PolyManager[i];
@@ -381,7 +381,7 @@ begin
                 Poly := NavScene.PolyManager[i];
                 for j := 0 to Poly.Count - 1 do
                   begin
-                    if PointInCircle(ScenePt, Poly.Points[j], FPolyDrawOption.PointScreenRadius * FScale) then
+                    if PointInCircle(ScenePt, Poly.Points[j], FPolyDrawOption.PointScreenRadius * Scale) then
                       begin
                         NavScene_PickStyle := nsepsPolyIndex;
                         NavScene_PickPoly := Poly;
@@ -394,7 +394,7 @@ begin
             Poly := NavScene.PolyManager.Scene;
             for j := 0 to Poly.Count - 1 do
               begin
-                if PointInCircle(ScenePt, Poly.Points[j], FPolyDrawOption.PointScreenRadius * FScale) then
+                if PointInCircle(ScenePt, Poly.Points[j], FPolyDrawOption.PointScreenRadius * Scale) then
                   begin
                     NavScene_PickStyle := nsepsPolyIndex;
                     NavScene_PickPoly := Poly;
@@ -548,9 +548,9 @@ begin
   Result := DoNavSceneEditor_TapUp(x, y);
 end;
 
-constructor TCoreRULEDrawEngine.Create(ADrawInterface: IDrawEngineInterface);
+constructor TCoreRULEDrawEngine.Create;
 begin
-  inherited Create(ADrawInterface);
+  inherited Create;
 
   FRegion := nil;
   FCoreRULEDrawOptions := [crdoNavSceneEditor];
@@ -615,6 +615,4 @@ begin
     end;
 end;
 
-end. 
- 
- 
+end.

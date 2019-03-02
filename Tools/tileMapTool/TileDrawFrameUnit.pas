@@ -727,7 +727,8 @@ begin
 
   FDrawEngineInterface := TDrawEngineInterface_FMX.Create;
 
-  FDrawEngine := TDrawEngine.Create(FDrawEngineInterface);
+  FDrawEngine := TDrawEngine.Create;
+  FDrawEngine.DrawInterface := FDrawEngineInterface;
   FDrawEngine.ViewOptions := [];
 
   ScaleTrackBarChange(ScaleTrackBar);
@@ -793,4 +794,4 @@ begin
   BuildTileMapAsBitmap(@FMapSource, FCurrentWidth, FCurrentHeight, output);
 end;
 
-end. 
+end.

@@ -1,5 +1,5 @@
 { ****************************************************************************** }
-{ * Pyramid Space support                                                      * }
+{ * SIFT Pyramid Space support                                                 * }
 { * create by QQ 600585@qq.com                                                 * }
 { ****************************************************************************** }
 { * https://github.com/PassByYou888/CoreCipher                                 * }
@@ -25,6 +25,7 @@ uses Math, CoreClasses, MemoryRaster, Geometry2DUnit, UnicodeMixedLib, DataFrame
 
 type
   TGFloat = Single;
+  PGFloat = ^TGFloat;
 
   TGSamplerMode = (gsmColor, gsmGray);
 
@@ -125,11 +126,11 @@ type
     function KPIntegral(const dogIntegral: PGaussSpaceIntegral; const x, y, s: TLInt; var Offset, Delta: TLVec): Boolean;
     function ComputeKeyPoint(const ExtremaCoor: TVec2; const pyr_id, scale_id: TLInt; var output: TPyramidCoor): Boolean;
     function ComputeEndgeReponse(const ExtremaCoor: TVec2; const p: PGaussSpace): Boolean;
-    function ComputePyramidCoor(const FilterEndge, FilterOri: Boolean; const ExtremaV2: TVec2; const pyr_id, scale_id: TLInt): TPyramidCoorList;
+    function ComputePyramidCoor(FilterEndge, FilterOri: Boolean; const ExtremaV2: TVec2; const pyr_id, scale_id: TLInt): TPyramidCoorList;
   public
     constructor CreateWithRaster(const raster: TMemoryRaster); overload;
-    constructor CreateWithRaster(const fn: string); overload;
-    constructor CreateWithRaster(const stream: TCoreClassStream); overload;
+    constructor CreateWithRasterFile(const fn: string); overload;
+    constructor CreateWithRasterStream(const stream: TCoreClassStream); overload;
     constructor CreateWithGauss(const spr: PGaussSpace);
     destructor Destroy; override;
 
@@ -153,21 +154,20 @@ type
   TFeature = class;
 
   PDescriptor = ^TDescriptor;
+  TDescriptorArray = array of TGFloat;
 
   TDescriptor = record
-    descriptor: TLVec;    // feature vector
-    coor: TVec2;          // real scaled [0,1] coordinate in the original image
-    AbsCoor: TVec2;       // absolute sampler coordinal in the original image
-    Orientation: TGFloat; // Orientation information
-    index: TLInt;         // index in Fetature
-    Owner: TFeature;      // owner
+    descriptor: TDescriptorArray; // feature vector
+    coor: TVec2;                  // real scaled [0,1] coordinate in the original image
+    Orientation: TGFloat;         // Orientation information
+    index: TLInt;                 // index in Fetature
+    Owner: TFeature;              // owner
   end;
 
   PMatchInfo = ^TMatchInfo;
 
   TMatchInfo = record
     d1, d2: PDescriptor;
-    Dist: TGFloat; // Descriptor distance
   end;
 
   TArrayMatchInfo = array of TMatchInfo;
@@ -186,22 +186,21 @@ type
     FDescriptorBuff: array of TDescriptor;
     FPyramidCoordList: TPyramidCoorList;
     FWidth, FHeight: TLInt;
-    // gray format
-    FViewer: array of Byte;
     // internal used
-    FInternalVec: TVec2;
+    FeatureMatchedVec1, FeatureMatchedVec2: TVec2;
     // user custom
     FUserData: Pointer;
 
-    procedure ComputeDescriptor(const p: PPyramidCoor; var Desc: TLVec);
+    procedure ComputeDescriptor(const p: PPyramidCoor; var Desc: TDescriptorArray);
     procedure BuildFeature(Pyramids: TPyramids);
   public
+    LinkRaster: TMemoryRaster;
     constructor CreateWithPyramids(Pyramids: TPyramids);
-    constructor CreateWithRaster(const raster: TMemoryRaster; const Clip: TVec2List); overload;
-    constructor CreateWithRaster(const raster: TMemoryRaster; var mat: TLBMatrix); overload;
+    constructor CreateWithRasterClip(const raster: TMemoryRaster; const Clip: TVec2List); overload;
+    constructor CreateWithRasterClipMatrix(const raster: TMemoryRaster; var mat: TLBMatrix); overload;
     constructor CreateWithRaster(const raster: TMemoryRaster); overload;
-    constructor CreateWithRaster(const fn: string); overload;
-    constructor CreateWithRaster(const stream: TCoreClassStream); overload;
+    constructor CreateWithRasterFile(const fn: string); overload;
+    constructor CreateWithRasterStream(const stream: TCoreClassStream); overload;
     constructor CreateWithSampler(const spr: PGaussSpace);
     constructor Create;
     destructor Destroy; override;
@@ -226,13 +225,14 @@ type
 {$REGION 'PyramidFunctions'}
 
 
-function Diff(const f1, f2: TGFloat): TGFloat;
-function between(const idx, Start, OVER: TLInt): Boolean; overload;
-function between(const idx, Start, OVER: TGFloat): Boolean; overload;
+function GF_SQR(f: TGFloat): TGFloat; inline;
+function Diff(const f1, f2: TGFloat): TGFloat; inline;
+function between(const idx, Start, OVER: TLInt): Boolean; overload; inline;
+function between(const idx, Start, OVER: TGFloat): Boolean; overload; inline;
 procedure CopySampler(var Source, dest: TGaussSpace);
 procedure SamplerAlpha(const Source: TMemoryRaster; var dest: TGaussSpace); overload;
 procedure SamplerAlpha(var Source: TGaussSpace; const dest: TMemoryRaster); overload;
-procedure Sampler(const Source: TMemoryRaster; const WR, WG, wb: TGFloat; const ColorSap: TLInt; var dest: TGaussSpace); overload;
+procedure Sampler(const Source: TMemoryRaster; const wr, wg, wb: TGFloat; const ColorSap: TLInt; var dest: TGaussSpace); overload;
 procedure Sampler(const Source: TMemoryRaster; var dest: TGaussSpace); overload;
 procedure Sampler(var Source: TGaussSpace; const dest: TMemoryRaster); overload;
 procedure Sampler(var Source: TGaussSpace; var dest: TByteRaster); overload;
@@ -244,16 +244,19 @@ procedure SigmaSampler(var Source, dest: TGaussSpace; const SIGMA: TGFloat);
 procedure SaveSampler(var Source: TGaussSpace; FileName: string);
 procedure SaveSamplerToJpegLS(var Source: TGaussSpace; FileName: string);
 procedure ComputeSamplerSize(var width, height: TLInt);
+function Descriptor2LVec(d: TDescriptorArray): TLVec;
 
 // square of euclidean
 // need avx + sse or GPU
+type
+  TGFloat_4x = array [0 .. 3] of TGFloat;
+
+var sqr_128: function(sour, dest: PGFloat): TGFloat_4x;
 function e_sqr(const sour, dest: PDescriptor): TGFloat;
 
 // feature match
-function MatchFeature(const Source, dest: TFeature; var MatchInfo: TArrayMatchInfo): TLFloat;
-function BuildMatchInfoView(var MatchInfo: TArrayMatchInfo; const RectWidth: TLInt; const ViewFeature: Boolean): TMemoryRaster;
-
-procedure TestPyramidSpace;
+function MatchFeature(const Source, dest: TFeature; var MatchInfo: TArrayMatchInfo): TLInt;
+function BuildMatchInfoView(var MatchInfo: TArrayMatchInfo; const FeatureDiameter: TGFloat; const ViewFeature: Boolean): TMemoryRaster;
 
 {$ENDREGION 'PyramidFunctions'}
 
@@ -313,10 +316,15 @@ uses
   Threading,
 {$ENDIF FPC}
 {$ENDIF parallel}
-  SyncObjs, Learn;
+  SyncObjs, Learn, MemoryStream64, DoStatusIO;
 
 const
   cPI: TGFloat = pi;
+
+function GF_SQR(f: TGFloat): TGFloat;
+begin
+  Result := f * f;
+end;
 
 function Diff(const f1, f2: TGFloat): TGFloat;
 begin
@@ -372,7 +380,7 @@ begin
         dest.PixelAlpha[i, j] := Round(Clamp(Source[j, i], 0.0, 1.0) * 255);
 end;
 
-procedure Sampler(const Source: TMemoryRaster; const WR, WG, wb: TGFloat; const ColorSap: TLInt; var dest: TGaussSpace);
+procedure Sampler(const Source: TMemoryRaster; const wr, wg, wb: TGFloat; const ColorSap: TLInt; var dest: TGaussSpace);
 var
   i, j, c, f, w, wf: TLInt;
   r, g, b: TGFloat;
@@ -391,7 +399,7 @@ begin
     for i := 0 to Source.width - 1 do
       begin
         RasterColor2F(Source.Pixel[i, j], r, g, b);
-        w := Trunc((r * WR + g * WG + b * wb) / (WR + WG + wb) * 256);
+        w := Trunc((r * wr + g * wg + b * wb) / (wr + wg + wb) * 256);
         wf := (w div f) * f;
         dest[j, i] := Clamp(Round(wf) / 256, 0.0, 1.0);
       end;
@@ -534,7 +542,7 @@ begin
 end;
 
 procedure SigmaRow(var theRow, destRow: TGaussVec; var k: TSigmaKernel);
-  function kOffset(const v, L, h: TLInt): TLInt;
+  function kOffset(const v, L, h: TLInt): TLInt; inline;
   begin
     Result := v;
     if Result > h then
@@ -698,6 +706,15 @@ begin
     end;
 end;
 
+function Descriptor2LVec(d: TDescriptorArray): TLVec;
+var
+  i: TLInt;
+begin
+  SetLength(Result, length(d));
+  for i := 0 to length(d) - 1 do
+      Result[i] := d[i];
+end;
+
 class function TPyramidCoor.Init: TPyramidCoor;
 begin
   Result.PyramidCoor := NULLPoint;
@@ -710,82 +727,161 @@ begin
   Result.Owner := nil;
 end;
 
-function e_sqr(const sour, dest: PDescriptor): TGFloat;
+function pascal_sqr_128(sour, dest: PGFloat): TGFloat_4x;
 var
-  i: TLInt;
-  d0, d1, d2, d3, d4, d5, d6, d7: TGFloat;
+  i: Integer;
 begin
-  // pure pascal
-  Result := 0;
+  Result[0] := 0;
+  Result[1] := 0;
+  Result[2] := 0;
+  Result[3] := 0;
 
-  // sqr x8 extract
-  // need avx + sse or GPU
   i := 0;
-  while i < length(sour^.descriptor) do
+  while i < 32 do
     begin
-      d0 := dest^.descriptor[i + 0] - sour^.descriptor[i + 0];
-      d0 := d0 * d0;
+      Result[0] := Result[0] + GF_SQR(dest^ - sour^);
+      inc(dest);
+      inc(sour);
+      Result[1] := Result[1] + GF_SQR(dest^ - sour^);
+      inc(dest);
+      inc(sour);
+      Result[2] := Result[2] + GF_SQR(dest^ - sour^);
+      inc(dest);
+      inc(sour);
+      Result[3] := Result[3] + GF_SQR(dest^ - sour^);
+      inc(dest);
+      inc(sour);
 
-      d1 := dest^.descriptor[i + 1] - sour^.descriptor[i + 1];
-      d1 := d1 * d1;
-
-      d2 := dest^.descriptor[i + 2] - sour^.descriptor[i + 2];
-      d2 := d2 * d2;
-
-      d3 := dest^.descriptor[i + 3] - sour^.descriptor[i + 3];
-      d3 := d3 * d3;
-
-      d4 := dest^.descriptor[i + 4] - sour^.descriptor[i + 4];
-      d4 := d4 * d4;
-
-      d5 := dest^.descriptor[i + 5] - sour^.descriptor[i + 5];
-      d5 := d5 * d5;
-
-      d6 := dest^.descriptor[i + 6] - sour^.descriptor[i + 6];
-      d6 := d6 * d6;
-
-      d7 := dest^.descriptor[i + 7] - sour^.descriptor[i + 7];
-      d7 := d7 * d7;
-
-      Result := Result + d0 + d1 + d2 + d3 + d4 + d5 + d6 + d7;
-      inc(i, 8);
+      inc(i, 4);
     end;
 end;
 
-function MatchFeature(const Source, dest: TFeature; var MatchInfo: TArrayMatchInfo): TLFloat;
+{$IF Defined(Delphi) and Defined(MSWINDOWS)}
+
+
+function sse_sqr_128(sour, dest: PGFloat): TGFloat_4x;
+asm
+  movups xmm0,[[dest]+0*4*4]
+  movups xmm1,[[sour]+0*4*4]
+  subps  xmm0,xmm1
+  mulps xmm0,xmm0
+  movups xmm2,xmm0
+
+  movups xmm0,[[dest]+1*4*4]
+  movups xmm1,[[sour]+1*4*4]
+  subps  xmm0,xmm1
+  mulps xmm0,xmm0
+  addps xmm2,xmm0
+
+  movups xmm0,[[dest]+2*4*4]
+  movups xmm1,[[sour]+2*4*4]
+  subps  xmm0,xmm1
+  mulps xmm0,xmm0
+  addps xmm2,xmm0
+
+  movups xmm0,[[dest]+3*4*4]
+  movups xmm1,[[sour]+3*4*4]
+  subps  xmm0,xmm1
+  mulps xmm0,xmm0
+  addps xmm2,xmm0
+
+  movups xmm0,[[dest]+4*4*4]
+  movups xmm1,[[sour]+4*4*4]
+  subps  xmm0,xmm1
+  mulps xmm0,xmm0
+  addps xmm2,xmm0
+
+  movups xmm0,[[dest]+5*4*4]
+  movups xmm1,[[sour]+5*4*4]
+  subps  xmm0,xmm1
+  mulps xmm0,xmm0
+  addps xmm2,xmm0
+
+  movups xmm0,[[dest]+6*4*4]
+  movups xmm1,[[sour]+6*4*4]
+  subps  xmm0,xmm1
+  mulps xmm0,xmm0
+  addps xmm2,xmm0
+
+  movups xmm0,[[dest]+7*4*4]
+  movups xmm1,[[sour]+7*4*4]
+  subps  xmm0,xmm1
+  mulps xmm0,xmm0
+  addps xmm2,xmm0
+
+  movups [Result],xmm2
+end;
+
+procedure _test_e_sqr;
+var
+  d1, d2: TDescriptorArray;
+  i: Integer;
+  f128_1, f128_2: TGFloat_4x;
+  t1, t2: TTimeTick;
+begin
+  SetLength(d1, 128);
+  SetLength(d2, length(d1));
+  for i := 0 to length(d1) - 1 do
+    begin
+      d1[i] := i * 0.1;
+      d2[i] := i * 1.1;
+    end;
+  t1 := GetTimeTick;
+  for i := 0 to 1500000 do
+      f128_1 := pascal_sqr_128(@d1[0], @d2[0]);
+  t1 := GetTimeTick - t1;
+
+  t2 := GetTimeTick;
+  for i := 0 to 1500000 do
+      f128_2 := sse_sqr_128(@d1[0], @d2[0]);
+  t2 := GetTimeTick - t2;
+end;
+
+{$IFEND}
+
+
+function e_sqr(const sour, dest: PDescriptor): TGFloat;
+var
+  i: TLInt;
+  f128: TGFloat_4x;
+begin
+  Result := 0;
+
+  i := 0;
+  while i < length(sour^.descriptor) do
+    begin
+      f128 := sqr_128(@sour^.descriptor[i], @dest^.descriptor[i]);
+      Result := Result + f128[0] + f128[1] + f128[2] + f128[3];
+      inc(i, 32);
+    end;
+end;
+
+function MatchFeature(const Source, dest: TFeature; var MatchInfo: TArrayMatchInfo): TLInt;
+const MaxFloatN = 3.4E+38;
 var
   L: TCoreClassList;
   pf1_len, pf2_len: TLInt;
   pf1, pf2: TFeature;
-  sqr_memory: array of array of TGFloat;
   reject_ratio_sqr: TGFloat;
 
 {$IFDEF parallel}
 {$IFDEF FPC}
-  procedure Nested_ParallelFor_sqr(pass: PtrInt; Data: Pointer; Item: TMultiThreadProcItem);
-  var
-    j: TLInt;
-  begin
-    for j := 0 to pf2_len - 1 do
-        sqr_memory[pass, j] := e_sqr(pf1[pass], pf2[j]);
-  end;
-
   procedure Nested_ParallelFor(pass: PtrInt; Data: Pointer; Item: TMultiThreadProcItem);
   var
     m_idx, j: TLInt;
     dsc1, dsc2: PDescriptor;
-    minf, next_minf: TLFloat;
-    d: Double;
+    minf, next_minf: TGFloat;
+    d: TGFloat;
     PD: PMatchInfo;
   begin
     dsc1 := pf1[pass];
     m_idx := -1;
-    minf := MaxRealNumber;
+    minf := MaxFloatN;
     next_minf := minf;
     // find dsc1 from feat2
     for j := 0 to pf2_len - 1 do
       begin
-        d := Min(sqr_memory[pass, j], next_minf);
+        d := Min(e_sqr(pf1[pass], pf2[j]), next_minf);
         if (d < minf) then
           begin
             next_minf := minf;
@@ -796,7 +892,7 @@ var
             next_minf := Min(next_minf, d);
       end;
 
-    /// bidirectional rejection
+    // bidirectional rejection
     if (minf > reject_ratio_sqr * next_minf) then
         Exit;
 
@@ -805,7 +901,7 @@ var
     for j := 0 to pf1_len - 1 do
       if j <> pass then
         begin
-          d := Min(sqr_memory[j, m_idx], next_minf);
+          d := Min(e_sqr(pf1[j], pf2[m_idx]), next_minf);
           next_minf := Min(next_minf, d);
         end;
     if (minf > reject_ratio_sqr * next_minf) then
@@ -825,24 +921,20 @@ var
     pass: TLInt;
     m_idx, j: TLInt;
     dsc1, dsc2: PDescriptor;
-    minf, next_minf: TLFloat;
-    d: Double;
+    minf, next_minf: TGFloat;
+    d: TGFloat;
     PD: PMatchInfo;
   begin
-    for pass := 0 to pf1_len - 1 do
-      for j := 0 to pf2_len - 1 do
-          sqr_memory[pass, j] := e_sqr(pf1[pass], pf2[j]);
-
     for pass := 0 to pf1_len - 1 do
       begin
         dsc1 := pf1[pass];
         m_idx := -1;
-        minf := MaxRealNumber;
+        minf := MaxFloatN;
         next_minf := minf;
         // find dsc1 from feat2
         for j := 0 to pf2_len - 1 do
           begin
-            d := Min(sqr_memory[pass, j], next_minf);
+            d := Min(e_sqr(pf1[pass], pf2[j]), next_minf);
             if (d < minf) then
               begin
                 next_minf := minf;
@@ -862,7 +954,7 @@ var
         for j := 0 to pf1_len - 1 do
           if j <> pass then
             begin
-              d := Min(sqr_memory[j, m_idx], next_minf);
+              d := Min(e_sqr(pf1[j], pf2[m_idx]), next_minf);
               next_minf := Min(next_minf, d);
             end;
         if (minf > reject_ratio_sqr * next_minf) then
@@ -910,38 +1002,28 @@ begin
     end;
 
   L := TCoreClassList.Create;
-  SetLength(sqr_memory, pf1_len, pf2_len);
   reject_ratio_sqr := CMATCH_REJECT_NEXT_RATIO * CMATCH_REJECT_NEXT_RATIO;
 
 {$IFDEF parallel}
 {$IFDEF FPC}
-  ProcThreadPool.DoParallelLocalProc(@Nested_ParallelFor_sqr, 0, pf1_len - 1);
   ProcThreadPool.DoParallelLocalProc(@Nested_ParallelFor, 0, pf1_len - 1);
 {$ELSE FPC}
   TParallel.for(0, pf1_len - 1, procedure(pass: Integer)
     var
-      j: TLInt;
-    begin
-      for j := 0 to pf2_len - 1 do
-          sqr_memory[pass, j] := e_sqr(pf1[pass], pf2[j]);
-    end);
-
-  TParallel.for(0, pf1_len - 1, procedure(pass: Integer)
-    var
       m_idx, j: TLInt;
       dsc1, dsc2: PDescriptor;
-      minf, next_minf: TLFloat;
-      d: Double;
+      minf, next_minf: TGFloat;
+      d: TGFloat;
       PD: PMatchInfo;
     begin
       dsc1 := pf1[pass];
       m_idx := -1;
-      minf := MaxRealNumber;
+      minf := MaxFloatN;
       next_minf := minf;
       // find dsc1 from feat2
       for j := 0 to pf2_len - 1 do
         begin
-          d := Min(sqr_memory[pass, j], next_minf);
+          d := Min(e_sqr(pf1[pass], pf2[j]), next_minf);
           if (d < minf) then
             begin
               next_minf := minf;
@@ -961,7 +1043,7 @@ begin
       for j := 0 to pf1_len - 1 do
         if j <> pass then
           begin
-            d := Min(sqr_memory[j, m_idx], next_minf);
+            d := Min(e_sqr(pf1[j], pf2[m_idx]), next_minf);
             next_minf := Min(next_minf, d);
           end;
       if (minf > reject_ratio_sqr * next_minf) then
@@ -970,7 +1052,6 @@ begin
       new(PD);
       PD^.d1 := pf1[pass];
       PD^.d2 := pf2[m_idx];
-      PD^.Dist := sqr_memory[pass, m_idx];
       LockObject(L);
       L.Add(PD);
       UnLockObject(L);
@@ -979,8 +1060,6 @@ begin
 {$ELSE parallel}
   DoFor;
 {$ENDIF parallel}
-  // free cache
-  SetLength(sqr_memory, 0, 0);
   // fill result
   Result := L.Count;
   FillMatchInfoAndFreeTemp;
@@ -988,14 +1067,14 @@ begin
   DisposeObject(L);
 end;
 
-function BuildMatchInfoView(var MatchInfo: TArrayMatchInfo; const RectWidth: TLInt; const ViewFeature: Boolean): TMemoryRaster;
+function BuildMatchInfoView(var MatchInfo: TArrayMatchInfo; const FeatureDiameter: TGFloat; const ViewFeature: Boolean): TMemoryRaster;
 var
   mr1, mr2: TMemoryRaster;
   FT1, FT2: TFeature;
   c: Byte;
   i, j: TLInt;
 
-  bV1, bV2: TVec2;
+  bFT1V1, bFT2V1, bFT1V2, bFT2V2: TVec2;
 
   p: PMatchInfo;
   RC: TRasterColor;
@@ -1013,8 +1092,8 @@ begin
 
   if ViewFeature then
     begin
-      mr1 := FT1.CreateFeatureViewer(8, RasterColorF(0.4, 0.1, 0.1, 0.5));
-      mr2 := FT2.CreateFeatureViewer(8, RasterColorF(0.4, 0.1, 0.1, 0.5));
+      mr1 := FT1.CreateFeatureViewer(FeatureDiameter * 0.5, RasterColorF(0.4, 0.1, 0.1, 0.5));
+      mr2 := FT2.CreateFeatureViewer(FeatureDiameter * 0.5, RasterColorF(0.4, 0.1, 0.1, 0.5));
     end
   else
     begin
@@ -1026,29 +1105,35 @@ begin
   Result.Draw(0, 0, mr1);
   Result.Draw(mr1.width, 0, mr2);
   Result.OpenAgg;
+  Result.Agg.LineWidth := FeatureDiameter * 0.25;
 
-  bV1 := FT1.FInternalVec;
-  bV2 := FT2.FInternalVec;
+  bFT1V1 := FT1.FeatureMatchedVec1;
+  bFT2V1 := FT2.FeatureMatchedVec1;
+  bFT1V2 := FT1.FeatureMatchedVec2;
+  bFT2V2 := FT2.FeatureMatchedVec2;
 
-  FT1.FInternalVec := vec2(0, 0);
-  FT2.FInternalVec := vec2(mr1.width, 0);
+  FT1.FeatureMatchedVec1 := vec2(0, 0);
+  FT2.FeatureMatchedVec1 := vec2(mr1.width, 0);
+
+  FT1.FeatureMatchedVec2 := mr1.Size2D;
+  FT2.FeatureMatchedVec2 := mr2.Size2D;
 
   for i := 0 to length(MatchInfo) - 1 do
     begin
       p := @MatchInfo[i];
-      RC := RasterColor(RandomRange(0, 255), RandomRange(0, 255), RandomRange(0, 255), 255);
-
-      v1 := Vec2Add(p^.d1^.AbsCoor, p^.d1^.Owner.FInternalVec);
-      v2 := Vec2Add(p^.d2^.AbsCoor, p^.d2^.Owner.FInternalVec);
-
-      Result.FillCircle(v1, RectWidth * 0.5, RC);
-      Result.FillCircle(v2, RectWidth * 0.5, RC);
-
+      RC := RasterColor(RandomRange(0, 255), RandomRange(0, 255), RandomRange(0, 255), $7F);
+      v1 := Vec2Add(Vec2Mul(p^.d1^.coor, p^.d1^.Owner.FeatureMatchedVec2), p^.d1^.Owner.FeatureMatchedVec1);
+      v2 := Vec2Add(Vec2Mul(p^.d2^.coor, p^.d2^.Owner.FeatureMatchedVec2), p^.d2^.Owner.FeatureMatchedVec1);
+      Result.FillCircle(v1, FeatureDiameter * 0.5, RC);
+      Result.FillCircle(v2, FeatureDiameter * 0.5, RC);
       Result.LineF(v1, v2, RC, True);
     end;
 
-  FT1.FInternalVec := bV1;
-  FT2.FInternalVec := bV2;
+  FT1.FeatureMatchedVec1 := bFT1V1;
+  FT2.FeatureMatchedVec1 := bFT2V1;
+  FT1.FeatureMatchedVec2 := bFT1V2;
+  FT2.FeatureMatchedVec2 := bFT2V2;
+
   DisposeObject([mr1, mr2]);
 end;
 
@@ -1694,8 +1779,8 @@ begin
   nowy := Round(ExtremaCoor[1]);
   nows := scale_id;
 
-  Offset := lvec(3);
-  Delta := lvec(3);
+  Offset := LVec(3);
+  Delta := LVec(3);
   dpDone := False;
   for i := 1 to COFFSET_DEPTH do
     begin
@@ -1756,7 +1841,7 @@ begin
   Result := ((Learn.AP_Sqr(dxx + dyy) / det) > Learn.AP_Sqr(CEDGE_RATIO + 1) / CEDGE_RATIO);
 end;
 
-function TPyramids.ComputePyramidCoor(const FilterEndge, FilterOri: Boolean; const ExtremaV2: TVec2; const pyr_id, scale_id: TLInt): TPyramidCoorList;
+function TPyramids.ComputePyramidCoor(FilterEndge, FilterOri: Boolean; const ExtremaV2: TVec2; const pyr_id, scale_id: TLInt): TPyramidCoorList;
 var
   RetCoords: TPyramidCoorList;
 
@@ -1787,7 +1872,7 @@ var
     exp_denom := 2 * Learn.AP_Sqr(gauss_weight_sigma);
     Rad := Round(PC.Scale * CORIENTATION_RADIUS);
 
-    hist := lvec(Orientation_Histogram_Binomial_Num);
+    hist := LVec(Orientation_Histogram_Binomial_Num);
 
     // compute gaussian weighted histogram with inside a circle
     for xx := -Rad to Rad do
@@ -1927,7 +2012,7 @@ begin
   SetLength(Pyramids, 0);
 end;
 
-constructor TPyramids.CreateWithRaster(const fn: string);
+constructor TPyramids.CreateWithRasterFile(const fn: string);
 var
   raster: TMemoryRaster;
 begin
@@ -1936,7 +2021,7 @@ begin
   DisposeObject(raster);
 end;
 
-constructor TPyramids.CreateWithRaster(const stream: TCoreClassStream);
+constructor TPyramids.CreateWithRasterStream(const stream: TCoreClassStream);
 var
   raster: TMemoryRaster;
 begin
@@ -2132,7 +2217,7 @@ var
     p: TPyramidCoorList;
   begin
     EP := PExtremaCoor(ExtremaList[pass]);
-    p := ComputePyramidCoor(ExtremaList.Count > CFILTER_MAX_KEYPOINT_ENDGE, FilterOri, EP^.RealCoor, EP^.pyr_id, EP^.scale_id);
+    p := ComputePyramidCoor((CFILTER_MAX_KEYPOINT_ENDGE > 0) and (ExtremaList.Count > CFILTER_MAX_KEYPOINT_ENDGE), FilterOri, EP^.RealCoor, EP^.pyr_id, EP^.scale_id);
     if p <> nil then
       begin
         LockObject(PyramidCoordOutput);
@@ -2152,7 +2237,7 @@ var
     for pass := 0 to ExtremaList.Count - 1 do
       begin
         EP := PExtremaCoor(ExtremaList[pass]);
-        p := ComputePyramidCoor(ExtremaList.Count > CFILTER_MAX_KEYPOINT_ENDGE, FilterOri, EP^.RealCoor, EP^.pyr_id, EP^.scale_id);
+        p := ComputePyramidCoor((CFILTER_MAX_KEYPOINT_ENDGE > 0) and (ExtremaList.Count > CFILTER_MAX_KEYPOINT_ENDGE), FilterOri, EP^.RealCoor, EP^.pyr_id, EP^.scale_id);
         if p <> nil then
           begin
             PyramidCoordOutput.Add(p, False);
@@ -2202,7 +2287,7 @@ begin
       p: TPyramidCoorList;
     begin
       EP := PExtremaCoor(ExtremaList[pass]);
-      p := ComputePyramidCoor(ExtremaList.Count > CFILTER_MAX_KEYPOINT_ENDGE, FilterOri, EP^.RealCoor, EP^.pyr_id, EP^.scale_id);
+      p := ComputePyramidCoor((CFILTER_MAX_KEYPOINT_ENDGE > 0) and (ExtremaList.Count > CFILTER_MAX_KEYPOINT_ENDGE), FilterOri, EP^.RealCoor, EP^.pyr_id, EP^.scale_id);
       if p <> nil then
         begin
           LockObject(PyramidCoordOutput);
@@ -2342,7 +2427,7 @@ begin
     end;
 end;
 
-procedure TFeature.ComputeDescriptor(const p: PPyramidCoor; var Desc: TLVec);
+procedure TFeature.ComputeDescriptor(const p: PPyramidCoor; var Desc: TDescriptorArray);
 
   procedure Compute_Interpolate(const ybin, xbin, hbin, Weight: TLFloat; var hist: TLMatrix);
   var
@@ -2379,7 +2464,7 @@ var
   Orientation, hist_w, exp_denom, y_rot, x_rot, cosort, sinort, ybin, xbin, now_mag, now_ort, Weight, hist_bin: TLFloat;
   radius, i, j, xx, yy, nowx, nowy: TLInt;
   hist: TLMatrix;
-  Sum: TLFloat;
+  Sum: TGFloat;
 begin
   mag := @(p^.Owner.Pyramids[p^.pyr_id].MagIntegral[p^.scale_id - 1]);
   ort := @(p^.Owner.Pyramids[p^.pyr_id].OrtIntegral[p^.scale_id - 1]);
@@ -2445,16 +2530,23 @@ begin
         end;
     end;
 
-  Desc := lvec(hist);
+  SetLength(Desc, CDESC_HIST_WIDTH * CDESC_HIST_WIDTH * CDESC_HIST_BIN_NUM);
+  xx := 0;
+  for i := 0 to length(hist) - 1 do
+    for j := 0 to length(hist[i]) - 1 do
+      begin
+        Desc[xx] := hist[i, j];
+        inc(xx);
+      end;
   SetLength(hist, 0, 0);
 
   if CDESC_PROCESS_LIGHT then
     begin
       Sum := 0;
       for i := 0 to length(Desc) - 1 do
-          LAdd(Sum, Desc[i]);
+          Sum := Sum + Desc[i];
       for i := 0 to length(Desc) - 1 do
-          Desc[i] := Learn.AP_Sqr(Desc[i] / Sum);
+          Desc[i] := GF_SQR(Desc[i] / Sum);
     end;
 end;
 
@@ -2509,8 +2601,6 @@ begin
   for i := 0 to length(FDescriptorBuff) - 1 do
     begin
       FDescriptorBuff[i].coor := FPyramidCoordList[i]^.RealCoor;
-      FDescriptorBuff[i].AbsCoor[0] := FPyramidCoordList[i]^.RealCoor[0] * Pyramids.FWidth;
-      FDescriptorBuff[i].AbsCoor[1] := FPyramidCoordList[i]^.RealCoor[1] * Pyramids.FHeight;
       FDescriptorBuff[i].Orientation := FPyramidCoordList[i]^.Orientation;
       FDescriptorBuff[i].index := i;
       FDescriptorBuff[i].Owner := Self;
@@ -2518,13 +2608,11 @@ begin
 
   FWidth := Pyramids.FWidth;
   FHeight := Pyramids.FHeight;
-  SetLength(FViewer, FHeight * FWidth);
-  for j := 0 to FHeight - 1 do
-    for i := 0 to FWidth - 1 do
-      begin
-        FViewer[i + j * FWidth] := Pyramids.FViewer.PixelGray[i, j];
-        // FViewer[i + j * FWidth] := Round(Clamp(Pyramids.GaussTransformSpace[j, i], 0, 1) * 255);
-      end;
+  // SetLength(FViewer, FHeight * FWidth);
+  // for j := 0 to FHeight - 1 do
+  // for i := 0 to FWidth - 1 do
+  // // FViewer[i + j * FWidth] := Pyramids.FViewer.PixelGray[i, j];
+  // FViewer[i + j * FWidth] := Round(Clamp(Pyramids.GaussTransformSpace[j, i], 0, 1) * 255);
 end;
 
 constructor TFeature.CreateWithPyramids(Pyramids: TPyramids);
@@ -2532,14 +2620,15 @@ begin
   inherited Create;
   FWidth := 0;
   FHeight := 0;
-  SetLength(FViewer, 0);
-  FInternalVec := ZeroVec2;
+  FeatureMatchedVec1 := ZeroVec2;
+  FeatureMatchedVec2 := ZeroVec2;
   FUserData := nil;
   FPyramidCoordList := nil;
   BuildFeature(Pyramids);
+  LinkRaster := nil;
 end;
 
-constructor TFeature.CreateWithRaster(const raster: TMemoryRaster; const Clip: TVec2List);
+constructor TFeature.CreateWithRasterClip(const raster: TMemoryRaster; const Clip: TVec2List);
 var
   Pyramids: TPyramids;
 begin
@@ -2549,7 +2638,7 @@ begin
   DisposeObject(Pyramids);
 end;
 
-constructor TFeature.CreateWithRaster(const raster: TMemoryRaster; var mat: TLBMatrix);
+constructor TFeature.CreateWithRasterClipMatrix(const raster: TMemoryRaster; var mat: TLBMatrix);
 var
   Pyramids: TPyramids;
 begin
@@ -2568,20 +2657,20 @@ begin
   DisposeObject(Pyramids);
 end;
 
-constructor TFeature.CreateWithRaster(const fn: string);
+constructor TFeature.CreateWithRasterFile(const fn: string);
 var
   Pyramids: TPyramids;
 begin
-  Pyramids := TPyramids.CreateWithRaster(fn);
+  Pyramids := TPyramids.CreateWithRasterFile(fn);
   CreateWithPyramids(Pyramids);
   DisposeObject(Pyramids);
 end;
 
-constructor TFeature.CreateWithRaster(const stream: TCoreClassStream);
+constructor TFeature.CreateWithRasterStream(const stream: TCoreClassStream);
 var
   Pyramids: TPyramids;
 begin
-  Pyramids := TPyramids.CreateWithRaster(stream);
+  Pyramids := TPyramids.CreateWithRasterStream(stream);
   CreateWithPyramids(Pyramids);
   DisposeObject(Pyramids);
 end;
@@ -2600,11 +2689,12 @@ begin
   inherited Create;
   FWidth := 0;
   FHeight := 0;
-  SetLength(FViewer, 0);
-  FInternalVec := ZeroVec2;
+  FeatureMatchedVec1 := ZeroVec2;
+  FeatureMatchedVec2 := ZeroVec2;
   FUserData := nil;
   FPyramidCoordList := nil;
   SetLength(FDescriptorBuff, 0);
+  LinkRaster := nil;
 end;
 
 destructor TFeature.Destroy;
@@ -2612,7 +2702,6 @@ begin
   SetLength(FDescriptorBuff, 0);
   if FPyramidCoordList <> nil then
       DisposeObject(FPyramidCoordList);
-  SetLength(FViewer, 0);
   inherited Destroy;
 end;
 
@@ -2637,15 +2726,13 @@ begin
   for i := 0 to L - 1 do
     begin
       p := @FDescriptorBuff[i];
-      stream.write(p^.descriptor[0], DESCRIPTOR_LENGTH * SizeOf(TLFloat));
+      stream.write(p^.descriptor[0], DESCRIPTOR_LENGTH * SizeOf(TGFloat));
       stream.write(p^.coor[0], SizeOf(TVec2));
-      stream.write(p^.AbsCoor[0], SizeOf(TVec2));
       stream.write(p^.Orientation, SizeOf(TGFloat));
     end;
 
   stream.write(FWidth, 4);
   stream.write(FHeight, 4);
-  stream.write(FViewer[0], FHeight * FWidth);
 end;
 
 procedure TFeature.LoadFromStream(stream: TCoreClassStream);
@@ -2658,9 +2745,8 @@ begin
   for i := 0 to L - 1 do
     begin
       SetLength(FDescriptorBuff[i].descriptor, DESCRIPTOR_LENGTH);
-      stream.read(FDescriptorBuff[i].descriptor[0], DESCRIPTOR_LENGTH * SizeOf(TLFloat));
+      stream.read(FDescriptorBuff[i].descriptor[0], DESCRIPTOR_LENGTH * SizeOf(TGFloat));
       stream.read(FDescriptorBuff[i].coor[0], SizeOf(TVec2));
-      stream.read(FDescriptorBuff[i].AbsCoor[0], SizeOf(TVec2));
       stream.read(FDescriptorBuff[i].Orientation, SizeOf(TGFloat));
       FDescriptorBuff[i].index := i;
       FDescriptorBuff[i].Owner := Self;
@@ -2668,22 +2754,16 @@ begin
 
   stream.read(FWidth, 4);
   stream.read(FHeight, 4);
-  SetLength(FViewer, FHeight * FWidth);
-  stream.read(FViewer[0], FHeight * FWidth);
 end;
 
 function TFeature.CreateViewer: TMemoryRaster;
-var
-  i: TLInt;
-  c: Byte;
 begin
   Result := NewRaster();
-  Result.SetSize(FWidth, FHeight);
-  for i := FWidth * FHeight - 1 downto 0 do
-    begin
-      c := FViewer[i];
-      Result.Bits^[i] := RasterColor(c, c, c);
-    end;
+
+  if LinkRaster <> nil then
+      Result.Assign(LinkRaster)
+  else
+      Result.SetSize(FWidth, FHeight, RasterColor(0, 0, 0, $FF));
 end;
 
 function TFeature.CreateFeatureViewer(const FeatureRadius: TGFloat; const COLOR: TRasterColor): TMemoryRaster;
@@ -2692,7 +2772,8 @@ var
   L: TLInt;
   invColor: TRasterColor;
   p: PDescriptor;
-  v1, v2: TVec2;
+  v1, v2, v3: TVec2;
+
 begin
   Result := CreateViewer;
   if Count = 0 then
@@ -2700,41 +2781,22 @@ begin
 
   Result.OpenAgg;
   L := Round(FeatureRadius * 2);
+  Result.Agg.LineWidth := FeatureRadius * 0.5;
 
   invColor := RasterColorInv(COLOR);
+
+  v3 := Result.Size2D;
 
   for i := 0 to Count - 1 do
     begin
       p := GetFD(i);
-      v2 := p^.AbsCoor;
+      v2 := Vec2Mul(p^.coor, v3);
       Result.DrawCircle(v2, Max(L div 2, 3) - 1, COLOR);
 
-      v1[0] := v2[0] + (FeatureRadius) * Cos(p^.Orientation);
-      v1[1] := v2[1] + (FeatureRadius) * Sin(p^.Orientation);
-      Result.LineF(p^.AbsCoor, v1, invColor, False);
+      v1[0] := v2[0] + (L) * Cos(p^.Orientation);
+      v1[1] := v2[1] + (L) * Sin(p^.Orientation);
+      Result.LineF(Vec2Mul(p^.coor, v3), v1, invColor, False);
     end;
-end;
-
-procedure TestPyramidSpace;
-var
-  f1, f2: TFeature;
-  M: TArrayMatchInfo;
-  raster: TMemoryRaster;
-  f: TLFloat;
-begin
-  f1 := TFeature.CreateWithRaster('c:\1.bmp');
-  f2 := TFeature.CreateWithRaster('c:\2.bmp');
-  f := MatchFeature(f1, f2, M);
-
-  raster := BuildMatchInfoView(M, 10, True);
-  if raster <> nil then
-    begin
-      SaveRaster(raster, 'c:\4.bmp');
-      DisposeObject(raster);
-    end;
-
-  DisposeObject(f1);
-  DisposeObject(f2);
 end;
 
 initialization
@@ -2745,30 +2807,30 @@ CGREEN_WEIGHT_SAMPLER := 1.0;
 CBLUE_WEIGHT_SAMPLER := 1.0;
 CSAMPLER_MODE := TGSamplerMode.gsmGray;
 CMAX_GRAY_COLOR_SAMPLER := 255;
-CMAX_SAMPLER_WIDTH := 1024;
-CMAX_SAMPLER_HEIGHT := 1024;
+CMAX_SAMPLER_WIDTH := 512;
+CMAX_SAMPLER_HEIGHT := 512;
 
 // gauss kernal
 CGAUSS_KERNEL_FACTOR := 3;
 
-// pyramidoctave
-CNUMBER_OCTAVE := 5;
+// pyramid octave
+CNUMBER_OCTAVE := 7;
 
 // scalespace(SS) and difference of Gaussian Space(DOG)
-CNUMBER_SCALE := 7;
+CNUMBER_SCALE := 9;
 
 // pyramid scale space factor
 CSCALE_FACTOR := 1.4142135623730950488;
 CSIGMA_FACTOR := 1.4142135623730950488;
 
 // Extrema
-CGRAY_THRESHOLD := 5.0E-2;
-CEXTREMA_DIFF_THRESHOLD := 2.0E-5;
-CFILTER_MAX_KEYPOINT_ENDGE := 3000;
+CGRAY_THRESHOLD := 1.0E-2;
+CEXTREMA_DIFF_THRESHOLD := 9.0E-6;
+CFILTER_MAX_KEYPOINT_ENDGE := 10000;
 
 // orientation
-COFFSET_DEPTH := 15;
-COFFSET_THRESHOLD := 0.6;
+COFFSET_DEPTH := 32;
+COFFSET_THRESHOLD := 0.5;
 CCONTRAST_THRESHOLD := 3.0E-2;
 CEDGE_RATIO := 2.0;
 CORIENTATION_RADIUS := 15;
@@ -2776,8 +2838,14 @@ CORIENTATION_SMOOTH_COUNT := 256;
 
 // feature
 CMATCH_REJECT_NEXT_RATIO := 0.8;
-CDESC_SCALE_FACTOR := 16;
-CDESC_PROCESS_LIGHT := True;
+CDESC_SCALE_FACTOR := 8;
+CDESC_PROCESS_LIGHT := False;
+
+{$IF Defined(Delphi) and Defined(MSWINDOWS)}
+sqr_128 := {$IFDEF FPC}@{$ENDIF FPC}sse_sqr_128;
+{$ELSE}
+  sqr_128 := {$IFDEF FPC}@{$ENDIF FPC}pascal_sqr_128;
+{$IFEND}
 
 finalization
 

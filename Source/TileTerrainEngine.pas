@@ -128,14 +128,14 @@ begin
   _TextString := _1T;
   _1T := umlGetFirstStr(_TextString, _MultiTextrueNameSplitText);
   _Prefix := '~' + umlGetFirstStr(_2T, '~');
-  while umlExistsLimitChar(_TextString, _MultiTextrueNameSplitText) do
+  while umlExistsChar(_TextString, _MultiTextrueNameSplitText) do
     begin
       _TextString := umlDeleteFirstStr(_TextString, _MultiTextrueNameSplitText);
       if not umlMultipleMatch(True, _Prefix + '~*', umlGetFirstStr(_TextString, _MultiTextrueNameSplitText)) then
           _1T := _1T + '|' + umlGetFirstStr(_TextString, _MultiTextrueNameSplitText);
     end;
 
-  if not umlExistsLimitChar(_TextString, _MultiTextrueNameSplitText) then
+  if not umlExistsChar(_TextString, _MultiTextrueNameSplitText) then
     begin
       if not umlMultipleMatch(True, umlGetFirstStr(_1T, '~'), _Prefix) then
           _1T := _1T + '|' + _2T;
@@ -153,7 +153,7 @@ end;
 
 function Compare2Texture(_TexName, _NewName: U_String): Boolean;
 begin
-  if umlExistsLimitChar(_TexName, _MultiTextrueNameSplitText) then
+  if umlExistsChar(_TexName, _MultiTextrueNameSplitText) then
       Result := umlMultipleMatch(True, _NewName,
       umlGetLastStr(_TexName, _MultiTextrueNameSplitText))
   else
@@ -168,7 +168,7 @@ var
 begin
   _N := _TexName;
 
-  if umlExistsLimitChar(_N, _MultiTextrueNameSplitText) then
+  if umlExistsChar(_N, _MultiTextrueNameSplitText) then
     begin
       repeat
         _T := umlGetFirstStr(_N, _MultiTextrueNameSplitText);
@@ -224,7 +224,7 @@ begin
   _AsList.Clear;
   _N := _TexName;
 
-  if umlExistsLimitChar(_N, _MultiTextrueNameSplitText) then
+  if umlExistsChar(_N, _MultiTextrueNameSplitText) then
     begin
       repeat
         _T := umlGetFirstStr(_N, _MultiTextrueNameSplitText);
@@ -252,12 +252,12 @@ function IsAllFullClient(_TexName, _NewTTPrefix: U_String): Boolean;
 var
   _FirstN, _N: U_String;
 begin
-  if umlExistsLimitChar(_TexName, _MultiTextrueNameSplitText) then
+  if umlExistsChar(_TexName, _MultiTextrueNameSplitText) then
     begin
       _N := _TexName;
       _FirstN := umlGetFirstStr(_N, _MultiTextrueNameSplitText);
       Result := umlMultipleMatch(True, _NewTTPrefix + _Texture_AllFullClient, _FirstN);
-      while (Result) and (umlExistsLimitChar(_N, _MultiTextrueNameSplitText)) do
+      while (Result) and (umlExistsChar(_N, _MultiTextrueNameSplitText)) do
         begin
           _N := umlDeleteFirstStr(_N, _MultiTextrueNameSplitText);
           _FirstN := umlGetFirstStr(_N, _MultiTextrueNameSplitText);

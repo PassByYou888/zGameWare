@@ -1,13 +1,25 @@
-{$REGION 'ClassImp'}
-
-
 procedure TLearn.KDInput(const IndexFor: NativeInt; var Source: TKDTree_Source; const Data: Pointer);
 var
+  p: PLearnMemory;
   i: TLInt;
 begin
+  p := PLearnMemory(FMemorySource[IndexFor]);
   Source.index := IndexFor;
   for i := 0 to FInLen - 1 do
-      Source.buff[i] := PLearnMemory(FMemorySource[IndexFor])^.m_in[i];
+      Source.buff[i] := p^.m_in[i];
+  Source.token := p^.token;
+end;
+
+procedure TLearn.TokenInput(const IndexFor: NativeInt; var Source: TKDTree_Source; const Data: Pointer);
+var
+  p: PLearnMemory;
+  i: TLInt;
+begin
+  p := PLearnMemory(FMemorySource[IndexFor]);
+  Source.index := IndexFor;
+  for i := 0 to FOutLen - 1 do
+      Source.buff[i] := p^.m_out[i];
+  Source.token := p^.token;
 end;
 
 procedure TLearn.FreeLearnData;
@@ -17,7 +29,7 @@ begin
       case FLearnType of
         ltKDT, ltKM:
           begin
-            DisposeObject(PLearnKDT(FLearnData)^.kdt);
+            DisposeObject(PLearnKDT(FLearnData)^.K);
             Dispose(PLearnKDT(FLearnData));
             FLearnData := nil;
           end;
@@ -63,7 +75,7 @@ begin
         if not isTrainTime then
           begin
             new(p_k);
-            p_k^.kdt := TKDTree.Create(FInLen);
+            p_k^.K := TKDTree.Create(FInLen);
             FLearnData := p_k;
           end;
       end;
@@ -171,6 +183,7 @@ begin
         end;
 
       FMemorySource := TCoreClassList.Create;
+      FKDToken := TKDTree.Create(FOutLen);
       FLearnType := lt;
 
       FLearnData := nil;
@@ -213,6 +226,7 @@ begin
         end;
 
       FMemorySource := TCoreClassList.Create;
+      FKDToken := TKDTree.Create(FOutLen);
       FLearnType := lt;
 
       FLearnData := nil;
@@ -255,6 +269,7 @@ begin
         end;
 
       FMemorySource := TCoreClassList.Create;
+      FKDToken := TKDTree.Create(FOutLen);
       FLearnType := lt;
 
       FLearnData := nil;
@@ -286,6 +301,7 @@ begin
       FInLen := InDataLen;
       FOutLen := 1;
       FMemorySource := TCoreClassList.Create;
+      FKDToken := TKDTree.Create(FOutLen);
       FLearnType := lt;
 
       FLearnData := nil;
@@ -317,6 +333,7 @@ begin
       FInLen := InDataLen;
       FOutLen := 1;
       FMemorySource := TCoreClassList.Create;
+      FKDToken := TKDTree.Create(FOutLen);
       FLearnType := lt;
 
       FLearnData := nil;
@@ -348,6 +365,7 @@ begin
       FInLen := InDataLen;
       FOutLen := 1;
       FMemorySource := TCoreClassList.Create;
+      FKDToken := TKDTree.Create(FOutLen);
       FLearnType := lt;
 
       FLearnData := nil;
@@ -366,24 +384,6 @@ begin
     end;
 end;
 
-// picture classifier style
-class function TLearn.CreatePictureClassifier(const lt: TLearnType; const SamplerWidth: TLInt): TLearn;
-begin
-  Result := TLearn.CreateClassifier(lt, SamplerWidth * SamplerWidth);
-end;
-
-// regression style with fast Histogram of Oriented Gradient
-class function TLearn.CreateHOGRegression(const lt: TLearnType; const OutDataLen: TLInt): TLearn;
-begin
-  Result := TLearn.CreateRegression(lt, SYSTEM_HOG_FEATURESIZE, OutDataLen);
-end;
-
-// classifier style with fast Histogram of Oriented Gradient
-class function TLearn.CreateHOGClassifier(const lt: TLearnType): TLearn;
-begin
-  Result := TLearn.CreateClassifier(lt, SYSTEM_HOG_FEATURESIZE);
-end;
-
 constructor TLearn.Create;
 begin
   inherited Create;
@@ -391,6 +391,7 @@ begin
   FInLen := 1;
   FOutLen := 1;
   FMemorySource := nil;
+  FKDToken := nil;
   FLearnType := ltKDT;
   FLearnData := nil;
   FClassifier := True;
@@ -422,6 +423,12 @@ begin
       FMemorySource := nil;
     end;
 
+  if FKDToken <> nil then
+    begin
+      DisposeObject(FKDToken);
+      FKDToken := nil;
+    end;
+
   FreeLearnData;
 
   FInLen := 0;
@@ -433,6 +440,7 @@ end;
 procedure TLearn.Clear;
 var
   i: TLInt;
+  p: PLearnMemory;
   p_k: PLearnKDT;
   p_f: PDecisionForest;
   p_logit: PLogitModel;
@@ -445,9 +453,11 @@ begin
     begin
       for i := 0 to FMemorySource.Count - 1 do
         begin
-          SetLength(PLearnMemory(FMemorySource[i])^.m_in, 0);
-          SetLength(PLearnMemory(FMemorySource[i])^.m_out, 0);
-          Dispose(PLearnMemory(FMemorySource[i]));
+          p := PLearnMemory(FMemorySource[i]);
+          SetLength(p^.m_in, 0);
+          SetLength(p^.m_out, 0);
+          p^.token := '';
+          Dispose(p);
         end;
       DisposeObject(FMemorySource);
       FMemorySource := nil;
@@ -472,7 +482,7 @@ begin
   Result := PLearnMemory(FMemorySource[index]);
 end;
 
-procedure TLearn.AddMemory(const f_In, f_Out: TLVec);
+procedure TLearn.AddMemory(const f_In, f_Out: TLVec; f_token: SystemString);
 var
   p: PLearnMemory;
   i: TLInt;
@@ -497,28 +507,58 @@ begin
   CopyPtr(@f_In[0], @(p^.m_in[0]), FInLen * SizeOf(TLFloat));
   SetLength(p^.m_out, FOutLen);
   CopyPtr(@f_Out[0], @(p^.m_out[0]), FOutLen * SizeOf(TLFloat));
+  p^.token := f_token;
 
   FMemorySource.Add(p);
 end;
 
-procedure TLearn.AddMemory(const s_In, s_Out: SystemString);
+procedure TLearn.AddMemory(const f_In: TLVec; f_token: SystemString);
+var
+  f_Out: TLVec;
+begin
+  f_Out := LVec(FOutLen);
+  LSetVec(f_Out, Count);
+  AddMemory(f_In, f_Out, f_token);
+  SetLength(f_Out, 0);
+end;
+
+procedure TLearn.AddMemory(const f_In, f_Out: TLVec);
+begin
+  AddMemory(f_In, f_Out, LVec(f_Out));
+end;
+
+procedure TLearn.AddMemory(const s_In, s_Out, s_token: SystemString);
 var
   f_In, f_Out: TLVec;
 begin
-  f_In := lvec(s_In, FInLen);
-  f_Out := lvec(s_Out, FOutLen);
-  AddMemory(f_In, f_Out);
+  f_In := LVec(s_In, FInLen);
+  f_Out := LVec(s_Out, FOutLen);
+  AddMemory(f_In, f_Out, s_token);
   SetLength(f_In, 0);
   SetLength(f_Out, 0);
+end;
+
+procedure TLearn.AddMemory(const s_In, s_Out: SystemString);
+begin
+  AddMemory(s_In, s_Out, s_Out);
 end;
 
 procedure TLearn.AddMemory(const s: TPascalString);
 var
   s_In, s_Out: TPascalString;
+  v: TLVec;
 begin
   s_In := umlGetFirstStr(s, '=');
   s_Out := umlGetLastStr(s, '=');
-  AddMemory(s_In.Text, s_Out.Text);
+  if s_Out.Exists(',') or umlIsNumber(s_Out) then
+      AddMemory(s_In.Text, s_Out.Text)
+  else
+    begin
+      v := LVec(FOutLen);
+      LSetVec(v, Count);
+      AddMemory(s_In.Text, LVec(v), s_Out.Text);
+      SetLength(v, 0);
+    end;
 end;
 
 procedure TLearn.AddSampler(const f_In, f_Out: TLVec);
@@ -540,8 +580,17 @@ procedure TLearn.AddMatrix(const m_in: TLMatrix; const f_Out: TLVec);
 var
   f_In: TLVec;
 begin
-  f_In := lvec(m_in, FInLen);
+  f_In := LVec(m_in, FInLen);
   AddMemory(f_In, f_Out);
+  SetLength(f_In, 0);
+end;
+
+procedure TLearn.AddMatrix(const m_in: TLMatrix; const f_Out: TLVec; const f_token: SystemString);
+var
+  f_In: TLVec;
+begin
+  f_In := LVec(m_in, FInLen);
+  AddMemory(f_In, f_Out, f_token);
   SetLength(f_In, 0);
 end;
 
@@ -639,14 +688,16 @@ begin
   if not FEnabledRandomNumber then
       RandSeed := 0;
 
+  FKDToken.BuildKDTreeM(FMemorySource.Count, nil, {$IFDEF FPC}@{$ENDIF FPC}TokenInput);
+
   try
     case FLearnType of
       ltKDT:
         begin
           CreateLearnData(True);
           p_k := PLearnKDT(FLearnData);
-          p_k^.kdt.Clear;
-          p_k^.kdt.BuildKDTreeM(FMemorySource.Count, nil, {$IFDEF FPC}@{$ENDIF FPC}KDInput);
+          p_k^.K.Clear;
+          p_k^.K.BuildKDTreeM(FMemorySource.Count, nil, {$IFDEF FPC}@{$ENDIF FPC}KDInput);
           FInfo := 'task has been solved';
           Result := True;
         end;
@@ -654,14 +705,14 @@ begin
         begin
           CreateLearnData(True);
           p_k := PLearnKDT(FLearnData);
-          p_k^.kdt.Clear;
+          p_k^.K.Clear;
           if (TrainDepth > 1) and (not FClassifier) and (TrainDepth < FMemorySource.Count) then
             begin
-              p_k^.kdt.BuildKDTreeWithClusterM(FMemorySource.Count, TrainDepth, 1, kmIndexOut, nil, {$IFDEF FPC}@{$ENDIF FPC}KDInput);
+              p_k^.K.BuildKDTreeWithClusterM(FMemorySource.Count, TrainDepth, 1, kmIndexOut, nil, {$IFDEF FPC}@{$ENDIF FPC}KDInput);
             end
           else
             begin
-              p_k^.kdt.BuildKDTreeM(FMemorySource.Count, nil, {$IFDEF FPC}@{$ENDIF FPC}KDInput);
+              p_k^.K.BuildKDTreeM(FMemorySource.Count, nil, {$IFDEF FPC}@{$ENDIF FPC}KDInput);
             end;
           FInfo := 'task has been solved';
           Result := True;
@@ -674,6 +725,7 @@ begin
               DFBuildRandomDecisionForest(buff, length(buff), FInLen, Max(1, Round(FLastTrainMaxOutValue) + 1), 100, 1, rInfo, p_f^, DFRep)
           else
               DFBuildRandomDecisionForest(buff, length(buff), FInLen, 1, 100, 1, rInfo, p_f^, DFRep);
+
           FreeInternalData;
           case rInfo of
             1: FInfo := 'task has been solved';
@@ -702,7 +754,8 @@ begin
         begin
           BuildInternalData;
           p_n := PMultiLayerPerceptron(FLearnData);
-          MLPTrainLM(p_n^, buff, length(buff), 0.001, TrainDepth, rInfo, mlReport);
+          MLPTrainLM(p_n^, buff, length(buff), 0.01, TrainDepth, rInfo, mlReport);
+
           FreeInternalData;
           case rInfo of
             2: FInfo := 'task has been solved';
@@ -717,7 +770,8 @@ begin
         begin
           BuildInternalData;
           p_n := PMultiLayerPerceptron(FLearnData);
-          MLPTrainLM_MT(p_n^, buff, length(buff), 0.001, TrainDepth, rInfo, mlReport);
+          MLPTrainLM_MT(p_n^, buff, length(buff), 0.01, TrainDepth, rInfo, mlReport);
+
           FreeInternalData;
           case rInfo of
             2: FInfo := 'task has been solved';
@@ -733,7 +787,8 @@ begin
           BuildInternalData;
           p_n := PMultiLayerPerceptron(FLearnData);
           IsTerminated := False;
-          MLPTrainLBFGS(p_n^, buff, length(buff), 0.001, TrainDepth, 0.01, 500, rInfo, mlReport, @IsTerminated, EBest);
+          MLPTrainLBFGS(p_n^, buff, length(buff), 0.01, TrainDepth, 0.01, 500, rInfo, mlReport, @IsTerminated, EBest);
+
           FreeInternalData;
           case rInfo of
             2: FInfo := 'task has been solved';
@@ -749,7 +804,7 @@ begin
           BuildInternalData;
           p_n := PMultiLayerPerceptron(FLearnData);
           IsTerminated := False;
-          MLPTrainLBFGS_MT(p_n^, buff, length(buff), 0.001, TrainDepth, 0.01, 500, rInfo, mlReport);
+          MLPTrainLBFGS_MT(p_n^, buff, length(buff), 0.01, TrainDepth, 0.01, 500, rInfo, mlReport);
           FreeInternalData;
           case rInfo of
             2: FInfo := 'task has been solved';
@@ -796,7 +851,7 @@ begin
         begin
           BuildInternalData;
           p_e := PMLPEnsemble(FLearnData);
-          MLPEBaggingLM(FLearnType = ltLM_Ensemble_MT, p_e^, buff, length(buff), 0.001, TrainDepth, rInfo, mlReport, CVRep);
+          MLPEBaggingLM(FLearnType = ltLM_Ensemble_MT, p_e^, buff, length(buff), 0.01, TrainDepth, rInfo, mlReport, CVRep);
           FreeInternalData;
           case rInfo of
             2: FInfo := 'task has been solved';
@@ -810,7 +865,7 @@ begin
         begin
           BuildInternalData;
           p_e := PMLPEnsemble(FLearnData);
-          MLPEBaggingLBFGS(FLearnType = ltLBFGS_Ensemble_MT, p_e^, buff, length(buff), 0.001, TrainDepth, 0.01, 500, rInfo, mlReport, CVRep);
+          MLPEBaggingLBFGS(FLearnType = ltLBFGS_Ensemble_MT, p_e^, buff, length(buff), 0.01, TrainDepth, 0.01, 500, rInfo, mlReport, CVRep);
           FreeInternalData;
           case rInfo of
             2: FInfo := 'task has been solved';
@@ -823,7 +878,9 @@ begin
         end;
     end;
   finally
-      FIsTraining := False;
+    FIsTraining := False;
+    if not Result then
+        DoStatus(FInfo);
   end;
 end;
 
@@ -906,7 +963,12 @@ begin
       CheckThreadSynchronize(1);
 end;
 
-function TLearn.process(const p_in, p_out: PLVec): Boolean;
+function TLearn.SearchToken(const v: TLVec): SystemString;
+begin
+  Result := FKDToken.SearchToken(v);
+end;
+
+function TLearn.Process(const p_in, p_out: PLVec): Boolean;
 var
   p_kd_node: PKDTree_Node;
   i: TLInt;
@@ -914,128 +976,145 @@ var
   List: TLIVec;
 begin
   Result := False;
-  if FIsTraining or FTrainThreadRuning then
-    begin
-      FInfo := 'wait training';
-      Exit;
+  try
+    if FIsTraining or FTrainThreadRuning then
+      begin
+        FInfo := 'wait training';
+        Exit;
+      end;
+    if length(p_in^) <> FInLen then
+      begin
+        FInfo := 'input length error';
+        Exit;
+      end;
+
+    case FLearnType of
+      ltKDT, ltKM:
+        begin
+          if PLearnKDT(FLearnData)^.K.Count > 0 then
+            begin
+              if FClassifier then
+                begin
+                  SearchMemoryDistance(p_in^, List);
+                  SetLength(p_out^, length(List));
+
+                  for i := 0 to length(List) - 1 do
+                      p_out^[List[i]] := (length(List) - 1) - i;
+                  SetLength(List, 0);
+                end
+              else
+                begin
+                  p_kd_node := PLearnKDT(FLearnData)^.K.Search(p_in^);
+                  SetLength(p_out^, FOutLen);
+                  if p_kd_node <> nil then
+                      CopyPtr(@(PLearnMemory(FMemorySource[p_kd_node^.vec^.index])^.m_out[0]), @p_out^[0], FOutLen * SizeOf(TLFloat));
+                end;
+              FInfo := 'successed';
+              Result := True;
+            end;
+        end;
+      ltForest:
+        begin
+          if length(PDecisionForest(FLearnData)^.Trees) > 0 then
+            begin
+              if FClassifier then
+                  SetLength(p_out^, Max(1, Round(FLastTrainMaxOutValue) + 1))
+              else
+                  SetLength(p_out^, 1);
+
+              DFProcess(PDecisionForest(FLearnData)^, p_in^, p_out^);
+              FInfo := 'successed';
+              Result := True;
+            end;
+        end;
+      ltLogit:
+        begin
+          if length(PLogitModel(FLearnData)^.w) > 0 then
+            begin
+              SetLength(p_out^, Max(2, Round(FLastTrainMaxOutValue) + 1));
+
+              MNLProcess(PLogitModel(FLearnData)^, p_in^, p_out^);
+              FInfo := 'successed';
+              Result := True;
+            end;
+        end;
+      ltLM, ltLM_MT, ltLBFGS, ltLBFGS_MT, ltLBFGS_MT_Mod, ltMonteCarlo:
+        begin
+          if FClassifier then
+              SetLength(p_out^, Max(2, Round(FLastTrainMaxOutValue) + 1))
+          else
+              SetLength(p_out^, FOutLen);
+
+          MLPProcess(PMultiLayerPerceptron(FLearnData)^, p_in^, p_out^);
+          FInfo := 'successed';
+          Result := True;
+        end;
+      ltLM_Ensemble, ltLM_Ensemble_MT, ltLBFGS_Ensemble, ltLBFGS_Ensemble_MT:
+        begin
+          if FClassifier then
+              SetLength(p_out^, Max(2, Round(FLastTrainMaxOutValue) + 1))
+          else
+              SetLength(p_out^, FOutLen);
+
+          MLPEProcess(PMLPEnsemble(FLearnData)^, p_in^, p_out^);
+          FInfo := 'successed';
+          Result := True;
+        end;
     end;
-  if length(p_in^) <> FInLen then
-    begin
-      FInfo := 'input length error';
-      Exit;
-    end;
-
-  case FLearnType of
-    ltKDT, ltKM:
-      begin
-        if PLearnKDT(FLearnData)^.kdt.Count > 0 then
-          begin
-            if FClassifier then
-              begin
-                SearchMemoryWithDistance(p_in^, List);
-                SetLength(p_out^, length(List));
-
-                for i := 0 to length(List) - 1 do
-                    p_out^[List[i]] := (length(List) - 1) - i;
-                SetLength(List, 0);
-              end
-            else
-              begin
-                p_kd_node := PLearnKDT(FLearnData)^.kdt.Search(p_in^);
-                SetLength(p_out^, FOutLen);
-                if p_kd_node <> nil then
-                    CopyPtr(@(PLearnMemory(FMemorySource[p_kd_node^.vec^.index])^.m_out[0]), @p_out^[0], FOutLen * SizeOf(TLFloat));
-              end;
-            FInfo := 'successed';
-            Result := True;
-          end;
-      end;
-    ltForest:
-      begin
-        if length(PDecisionForest(FLearnData)^.Trees) > 0 then
-          begin
-            if FClassifier then
-                SetLength(p_out^, Max(1, Round(FLastTrainMaxOutValue) + 1))
-            else
-                SetLength(p_out^, 1);
-
-            DFProcess(PDecisionForest(FLearnData)^, p_in^, p_out^);
-            FInfo := 'successed';
-            Result := True;
-          end;
-      end;
-    ltLogit:
-      begin
-        if length(PLogitModel(FLearnData)^.w) > 0 then
-          begin
-            SetLength(p_out^, Max(2, Round(FLastTrainMaxOutValue) + 1));
-
-            MNLProcess(PLogitModel(FLearnData)^, p_in^, p_out^);
-            FInfo := 'successed';
-            Result := True;
-          end;
-      end;
-    ltLM, ltLM_MT, ltLBFGS, ltLBFGS_MT, ltLBFGS_MT_Mod, ltMonteCarlo:
-      begin
-        if FClassifier then
-            SetLength(p_out^, Max(2, Round(FLastTrainMaxOutValue) + 1))
-        else
-            SetLength(p_out^, FOutLen);
-
-        MLPProcess(PMultiLayerPerceptron(FLearnData)^, p_in^, p_out^);
-        FInfo := 'successed';
-        Result := True;
-      end;
-    ltLM_Ensemble, ltLM_Ensemble_MT, ltLBFGS_Ensemble, ltLBFGS_Ensemble_MT:
-      begin
-        if FClassifier then
-            SetLength(p_out^, Max(2, Round(FLastTrainMaxOutValue) + 1))
-        else
-            SetLength(p_out^, FOutLen);
-
-        MLPEProcess(PMLPEnsemble(FLearnData)^, p_in^, p_out^);
-        FInfo := 'successed';
-        Result := True;
-      end;
+  finally
+    if not Result then
+        DoStatus(FInfo);
   end;
 end;
 
-function TLearn.process(const ProcessIn: PLVec): SystemString;
+function TLearn.Process(const ProcessIn: PLVec): SystemString;
 var
   ProcessOut: TLVec;
 begin
   Result := '';
-  if not process(ProcessIn, @ProcessOut) then
+  if not Process(ProcessIn, @ProcessOut) then
       Exit;
-  Result := lvec(ProcessOut, True);
+  Result := LVec(ProcessOut, True);
 end;
 
-function TLearn.process(const ProcessIn: TLVec): SystemString;
+function TLearn.Process(const ProcessIn: TLVec): SystemString;
 begin
-  Result := process(PLVec(@ProcessIn));
+  Result := Process(PLVec(@ProcessIn));
 end;
 
-function TLearn.process(const ProcessIn: TPascalString): SystemString;
+function TLearn.Process(const ProcessIn: TPascalString): SystemString;
 begin
-  Result := process(TKDTree.KDTreeVec(ProcessIn.Text));
+  Result := Process(TKDTree.KDTreeVec(ProcessIn.Text));
 end;
 
-function TLearn.processMatrix(const p_in: PLMatrix; const p_out: PLVec): Boolean;
+function TLearn.ProcessMatrix(const p_in: PLMatrix; const p_out: PLVec): Boolean;
 var
   f_In: TLVec;
 begin
-  f_In := lvec(p_in^, FInLen);
-  Result := process(@f_In, p_out);
+  f_In := LVec(p_in^, FInLen);
+  Result := Process(@f_In, p_out);
   SetLength(f_In, 0);
 end;
 
-function TLearn.processMax(const ProcessIn: TLVec): TLFloat;
+function TLearn.ProcessToken(const ProcessIn: PLVec): SystemString;
+var
+  ProcessOut: TLVec;
+begin
+  Result := '';
+  if not Process(ProcessIn, @ProcessOut) then
+      Exit;
+  Result := SearchToken(ProcessOut);
+  if Result = '' then
+      Result := LVec(ProcessOut, True);
+end;
+
+function TLearn.ProcessMax(const ProcessIn: TLVec): TLFloat;
 var
   ProcessOut: TLVec;
   i: TLInt;
 begin
   Result := 0;
-  if not process(@ProcessIn, @ProcessOut) then
+  if not Process(@ProcessIn, @ProcessOut) then
       Exit;
 
   Result := ProcessOut[0];
@@ -1048,55 +1127,96 @@ begin
   SetLength(ProcessOut, 0);
 end;
 
-function TLearn.processMax(const ProcessIn: TLMatrix): TLFloat;
+function TLearn.ProcessMax(const ProcessIn: TLMatrix): TLFloat;
 var
   f_In: TLVec;
 begin
-  f_In := lvec(ProcessIn, FInLen);
-  Result := processMax(f_In);
+  f_In := LVec(ProcessIn, FInLen);
+  Result := ProcessMax(f_In);
   SetLength(f_In, 0);
 end;
 
-function TLearn.processMaxIndex(const ProcessIn: TLVec): TLInt;
+function TLearn.ProcessMaxToken(const ProcessIn: TLVec): SystemString;
+begin
+  if FClassifier then
+      Result := ProcessMaxIndexToken(ProcessIn)
+  else
+      Result := '';
+end;
+
+function TLearn.ProcessMaxToken(const ProcessIn: TLMatrix): SystemString;
+begin
+  if FClassifier then
+      Result := ProcessMaxIndexToken(ProcessIn)
+  else
+      Result := '';
+end;
+
+function TLearn.ProcessMaxIndex(const ProcessIn: TLVec): TLInt;
 var
   ProcessOut: TLVec;
-  k: TLFloat;
+  K: TLFloat;
   i: TLInt;
 begin
   Result := -1;
-  if not process(@ProcessIn, @ProcessOut) then
+  if not Process(@ProcessIn, @ProcessOut) then
       Exit;
 
-  k := ProcessOut[0];
+  K := ProcessOut[0];
   Result := 0;
 
   if length(ProcessOut) > 1 then
     for i := 1 to length(ProcessOut) - 1 do
-      if ProcessOut[i] > k then
+      if ProcessOut[i] > K then
         begin
           Result := i;
-          k := ProcessOut[i];
+          K := ProcessOut[i];
         end;
 
   SetLength(ProcessOut, 0);
 end;
 
-function TLearn.processMaxIndex(const ProcessIn: TLMatrix): TLInt;
+function TLearn.ProcessMaxIndex(const ProcessIn: TLMatrix): TLInt;
 var
   f_In: TLVec;
 begin
-  f_In := lvec(ProcessIn, FInLen);
-  Result := processMaxIndex(f_In);
+  f_In := LVec(ProcessIn, FInLen);
+  Result := ProcessMaxIndex(f_In);
   SetLength(f_In, 0);
 end;
 
-function TLearn.processMin(const ProcessIn: TLVec): TLFloat;
+function TLearn.ProcessMaxIndexToken(const ProcessIn: TLVec): SystemString;
+var
+  i: TLInt;
+  p: PKDTree_Source;
+begin
+  Result := '';
+  if not FClassifier then
+      Exit;
+  i := ProcessMaxIndex(ProcessIn);
+  if (i >= 0) and (i < FKDToken.Count) then
+    begin
+      p := FKDToken.SourceP[i];
+      Result := p^.token;
+    end;
+end;
+
+function TLearn.ProcessMaxIndexToken(const ProcessIn: TLMatrix): SystemString;
+var
+  f_In: TLVec;
+begin
+  f_In := LVec(ProcessIn, FInLen);
+  Result := ProcessMaxIndexToken(f_In);
+  SetLength(f_In, 0);
+end;
+
+function TLearn.ProcessMin(const ProcessIn: TLVec): TLFloat;
 var
   ProcessOut: TLVec;
   i: TLInt;
 begin
   Result := 0;
-  if not process(@ProcessIn, @ProcessOut) then
+  if not Process(@ProcessIn, @ProcessOut) then
       Exit;
 
   Result := ProcessOut[0];
@@ -1109,54 +1229,95 @@ begin
   SetLength(ProcessOut, 0);
 end;
 
-function TLearn.processMin(const ProcessIn: TLMatrix): TLFloat;
+function TLearn.ProcessMin(const ProcessIn: TLMatrix): TLFloat;
 var
   f_In: TLVec;
 begin
-  f_In := lvec(ProcessIn, FInLen);
-  Result := processMin(f_In);
+  f_In := LVec(ProcessIn, FInLen);
+  Result := ProcessMin(f_In);
   SetLength(f_In, 0);
 end;
 
-function TLearn.processMinIndex(const ProcessIn: TLVec): TLInt;
+function TLearn.ProcessMinToken(const ProcessIn: TLVec): SystemString;
+begin
+  if FClassifier then
+      Result := ProcessMinIndexToken(ProcessIn)
+  else
+      Result := '';
+end;
+
+function TLearn.ProcessMinToken(const ProcessIn: TLMatrix): SystemString;
+begin
+  if FClassifier then
+      Result := ProcessMinIndexToken(ProcessIn)
+  else
+      Result := '';
+end;
+
+function TLearn.ProcessMinIndex(const ProcessIn: TLVec): TLInt;
 var
   ProcessOut: TLVec;
-  k: TLFloat;
+  K: TLFloat;
   i: TLInt;
 begin
   Result := -1;
-  if not process(@ProcessIn, @ProcessOut) then
+  if not Process(@ProcessIn, @ProcessOut) then
       Exit;
 
-  k := ProcessOut[0];
+  K := ProcessOut[0];
   Result := 0;
 
   if length(ProcessOut) > 1 then
     for i := 1 to length(ProcessOut) - 1 do
-      if ProcessOut[i] < k then
+      if ProcessOut[i] < K then
         begin
           Result := i;
-          k := ProcessOut[i];
+          K := ProcessOut[i];
         end;
 
   SetLength(ProcessOut, 0);
 end;
 
-function TLearn.processMinIndex(const ProcessIn: TLMatrix): TLInt;
+function TLearn.ProcessMinIndex(const ProcessIn: TLMatrix): TLInt;
 var
   f_In: TLVec;
 begin
-  f_In := lvec(ProcessIn, FInLen);
-  Result := processMinIndex(f_In);
+  f_In := LVec(ProcessIn, FInLen);
+  Result := ProcessMinIndex(f_In);
   SetLength(f_In, 0);
 end;
 
-function TLearn.processFV(const ProcessIn: TLVec): TLFloat;
+function TLearn.ProcessMinIndexToken(const ProcessIn: TLVec): SystemString;
+var
+  i: TLInt;
+  p: PKDTree_Source;
+begin
+  Result := '';
+  if not FClassifier then
+      Exit;
+  i := ProcessMinIndex(ProcessIn);
+  if (i >= 0) and (i < FKDToken.Count) then
+    begin
+      p := FKDToken.SourceP[i];
+      Result := p^.token;
+    end;
+end;
+
+function TLearn.ProcessMinIndexToken(const ProcessIn: TLMatrix): SystemString;
+var
+  f_In: TLVec;
+begin
+  f_In := LVec(ProcessIn, FInLen);
+  Result := ProcessMinIndexToken(f_In);
+  SetLength(f_In, 0);
+end;
+
+function TLearn.ProcessFV(const ProcessIn: TLVec): TLFloat;
 var
   ProcessOut: TLVec;
 begin
   Result := 0;
-  if not process(@ProcessIn, @ProcessOut) then
+  if not Process(@ProcessIn, @ProcessOut) then
       Exit;
 
   Result := ProcessOut[0];
@@ -1164,26 +1325,26 @@ begin
   SetLength(ProcessOut, 0);
 end;
 
-function TLearn.processFV(const ProcessIn: TLMatrix): TLFloat;
+function TLearn.ProcessFV(const ProcessIn: TLMatrix): TLFloat;
 var
   f_In: TLVec;
 begin
-  f_In := lvec(ProcessIn, FInLen);
-  Result := processFV(f_In);
+  f_In := LVec(ProcessIn, FInLen);
+  Result := ProcessFV(f_In);
   SetLength(f_In, 0);
 end;
 
-function TLearn.processFV(const ProcessIn: TPascalString): TLFloat;
+function TLearn.ProcessFV(const ProcessIn: TPascalString): TLFloat;
 begin
-  Result := processFV(TKDTree.KDTreeVec(ProcessIn.Text));
+  Result := ProcessFV(TKDTree.KDTreeVec(ProcessIn.Text));
 end;
 
-function TLearn.processLV(const ProcessIn: TLVec): TLFloat;
+function TLearn.ProcessLV(const ProcessIn: TLVec): TLFloat;
 var
   ProcessOut: TLVec;
 begin
   Result := 0;
-  if not process(@ProcessIn, @ProcessOut) then
+  if not Process(@ProcessIn, @ProcessOut) then
       Exit;
 
   Result := ProcessOut[length(ProcessOut) - 1];
@@ -1191,23 +1352,23 @@ begin
   SetLength(ProcessOut, 0);
 end;
 
-function TLearn.processLV(const ProcessIn: TLMatrix): TLFloat;
+function TLearn.ProcessLV(const ProcessIn: TLMatrix): TLFloat;
 var
   f_In: TLVec;
 begin
-  f_In := lvec(ProcessIn, FInLen);
-  Result := processLV(f_In);
+  f_In := LVec(ProcessIn, FInLen);
+  Result := ProcessLV(f_In);
   SetLength(f_In, 0);
 end;
 
-function TLearn.processLV(const ProcessIn: TPascalString): TLFloat;
+function TLearn.ProcessLV(const ProcessIn: TPascalString): TLFloat;
 begin
-  Result := processLV(TKDTree.KDTreeVec(ProcessIn.Text));
+  Result := ProcessLV(TKDTree.KDTreeVec(ProcessIn.Text));
 end;
 
-function TLearn.SearchMemoryWithPearson(const ProcessIn: TLVec): TLInt;
+function TLearn.SearchMemoryPearson(const ProcessIn: TLVec): TLInt;
 var
-  k, r: TLFloat;
+  K, r: TLFloat;
   i: TLInt;
 begin
   if Count <= 0 then
@@ -1216,26 +1377,26 @@ begin
       Exit;
     end;
 
-  k := PearsonCorrelation(ProcessIn, GetMemorySource(0)^.m_in, FInLen);
+  K := PearsonCorrelation(ProcessIn, GetMemorySource(0)^.m_in, FInLen);
   Result := 0;
 
   for i := 1 to Count - 1 do
     begin
       r := PearsonCorrelation(ProcessIn, GetMemorySource(i)^.m_in, FInLen);
-      if (r <> 0) and (r > k) then
+      if (r <> 0) and (r > K) then
         begin
-          k := r;
+          K := r;
           Result := i;
         end;
     end;
 end;
 
-procedure TLearn.SearchMemoryWithPearson(const ProcessIn: TLVec; out List: TLIVec);
+procedure TLearn.SearchMemoryPearson(const ProcessIn: TLVec; out List: TLIVec);
 {$REGION 'Imp'}
 
 type
   TState = record
-    k: TLFloat;
+    K: TLFloat;
     index: TLInt;
   end;
 
@@ -1246,12 +1407,20 @@ type
 
   function SortCompare(const p1, p2: PState): ShortInt; inline;
   begin
-    if p1^.k > p2^.k then
+    if p1^.K < p2^.K then
         Result := -1
-    else if p1^.k < p2^.k then
+    else if p1^.K > p2^.K then
         Result := 1
     else
+      begin
         Result := 0;
+        if p1^.index = p2^.index then
+            Result := 0
+        else if p1^.index < p2^.index then
+            Result := -1
+        else
+            Result := 1;
+      end;
   end;
   procedure InternalSort(var SortBuffer: TStatePtrArray; L, r: TLInt);
   var
@@ -1288,18 +1457,6 @@ type
 var
   buff: TStateArray;
   buffPtr: TStatePtrArray;
-
-{$IFDEF FPC}
-  procedure Nested_ParallelFor(pass: PtrInt; Data: Pointer; Item: TMultiThreadProcItem);
-  begin
-    buff[pass].k := PearsonCorrelation(ProcessIn, GetMemorySource(pass)^.m_in, FInLen);
-    buff[pass].index := pass;
-    buffPtr[pass] := @buff[pass];
-  end;
-{$ENDIF FPC}
-
-
-var
   i: TLInt;
 begin
   if Count <= 0 then
@@ -1313,25 +1470,13 @@ begin
   SetLength(buff, Count);
   SetLength(buffPtr, Count);
 
-{$IFDEF parallel}
-{$IFDEF FPC}
-  ProcThreadPool.DoParallelLocalProc(@Nested_ParallelFor, 0, Count - 1);
-{$ELSE}
-  TParallel.for(0, Count - 1, procedure(pass: TLInt)
-    begin
-      buff[pass].k := PearsonCorrelation(ProcessIn, GetMemorySource(pass)^.m_in, FInLen);
-      buff[pass].index := pass;
-      buffPtr[pass] := @buff[pass];
-    end);
-{$ENDIF FPC}
-{$ELSE}
   for i := 0 to Count - 1 do
     begin
-      buff[i].k := PearsonCorrelation(ProcessIn, GetMemorySource(i)^.m_in, FInLen);
+      buff[i].K := PearsonCorrelation(ProcessIn, GetMemorySource(i)^.m_in, FInLen);
       buff[i].index := i;
       buffPtr[i] := @buff[i];
     end;
-{$ENDIF parallel}
+
   // complete sort
   InternalSort(buffPtr, 0, length(buffPtr) - 1);
 
@@ -1345,9 +1490,9 @@ end;
 {$ENDREGION 'Imp'}
 
 
-function TLearn.SearchMemoryWithSpearman(const ProcessIn: TLVec): TLInt;
+function TLearn.SearchMemorySpearman(const ProcessIn: TLVec): TLInt;
 var
-  k, r: TLFloat;
+  K, r: TLFloat;
   i: TLInt;
 begin
   if Count <= 0 then
@@ -1356,26 +1501,26 @@ begin
       Exit;
     end;
 
-  k := SpearmanRankCorrelation(ProcessIn, GetMemorySource(0)^.m_in, FInLen);
+  K := SpearmanRankCorrelation(ProcessIn, GetMemorySource(0)^.m_in, FInLen);
   Result := 0;
 
   for i := 1 to Count - 1 do
     begin
       r := SpearmanRankCorrelation(ProcessIn, GetMemorySource(i)^.m_in, FInLen);
-      if (r <> 0) and (r > k) then
+      if (r <> 0) and (r > K) then
         begin
-          k := r;
+          K := r;
           Result := i;
         end;
     end;
 end;
 
-procedure TLearn.SearchMemoryWithSpearman(const ProcessIn: TLVec; out List: TLIVec);
+procedure TLearn.SearchMemorySpearman(const ProcessIn: TLVec; out List: TLIVec);
 {$REGION 'Imp'}
 
 type
   TState = record
-    k: TLFloat;
+    K: TLFloat;
     index: TLInt;
   end;
 
@@ -1386,12 +1531,20 @@ type
 
   function SortCompare(const p1, p2: PState): ShortInt; inline;
   begin
-    if p1^.k > p2^.k then
+    if p1^.K < p2^.K then
         Result := -1
-    else if p1^.k < p2^.k then
+    else if p1^.K > p2^.K then
         Result := 1
     else
+      begin
         Result := 0;
+        if p1^.index = p2^.index then
+            Result := 0
+        else if p1^.index < p2^.index then
+            Result := -1
+        else
+            Result := 1;
+      end;
   end;
   procedure InternalSort(var SortBuffer: TStatePtrArray; L, r: TLInt);
   var
@@ -1428,18 +1581,6 @@ type
 var
   buff: TStateArray;
   buffPtr: TStatePtrArray;
-
-{$IFDEF FPC}
-  procedure Nested_ParallelFor(pass: PtrInt; Data: Pointer; Item: TMultiThreadProcItem);
-  begin
-    buff[pass].k := SpearmanRankCorrelation(ProcessIn, GetMemorySource(pass)^.m_in, FInLen);
-    buff[pass].index := pass;
-    buffPtr[pass] := @buff[pass];
-  end;
-{$ENDIF FPC}
-
-
-var
   i: TLInt;
 begin
   if Count <= 0 then
@@ -1453,25 +1594,13 @@ begin
   SetLength(buff, Count);
   SetLength(buffPtr, Count);
 
-{$IFDEF parallel}
-{$IFDEF FPC}
-  ProcThreadPool.DoParallelLocalProc(@Nested_ParallelFor, 0, Count - 1);
-{$ELSE}
-  TParallel.for(0, Count - 1, procedure(pass: TLInt)
-    begin
-      buff[pass].k := SpearmanRankCorrelation(ProcessIn, GetMemorySource(pass)^.m_in, FInLen);
-      buff[pass].index := pass;
-      buffPtr[pass] := @buff[pass];
-    end);
-{$ENDIF FPC}
-{$ELSE}
   for i := 0 to Count - 1 do
     begin
-      buff[i].k := SpearmanRankCorrelation(ProcessIn, GetMemorySource(i)^.m_in, FInLen);
+      buff[i].K := SpearmanRankCorrelation(ProcessIn, GetMemorySource(i)^.m_in, FInLen);
       buff[i].index := i;
       buffPtr[i] := @buff[i];
     end;
-{$ENDIF parallel}
+
   // complete sort
   InternalSort(buffPtr, 0, length(buffPtr) - 1);
 
@@ -1485,9 +1614,9 @@ end;
 {$ENDREGION 'Imp'}
 
 
-function TLearn.SearchMemoryWithDistance(const ProcessIn: TLVec): TLInt;
+function TLearn.SearchMemoryDistance(const ProcessIn: TLVec): TLInt;
 var
-  k, r: Double;
+  K, r: Double;
   i: TLInt;
 begin
   if Count <= 0 then
@@ -1498,24 +1627,24 @@ begin
 
   if length(ProcessIn) <> FInLen then
       RaiseInfo('processIn need Length=%d', [FInLen]);
-  k := TKDTree.KDTreeDistance(ProcessIn, GetMemorySource(0)^.m_in);
+  K := TKDTree.KDTreeDistance(ProcessIn, GetMemorySource(0)^.m_in);
   Result := 0;
 
   for i := 1 to Count - 1 do
     begin
       r := TKDTree.KDTreeDistance(ProcessIn, GetMemorySource(i)^.m_in);
-      if (r < k) then
+      if (r < K) then
         begin
-          k := r;
+          K := r;
           Result := i;
         end;
     end;
 end;
 
-procedure TLearn.SearchMemoryWithDistance(const ProcessIn: TLVec; out List: TLIVec);
+procedure TLearn.SearchMemoryDistance(const ProcessIn: TLVec; out List: TLIVec);
 type
   TState = record
-    k: Double;
+    K: Double;
     index: TLInt;
   end;
 
@@ -1526,12 +1655,20 @@ type
 
   function SortCompare(const p1, p2: PState): ShortInt; inline;
   begin
-    if p1^.k < p2^.k then
+    if p1^.K < p2^.K then
         Result := -1
-    else if p1^.k > p2^.k then
+    else if p1^.K > p2^.K then
         Result := 1
     else
+      begin
         Result := 0;
+        if p1^.index = p2^.index then
+            Result := 0
+        else if p1^.index < p2^.index then
+            Result := -1
+        else
+            Result := 1;
+      end;
   end;
   procedure InternalSort(var SortBuffer: TStatePtrArray; L, r: TLInt);
   var
@@ -1568,18 +1705,6 @@ type
 var
   buff: TStateArray;
   buffPtr: TStatePtrArray;
-
-{$IFDEF FPC}
-  procedure Nested_ParallelFor(pass: PtrInt; Data: Pointer; Item: TMultiThreadProcItem);
-  begin
-    buff[pass].k := TKDTree.KDTreeDistance(ProcessIn, GetMemorySource(pass)^.m_in);
-    buff[pass].index := pass;
-    buffPtr[pass] := @buff[pass];
-  end;
-{$ENDIF FPC}
-
-
-var
   i: TLInt;
 begin
   if Count <= 0 then
@@ -1597,25 +1722,13 @@ begin
   SetLength(buff, Count);
   SetLength(buffPtr, Count);
 
-{$IFDEF parallel}
-{$IFDEF FPC}
-  ProcThreadPool.DoParallelLocalProc(@Nested_ParallelFor, 0, Count - 1);
-{$ELSE}
-  TParallel.for(0, Count - 1, procedure(pass: TLInt)
-    begin
-      buff[pass].k := TKDTree.KDTreeDistance(ProcessIn, GetMemorySource(pass)^.m_in);
-      buff[pass].index := pass;
-      buffPtr[pass] := @buff[pass];
-    end);
-{$ENDIF FPC}
-{$ELSE}
   for i := 0 to Count - 1 do
     begin
-      buff[i].k := TKDTree.KDTreeDistance(ProcessIn, GetMemorySource(i)^.m_in);
+      buff[i].K := TKDTree.KDTreeDistance(ProcessIn, GetMemorySource(i)^.m_in);
       buff[i].index := i;
       buffPtr[i] := @buff[i];
     end;
-{$ENDIF parallel}
+
   // complete sort
   InternalSort(buffPtr, 0, length(buffPtr) - 1);
 
@@ -1629,7 +1742,9 @@ end;
 
 procedure TLearn.SaveToDF(df: TDataFrameEngine);
 var
+  p: PLearnMemory;
   ar: TDataFrameArrayDouble;
+  nd: TDataFrameEngine;
   i, j: TLInt;
   buff: TLVec;
   buffLen: TLInt;
@@ -1645,21 +1760,32 @@ begin
   df.WriteDouble(FLastTrainMaxOutValue);
 
   ar := df.WriteArrayDouble;
+  nd := TDataFrameEngine.Create;
   for i := 0 to FMemorySource.Count - 1 do
     begin
+      p := PLearnMemory(FMemorySource[i]);
       for j := 0 to FInLen - 1 do
-          ar.Add(PLearnMemory(FMemorySource[i])^.m_in[j]);
+          ar.Add(p^.m_in[j]);
       for j := 0 to FOutLen - 1 do
-          ar.Add(PLearnMemory(FMemorySource[i])^.m_out[j]);
+          ar.Add(p^.m_out[j]);
+
+      nd.WriteString(p^.token);
     end;
+  df.WriteDataFrameCompressed(nd);
+  DisposeObject(nd);
+
+  m64 := TMemoryStream64.Create;
+  FKDToken.SaveToStream(m64);
+  df.WriteStream(m64);
+  DisposeObject(m64);
 
   case FLearnType of
     ltKDT, ltKM:
       begin
-        if PLearnKDT(FLearnData)^.kdt.Count > 0 then
+        if PLearnKDT(FLearnData)^.K.Count > 0 then
           begin
             m64 := TMemoryStream64.Create;
-            PLearnKDT(FLearnData)^.kdt.SaveToStream(m64);
+            PLearnKDT(FLearnData)^.K.SaveToStream(m64);
             df.WriteStream(m64);
             DisposeObject(m64);
           end;
@@ -1710,6 +1836,7 @@ end;
 procedure TLearn.LoadFromDF(df: TDataFrameEngine);
 var
   ar: TDataFrameArrayDouble;
+  nd: TDataFrameEngine;
   i, j: TLInt;
   plm: PLearnMemory;
   buff: TLVec;
@@ -1727,6 +1854,8 @@ begin
   FLastTrainMaxOutValue := df.Reader.ReadDouble;
 
   ar := df.Reader.ReadArrayDouble;
+  nd := TDataFrameEngine.Create;
+  df.Reader.ReadDataFrame(nd);
 
   i := 0;
   while i < ar.Count do
@@ -1734,6 +1863,7 @@ begin
       new(plm);
       SetLength(plm^.m_in, FInLen);
       SetLength(plm^.m_out, FOutLen);
+      plm^.token := nd.Reader.ReadString;
       FMemorySource.Add(plm);
 
       j := 0;
@@ -1752,6 +1882,19 @@ begin
           inc(i);
         end;
     end;
+  DisposeObject(nd);
+
+  if df.Reader.IsEnd then
+    begin
+      Train;
+      Exit;
+    end;
+
+  m64 := TMemoryStream64.Create;
+  df.Reader.ReadStream(m64);
+  m64.Position := 0;
+  FKDToken.LoadFromStream(m64);
+  DisposeObject(m64);
 
   if df.Reader.IsEnd then
     begin
@@ -1766,7 +1909,7 @@ begin
         df.Reader.ReadStream(m64);
         m64.Position := 0;
         try
-            PLearnKDT(FLearnData)^.kdt.LoadFromStream(m64);
+            PLearnKDT(FLearnData)^.K.LoadFromStream(m64);
         except
             Train;
         end;
@@ -1941,6 +2084,4 @@ begin
       DisposeObject(fs);
   end;
 end;
-
 {$ENDIF FPC}
-{$ENDREGION 'ClassImp'}

@@ -9,7 +9,7 @@
 { ****************************************************************************** }
 unit SpellBase_Attack;
 
-{$INCLUDE ..\..\zDefine.inc}
+{$INCLUDE zDefine.inc}
 
 interface
 

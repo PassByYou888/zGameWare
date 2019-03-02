@@ -23,7 +23,7 @@ type
     procedure FormPaint(Sender: TObject; Canvas: TCanvas; const ARect: TRectF);
   private
     { Private declarations }
-    zDrawEngine: TDrawEngine;
+    DrawEng: TDrawEngine;
     DrawEngineInterface: TDrawEngineInterface_FMX;
     NavScene: TNavigationScene;
     DrawList: TCoreClassListForObj;
@@ -62,8 +62,9 @@ begin
 
   PropsMaterial.MemoryBitmapClass := TDETexture_FMX;
   DrawEngineInterface := TDrawEngineInterface_FMX.Create;
-  zDrawEngine := TDrawEngine.Create(DrawEngineInterface);
-  zDrawEngine.ViewOptions := [devpFPS];
+  DrawEng := TDrawEngine.Create;
+  DrawEng.DrawInterface := DrawEngineInterface;
+  DrawEng.ViewOptions := [devpFPS];
   NavScene := TNavigationScene.Create;
   NavScene.BioManager.IgnoreAllCollision := True;
 
@@ -119,14 +120,14 @@ var
   plc: TPolyDrawOption;
 begin
   DrawEngineInterface.Canvas := Canvas;
-  zDrawEngine.TextureOutputStateBox := DERect(Width * 0.7, Height * 0.1, Width, Height * 0.5);
+  DrawEng.TextureOutputStateBox := DERect(Width * 0.7, Height * 0.1, Width, Height * 0.5);
 
-  zDrawEngine.FPSFontColor := DEColor(0, 0, 0, 1);
+  DrawEng.FPSFontColor := DEColor(0, 0, 0, 1);
 
-  zDrawEngine.SetSize(w, h);
-  zDrawEngine.DrawCommand.FillRect(zDrawEngine.ScreenRect, 0, vec4(0.5, 0.5, 0.5, 1));
+  DrawEng.SetSize(w, h);
+  DrawEng.DrawCommand.FillRect(DrawEng.ScreenRect, 0, vec4(0.5, 0.5, 0.5, 1));
 
-  zDrawEngine.BeginCaptureShadow(DEVec(3, 3), 0.5);
+  DrawEng.BeginCaptureShadow(DEVec(3, 3), 0.5);
 
   with plc do
     begin
@@ -142,30 +143,30 @@ begin
 
       if not d.bio.Movement.Active then
         begin
-          d.bio.MovementTo(PointMake(umlRandomRange(0, Round(zDrawEngine.Width)), umlRandomRange(0, Round(zDrawEngine.Height))));
+          d.bio.MovementTo(PointMake(umlRandomRange(0, Round(DrawEng.Width)), umlRandomRange(0, Round(DrawEng.Height))));
           // d.bmp := PropsMaterial.MakePropsMaterial(pmtArrow).Bitmap as TDETexture;
           d.bmp := PropsMaterial.MakePropsMaterial(
             TPropsMaterialType(umlRandomRange(integer(low(TPropsMaterialType)), integer(high(TPropsMaterialType))))).Bitmap as TDETexture;
         end;
 
       v := TDE4V.Init(d.bio.Position, d.bio.Radius * 2, d.bio.Radius * 2, FinalAngle4FMX(d.bio.RollAngle) - 90);
-      d.alpha := umlProcessCycleValue(d.alpha, 1 * zDrawEngine.LastDeltaTime, 1, 0.1, d.alpha_f);
+      d.alpha := umlProcessCycleValue(d.alpha, 1 * DrawEng.LastDeltaTime, 1, 0.1, d.alpha_f);
 
-      zDrawEngine.DrawCommand.SetLineWidth(1);
-      zDrawEngine.DrawCommand.DrawRect(v.BoundRect, 0, vec4(0.1, 0.3, 0.1, d.alpha));
+      DrawEng.DrawCommand.SetLineWidth(1);
+      DrawEng.DrawCommand.DrawRect(v.BoundRect, 0, vec4(0.1, 0.3, 0.1, d.alpha));
 
       plc.LineColor[3] := d.alpha;
       plc.PointColor[3] := d.alpha;
 
-      zDrawEngine.DrawPLInScene(d.bio.MovementPath, False, plc);
+      DrawEng.DrawPLInScene(d.bio.MovementPath, False, plc);
 
-      zDrawEngine.DrawCommand.SetLineWidth(5);
-      zDrawEngine.DrawCommand.DrawLine(d.bio.Position, PointRotation(d.bio.Position, d.bio.Radius * 1.5, FinalAngle4FMX(d.bio.RollAngle)), vec4(1, 0.3, 0.3, d.alpha));
+      DrawEng.DrawCommand.SetLineWidth(5);
+      DrawEng.DrawCommand.DrawLine(d.bio.Position, PointRotation(d.bio.Position, d.bio.Radius * 1.5, FinalAngle4FMX(d.bio.RollAngle)), vec4(1, 0.3, 0.3, d.alpha));
 
-      zDrawEngine.DrawTexture(d.bmp, TDE4V.Init(d.bmp.BoundsRect, 0), v, d.alpha);
+      DrawEng.DrawTexture(d.bmp, TDE4V.Init(d.bmp.BoundsRect, 0), v, d.alpha);
     end;
 
-  zDrawEngine.EndCaptureShadow;
+  DrawEng.EndCaptureShadow;
 
   // init draw state
   Canvas.Stroke.Kind := TBrushKind.Solid;
@@ -177,7 +178,7 @@ begin
 
   Canvas.Clear(TAlphaColorRec.Black);
 
-  zDrawEngine.Flush;
+  DrawEng.Flush;
 end;
 
 procedure TMemPropsTestForm.TimerTimer(Sender: TObject);
@@ -186,7 +187,7 @@ var
 begin
   k := 1000.0 / TTimer(Sender).Interval;
   NavScene.Progress(1.0 / k);
-  zDrawEngine.Progress(1.0 / k);
+  DrawEng.Progress(1.0 / k);
   Invalidate;
 end;
 

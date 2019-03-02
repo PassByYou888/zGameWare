@@ -86,11 +86,11 @@ type
     procedure MakeGradientFrameButtonClick(Sender: TObject);
   private
     { Private declarations }
-    FCadencerEng        : TCadencer;
-    FDrawEngine         : TDrawEngine;
+    FCadencerEng: TCadencer;
+    FDrawEngine: TDrawEngine;
     FDrawEngineInterface: TDrawEngineInterface_FMX;
-    FSequenceBmp        : TDETexture_FMX;
-    FAngle              : TDEFloat;
+    FSequenceBmp: TDETexture_FMX;
+    FAngle: TDEFloat;
   public
     { Public declarations }
     procedure CadencerProgress(Sender: TObject; const deltaTime, newTime: Double);
@@ -117,7 +117,8 @@ begin
   FCadencerEng.OnProgress := CadencerProgress;
   FDrawEngineInterface := TDrawEngineInterface_FMX.Create;
 
-  FDrawEngine := TDrawEngine.Create(FDrawEngineInterface);
+  FDrawEngine := TDrawEngine.Create;
+  FDrawEngine.DrawInterface := FDrawEngineInterface;
   FDrawEngine.ViewOptions := [devpFPS, devpFrameEndge];
 
   FSequenceBmp := TDETexture_FMX.Create;
@@ -353,7 +354,7 @@ var
   i: Integer;
   n: string;
 
-  li : TListBoxItem;
+  li: TListBoxItem;
   img: TImage;
   bmp: TSequenceMemoryRaster;
 begin
@@ -389,8 +390,8 @@ procedure TseqGenForm.BuildSequenceFrameList(bmp: TSequenceMemoryRaster; bIdx, e
 var
   i: Integer;
 
-  li    : TListBoxItem;
-  img   : TImage;
+  li: TListBoxItem;
+  img: TImage;
   output: TMemoryRaster;
 begin
   ListBox.Clear;
@@ -432,8 +433,8 @@ end;
 
 procedure TseqGenForm.Exp2PathButtonClick(Sender: TObject);
 var
-  i    : Integer;
-  bmp  : TMemoryRaster;
+  i: Integer;
+  bmp: TMemoryRaster;
   ph, n: string;
 begin
   ph := TempPathEdit.Text;
@@ -450,10 +451,10 @@ end;
 
 procedure TseqGenForm.BuildSequenceFrameImage;
 var
-  lst   : TCoreClassListForObj;
-  bmp   : TMemoryRaster;
-  img   : TImage;
-  i     : Integer;
+  lst: TCoreClassListForObj;
+  bmp: TMemoryRaster;
+  img: TImage;
+  i: Integer;
   output: TSequenceMemoryRaster;
 begin
   if FSequenceBmp = nil then

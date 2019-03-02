@@ -1804,7 +1804,7 @@ end;
 
 function TRULECore.NewPlayer(PlayerID, CampID: U_String): TPlayer;
 begin
-  if (not umlExistsLimitChar(PlayerID, '*?')) and (PlayerID.Text <> '') and (not FPlayerHashList.Exists(PlayerID.Text)) then
+  if (not umlExistsChar(PlayerID, '*?')) and (PlayerID.Text <> '') and (not FPlayerHashList.Exists(PlayerID.Text)) then
     begin
       Result := TPlayer.Create(Self);
       FPlayerHashList.Add(PlayerID.Text, Result);

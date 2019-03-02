@@ -25,10 +25,10 @@ type
     procedure FormDestroy(Sender: TObject);
   private
     { Private declarations }
-    List : TRectPacking;
+    List: TRectPacking;
 
     FDrawEngineInterface: TDrawEngineInterface_FMX;
-    FDrawEngine         : TDrawEngine;
+    FDrawEngine: TDrawEngine;
   public
     { Public declarations }
   end;
@@ -55,20 +55,20 @@ begin
   List.Clear;
   for i := 0 to 50 do
     begin
-      v := umlRandomRangeF(45, 90);
-      r := FixRect(DERect(umlRandomRangeF(-10, 10), umlRandomRangeF(-10, 10), v, v));
+      v := umlRandomRangeS(45, 90);
+      r := FixRect(DERect(umlRandomRangeS(-10, 10), umlRandomRangeS(-10, 10), v, v));
       List.Add(nil, nil, r);
     end;
   for i := 0 to 50 do
     begin
-      v := umlRandomRangeF(15, 35);
-      r := FixRect(DERect(umlRandomRangeF(-10, 50), umlRandomRangeF(-50, 10), v, v));
+      v := umlRandomRangeS(15, 35);
+      r := FixRect(DERect(umlRandomRangeS(-10, 50), umlRandomRangeS(-50, 10), v, v));
       List.Add(nil, nil, r);
     end;
   for i := 0 to 50 do
     begin
-      v := umlRandomRangeF(35, 65);
-      r := FixRect(DERect(umlRandomRangeF(-30, 80), umlRandomRangeF(-60, 100), v, v));
+      v := umlRandomRangeS(35, 65);
+      r := FixRect(DERect(umlRandomRangeS(-30, 80), umlRandomRangeS(-60, 100), v, v));
       List.Add(nil, nil, r);
     end;
 end;
@@ -78,7 +78,8 @@ begin
   List := TRectPacking.Create;
 
   FDrawEngineInterface := TDrawEngineInterface_FMX.Create;
-  FDrawEngine := TDrawEngine.Create(FDrawEngineInterface);
+  FDrawEngine := TDrawEngine.Create;
+  FDrawEngine.DrawInterface := FDrawEngineInterface;
   FDrawEngine.ViewOptions := [devpFPS];
 end;
 
@@ -116,7 +117,7 @@ end;
 
 procedure TTexturePackingForm.SortButtonClick(Sender: TObject);
 begin
-  List.Build(1024*1024, 1024*1024);
+  List.Build(1024 * 1024, 1024 * 1024);
 end;
 
 end.
