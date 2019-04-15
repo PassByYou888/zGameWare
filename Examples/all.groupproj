@@ -18,6 +18,15 @@
         <Projects Include="Findpath Debug\findpathdebug.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="FFMPEGVideoReader\FFMPEG_ReaderDemo.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Projection\memoryRasterProjection.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="RasterizationFormat\RasterizationFormatDemo.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -71,14 +80,41 @@
     <Target Name="findpathdebug:Make">
         <MSBuild Projects="Findpath Debug\findpathdebug.dproj" Targets="Make"/>
     </Target>
+    <Target Name="FFMPEG_ReaderDemo">
+        <MSBuild Projects="FFMPEGVideoReader\FFMPEG_ReaderDemo.dproj"/>
+    </Target>
+    <Target Name="FFMPEG_ReaderDemo:Clean">
+        <MSBuild Projects="FFMPEGVideoReader\FFMPEG_ReaderDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FFMPEG_ReaderDemo:Make">
+        <MSBuild Projects="FFMPEGVideoReader\FFMPEG_ReaderDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="memoryRasterProjection">
+        <MSBuild Projects="Projection\memoryRasterProjection.dproj"/>
+    </Target>
+    <Target Name="memoryRasterProjection:Clean">
+        <MSBuild Projects="Projection\memoryRasterProjection.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="memoryRasterProjection:Make">
+        <MSBuild Projects="Projection\memoryRasterProjection.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="RasterizationFormatDemo">
+        <MSBuild Projects="RasterizationFormat\RasterizationFormatDemo.dproj"/>
+    </Target>
+    <Target Name="RasterizationFormatDemo:Clean">
+        <MSBuild Projects="RasterizationFormat\RasterizationFormatDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="RasterizationFormatDemo:Make">
+        <MSBuild Projects="RasterizationFormat\RasterizationFormatDemo.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="ParticleTest;TextureAtlas;PropsTest;movementdebug;findpathdebug"/>
+        <CallTarget Targets="ParticleTest;TextureAtlas;PropsTest;movementdebug;findpathdebug;FFMPEG_ReaderDemo;memoryRasterProjection;RasterizationFormatDemo"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="ParticleTest:Clean;TextureAtlas:Clean;PropsTest:Clean;movementdebug:Clean;findpathdebug:Clean"/>
+        <CallTarget Targets="ParticleTest:Clean;TextureAtlas:Clean;PropsTest:Clean;movementdebug:Clean;findpathdebug:Clean;FFMPEG_ReaderDemo:Clean;memoryRasterProjection:Clean;RasterizationFormatDemo:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="ParticleTest:Make;TextureAtlas:Make;PropsTest:Make;movementdebug:Make;findpathdebug:Make"/>
+        <CallTarget Targets="ParticleTest:Make;TextureAtlas:Make;PropsTest:Make;movementdebug:Make;findpathdebug:Make;FFMPEG_ReaderDemo:Make;memoryRasterProjection:Make;RasterizationFormatDemo:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

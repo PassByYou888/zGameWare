@@ -171,7 +171,7 @@ object seqGenForm: TseqGenForm
           object ColorPanel: TColorPanel
             Anchors = [akLeft, akBottom]
             Color = claBlack
-            Opacity = 0.400000005960464400
+            Opacity = 0.400000005960464500
             Position.Y = 344.000000000000000000
             Size.Width = 177.000000000000000000
             Size.Height = 78.000000000000000000
@@ -258,8 +258,8 @@ object seqGenForm: TseqGenForm
         Size.Height = 554.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 1
-        Viewport.Width = 392.000000000000000000
-        Viewport.Height = 546.000000000000000000
+        Viewport.Width = 400.000000000000000000
+        Viewport.Height = 554.000000000000000000
       end
     end
     object TabItem_Import: TTabItem
@@ -391,7 +391,7 @@ object seqGenForm: TseqGenForm
           Align = Right
           Position.X = 328.000000000000000000
           Size.Width = 44.000000000000000000
-          Size.Height = 44.000000000000000000
+          Size.Height = 41.000000000000000000
           Size.PlatformDefault = False
           StyleLookup = 'detailstoolbutton'
           TabOrder = 2
@@ -466,8 +466,8 @@ object seqGenForm: TseqGenForm
         Size.Height = 488.000000000000000000
         Size.PlatformDefault = False
         TabOrder = 1
-        Viewport.Width = 392.000000000000000000
-        Viewport.Height = 480.000000000000000000
+        Viewport.Width = 400.000000000000000000
+        Viewport.Height = 488.000000000000000000
       end
     end
   end
