@@ -1,30 +1,90 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{9C973A94-AA02-439F-9F45-F627A55D9880}</ProjectGuid>
+        <ProjectGuid>{117F7CF7-3CCD-47EF-91B1-4A88EDD4CCB9}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
-        <Projects Include="particleTest\ParticleTest.dproj">
+        <Projects Include="1 FFMPEGVideoReader\FFMPEG_ReaderDemo.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="TexturePacker\TextureAtlas.dproj">
+        <Projects Include="2 Findpath\findpath.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="PropsTest\PropsTest.dproj">
+        <Projects Include="3 movement\movementdebug.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="movement Debug\movementdebug.dproj">
+        <Projects Include="4 particle\ParticleTest.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="Findpath Debug\findpathdebug.dproj">
+        <Projects Include="5 Projection\memoryRasterProjection.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="FFMPEGVideoReader\FFMPEG_ReaderDemo.dproj">
+        <Projects Include="6 Props\PropsTest.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="Projection\memoryRasterProjection.dproj">
+        <Projects Include="7 RasterizationFormat\RasterizationFormatDemo.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="RasterizationFormat\RasterizationFormatDemo.dproj">
+        <Projects Include="8 TexturePacker\TextureAtlas.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="15 YUV-To-H264-Demo\yuv2Video.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="16 Soft-Renderer-Demo\SoftRenderer.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="17 Soft-Renderer-H264-Y4M-Demo\Render2Video.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="18 zDrawEngine_HelloWorld\zDrawEngine_HelloWorld.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="19 TextDraw\TextDraw.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="20 PolygonScaleAndExtract\PolygonScaleAndExtract.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="21 DrawEngine and FMXBitmap\DrawEngine4FMXBitmap.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="24 FillColor\FillColor.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="24 GeometryIntersect\GeometryIntersect.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="26 HoughRotationDetectAndCalibrate\HoughRotationDetectAndCalibrate.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="28 MatrixAndVectorExpression\MatrixAndVectorExpression.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="29 MemoryMapping\MemoryMapping.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="30 MemoryRasterMoreFont\MemoryRasterMoreFont.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="31 NumberTransform\NumTrans.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="32 ParallelCompressor\ParallelCompressor.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="33 Pascal Code Dependency Anslysis\PascalCodeDependencyAnslysis.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="37 TriangleOptimization\TriangleOptimization.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="38 zExpressionSupport\zExpressionSupport.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="39 多平台Bass音频接口Demo\zSoundWithBASS.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="40 多平台FMX音频接口Demo\zSoundWithFMX.dproj">
             <Dependencies/>
         </Projects>
     </ItemGroup>
@@ -35,86 +95,266 @@
             <Default.Personality/>
         </BorlandProject>
     </ProjectExtensions>
-    <Target Name="ParticleTest">
-        <MSBuild Projects="particleTest\ParticleTest.dproj"/>
-    </Target>
-    <Target Name="ParticleTest:Clean">
-        <MSBuild Projects="particleTest\ParticleTest.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="ParticleTest:Make">
-        <MSBuild Projects="particleTest\ParticleTest.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="TextureAtlas">
-        <MSBuild Projects="TexturePacker\TextureAtlas.dproj"/>
-    </Target>
-    <Target Name="TextureAtlas:Clean">
-        <MSBuild Projects="TexturePacker\TextureAtlas.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="TextureAtlas:Make">
-        <MSBuild Projects="TexturePacker\TextureAtlas.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="PropsTest">
-        <MSBuild Projects="PropsTest\PropsTest.dproj"/>
-    </Target>
-    <Target Name="PropsTest:Clean">
-        <MSBuild Projects="PropsTest\PropsTest.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="PropsTest:Make">
-        <MSBuild Projects="PropsTest\PropsTest.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="movementdebug">
-        <MSBuild Projects="movement Debug\movementdebug.dproj"/>
-    </Target>
-    <Target Name="movementdebug:Clean">
-        <MSBuild Projects="movement Debug\movementdebug.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="movementdebug:Make">
-        <MSBuild Projects="movement Debug\movementdebug.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="findpathdebug">
-        <MSBuild Projects="Findpath Debug\findpathdebug.dproj"/>
-    </Target>
-    <Target Name="findpathdebug:Clean">
-        <MSBuild Projects="Findpath Debug\findpathdebug.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="findpathdebug:Make">
-        <MSBuild Projects="Findpath Debug\findpathdebug.dproj" Targets="Make"/>
-    </Target>
     <Target Name="FFMPEG_ReaderDemo">
-        <MSBuild Projects="FFMPEGVideoReader\FFMPEG_ReaderDemo.dproj"/>
+        <MSBuild Projects="1 FFMPEGVideoReader\FFMPEG_ReaderDemo.dproj"/>
     </Target>
     <Target Name="FFMPEG_ReaderDemo:Clean">
-        <MSBuild Projects="FFMPEGVideoReader\FFMPEG_ReaderDemo.dproj" Targets="Clean"/>
+        <MSBuild Projects="1 FFMPEGVideoReader\FFMPEG_ReaderDemo.dproj" Targets="Clean"/>
     </Target>
     <Target Name="FFMPEG_ReaderDemo:Make">
-        <MSBuild Projects="FFMPEGVideoReader\FFMPEG_ReaderDemo.dproj" Targets="Make"/>
+        <MSBuild Projects="1 FFMPEGVideoReader\FFMPEG_ReaderDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="findpath">
+        <MSBuild Projects="2 Findpath\findpath.dproj"/>
+    </Target>
+    <Target Name="findpath:Clean">
+        <MSBuild Projects="2 Findpath\findpath.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="findpath:Make">
+        <MSBuild Projects="2 Findpath\findpath.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="movementdebug">
+        <MSBuild Projects="3 movement\movementdebug.dproj"/>
+    </Target>
+    <Target Name="movementdebug:Clean">
+        <MSBuild Projects="3 movement\movementdebug.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="movementdebug:Make">
+        <MSBuild Projects="3 movement\movementdebug.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ParticleTest">
+        <MSBuild Projects="4 particle\ParticleTest.dproj"/>
+    </Target>
+    <Target Name="ParticleTest:Clean">
+        <MSBuild Projects="4 particle\ParticleTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ParticleTest:Make">
+        <MSBuild Projects="4 particle\ParticleTest.dproj" Targets="Make"/>
     </Target>
     <Target Name="memoryRasterProjection">
-        <MSBuild Projects="Projection\memoryRasterProjection.dproj"/>
+        <MSBuild Projects="5 Projection\memoryRasterProjection.dproj"/>
     </Target>
     <Target Name="memoryRasterProjection:Clean">
-        <MSBuild Projects="Projection\memoryRasterProjection.dproj" Targets="Clean"/>
+        <MSBuild Projects="5 Projection\memoryRasterProjection.dproj" Targets="Clean"/>
     </Target>
     <Target Name="memoryRasterProjection:Make">
-        <MSBuild Projects="Projection\memoryRasterProjection.dproj" Targets="Make"/>
+        <MSBuild Projects="5 Projection\memoryRasterProjection.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="PropsTest">
+        <MSBuild Projects="6 Props\PropsTest.dproj"/>
+    </Target>
+    <Target Name="PropsTest:Clean">
+        <MSBuild Projects="6 Props\PropsTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="PropsTest:Make">
+        <MSBuild Projects="6 Props\PropsTest.dproj" Targets="Make"/>
     </Target>
     <Target Name="RasterizationFormatDemo">
-        <MSBuild Projects="RasterizationFormat\RasterizationFormatDemo.dproj"/>
+        <MSBuild Projects="7 RasterizationFormat\RasterizationFormatDemo.dproj"/>
     </Target>
     <Target Name="RasterizationFormatDemo:Clean">
-        <MSBuild Projects="RasterizationFormat\RasterizationFormatDemo.dproj" Targets="Clean"/>
+        <MSBuild Projects="7 RasterizationFormat\RasterizationFormatDemo.dproj" Targets="Clean"/>
     </Target>
     <Target Name="RasterizationFormatDemo:Make">
-        <MSBuild Projects="RasterizationFormat\RasterizationFormatDemo.dproj" Targets="Make"/>
+        <MSBuild Projects="7 RasterizationFormat\RasterizationFormatDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="TextureAtlas">
+        <MSBuild Projects="8 TexturePacker\TextureAtlas.dproj"/>
+    </Target>
+    <Target Name="TextureAtlas:Clean">
+        <MSBuild Projects="8 TexturePacker\TextureAtlas.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="TextureAtlas:Make">
+        <MSBuild Projects="8 TexturePacker\TextureAtlas.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="yuv2Video">
+        <MSBuild Projects="15 YUV-To-H264-Demo\yuv2Video.dproj"/>
+    </Target>
+    <Target Name="yuv2Video:Clean">
+        <MSBuild Projects="15 YUV-To-H264-Demo\yuv2Video.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="yuv2Video:Make">
+        <MSBuild Projects="15 YUV-To-H264-Demo\yuv2Video.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="SoftRenderer">
+        <MSBuild Projects="16 Soft-Renderer-Demo\SoftRenderer.dproj"/>
+    </Target>
+    <Target Name="SoftRenderer:Clean">
+        <MSBuild Projects="16 Soft-Renderer-Demo\SoftRenderer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="SoftRenderer:Make">
+        <MSBuild Projects="16 Soft-Renderer-Demo\SoftRenderer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Render2Video">
+        <MSBuild Projects="17 Soft-Renderer-H264-Y4M-Demo\Render2Video.dproj"/>
+    </Target>
+    <Target Name="Render2Video:Clean">
+        <MSBuild Projects="17 Soft-Renderer-H264-Y4M-Demo\Render2Video.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Render2Video:Make">
+        <MSBuild Projects="17 Soft-Renderer-H264-Y4M-Demo\Render2Video.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="zDrawEngine_HelloWorld">
+        <MSBuild Projects="18 zDrawEngine_HelloWorld\zDrawEngine_HelloWorld.dproj"/>
+    </Target>
+    <Target Name="zDrawEngine_HelloWorld:Clean">
+        <MSBuild Projects="18 zDrawEngine_HelloWorld\zDrawEngine_HelloWorld.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="zDrawEngine_HelloWorld:Make">
+        <MSBuild Projects="18 zDrawEngine_HelloWorld\zDrawEngine_HelloWorld.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="TextDraw">
+        <MSBuild Projects="19 TextDraw\TextDraw.dproj"/>
+    </Target>
+    <Target Name="TextDraw:Clean">
+        <MSBuild Projects="19 TextDraw\TextDraw.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="TextDraw:Make">
+        <MSBuild Projects="19 TextDraw\TextDraw.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="PolygonScaleAndExtract">
+        <MSBuild Projects="20 PolygonScaleAndExtract\PolygonScaleAndExtract.dproj"/>
+    </Target>
+    <Target Name="PolygonScaleAndExtract:Clean">
+        <MSBuild Projects="20 PolygonScaleAndExtract\PolygonScaleAndExtract.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="PolygonScaleAndExtract:Make">
+        <MSBuild Projects="20 PolygonScaleAndExtract\PolygonScaleAndExtract.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DrawEngine4FMXBitmap">
+        <MSBuild Projects="21 DrawEngine and FMXBitmap\DrawEngine4FMXBitmap.dproj"/>
+    </Target>
+    <Target Name="DrawEngine4FMXBitmap:Clean">
+        <MSBuild Projects="21 DrawEngine and FMXBitmap\DrawEngine4FMXBitmap.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DrawEngine4FMXBitmap:Make">
+        <MSBuild Projects="21 DrawEngine and FMXBitmap\DrawEngine4FMXBitmap.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FillColor">
+        <MSBuild Projects="24 FillColor\FillColor.dproj"/>
+    </Target>
+    <Target Name="FillColor:Clean">
+        <MSBuild Projects="24 FillColor\FillColor.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FillColor:Make">
+        <MSBuild Projects="24 FillColor\FillColor.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="GeometryIntersect">
+        <MSBuild Projects="24 GeometryIntersect\GeometryIntersect.dproj"/>
+    </Target>
+    <Target Name="GeometryIntersect:Clean">
+        <MSBuild Projects="24 GeometryIntersect\GeometryIntersect.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="GeometryIntersect:Make">
+        <MSBuild Projects="24 GeometryIntersect\GeometryIntersect.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="HoughRotationDetectAndCalibrate">
+        <MSBuild Projects="26 HoughRotationDetectAndCalibrate\HoughRotationDetectAndCalibrate.dproj"/>
+    </Target>
+    <Target Name="HoughRotationDetectAndCalibrate:Clean">
+        <MSBuild Projects="26 HoughRotationDetectAndCalibrate\HoughRotationDetectAndCalibrate.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="HoughRotationDetectAndCalibrate:Make">
+        <MSBuild Projects="26 HoughRotationDetectAndCalibrate\HoughRotationDetectAndCalibrate.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="MatrixAndVectorExpression">
+        <MSBuild Projects="28 MatrixAndVectorExpression\MatrixAndVectorExpression.dproj"/>
+    </Target>
+    <Target Name="MatrixAndVectorExpression:Clean">
+        <MSBuild Projects="28 MatrixAndVectorExpression\MatrixAndVectorExpression.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="MatrixAndVectorExpression:Make">
+        <MSBuild Projects="28 MatrixAndVectorExpression\MatrixAndVectorExpression.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="MemoryMapping">
+        <MSBuild Projects="29 MemoryMapping\MemoryMapping.dproj"/>
+    </Target>
+    <Target Name="MemoryMapping:Clean">
+        <MSBuild Projects="29 MemoryMapping\MemoryMapping.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="MemoryMapping:Make">
+        <MSBuild Projects="29 MemoryMapping\MemoryMapping.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="MemoryRasterMoreFont">
+        <MSBuild Projects="30 MemoryRasterMoreFont\MemoryRasterMoreFont.dproj"/>
+    </Target>
+    <Target Name="MemoryRasterMoreFont:Clean">
+        <MSBuild Projects="30 MemoryRasterMoreFont\MemoryRasterMoreFont.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="MemoryRasterMoreFont:Make">
+        <MSBuild Projects="30 MemoryRasterMoreFont\MemoryRasterMoreFont.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="NumTrans">
+        <MSBuild Projects="31 NumberTransform\NumTrans.dproj"/>
+    </Target>
+    <Target Name="NumTrans:Clean">
+        <MSBuild Projects="31 NumberTransform\NumTrans.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="NumTrans:Make">
+        <MSBuild Projects="31 NumberTransform\NumTrans.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ParallelCompressor">
+        <MSBuild Projects="32 ParallelCompressor\ParallelCompressor.dproj"/>
+    </Target>
+    <Target Name="ParallelCompressor:Clean">
+        <MSBuild Projects="32 ParallelCompressor\ParallelCompressor.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ParallelCompressor:Make">
+        <MSBuild Projects="32 ParallelCompressor\ParallelCompressor.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="PascalCodeDependencyAnslysis">
+        <MSBuild Projects="33 Pascal Code Dependency Anslysis\PascalCodeDependencyAnslysis.dproj"/>
+    </Target>
+    <Target Name="PascalCodeDependencyAnslysis:Clean">
+        <MSBuild Projects="33 Pascal Code Dependency Anslysis\PascalCodeDependencyAnslysis.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="PascalCodeDependencyAnslysis:Make">
+        <MSBuild Projects="33 Pascal Code Dependency Anslysis\PascalCodeDependencyAnslysis.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="TriangleOptimization">
+        <MSBuild Projects="37 TriangleOptimization\TriangleOptimization.dproj"/>
+    </Target>
+    <Target Name="TriangleOptimization:Clean">
+        <MSBuild Projects="37 TriangleOptimization\TriangleOptimization.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="TriangleOptimization:Make">
+        <MSBuild Projects="37 TriangleOptimization\TriangleOptimization.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="zExpressionSupport">
+        <MSBuild Projects="38 zExpressionSupport\zExpressionSupport.dproj"/>
+    </Target>
+    <Target Name="zExpressionSupport:Clean">
+        <MSBuild Projects="38 zExpressionSupport\zExpressionSupport.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="zExpressionSupport:Make">
+        <MSBuild Projects="38 zExpressionSupport\zExpressionSupport.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="zSoundWithBASS">
+        <MSBuild Projects="39 多平台Bass音频接口Demo\zSoundWithBASS.dproj"/>
+    </Target>
+    <Target Name="zSoundWithBASS:Clean">
+        <MSBuild Projects="39 多平台Bass音频接口Demo\zSoundWithBASS.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="zSoundWithBASS:Make">
+        <MSBuild Projects="39 多平台Bass音频接口Demo\zSoundWithBASS.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="zSoundWithFMX">
+        <MSBuild Projects="40 多平台FMX音频接口Demo\zSoundWithFMX.dproj"/>
+    </Target>
+    <Target Name="zSoundWithFMX:Clean">
+        <MSBuild Projects="40 多平台FMX音频接口Demo\zSoundWithFMX.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="zSoundWithFMX:Make">
+        <MSBuild Projects="40 多平台FMX音频接口Demo\zSoundWithFMX.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="ParticleTest;TextureAtlas;PropsTest;movementdebug;findpathdebug;FFMPEG_ReaderDemo;memoryRasterProjection;RasterizationFormatDemo"/>
+        <CallTarget Targets="FFMPEG_ReaderDemo;findpath;movementdebug;ParticleTest;memoryRasterProjection;PropsTest;RasterizationFormatDemo;TextureAtlas;yuv2Video;SoftRenderer;Render2Video;zDrawEngine_HelloWorld;TextDraw;PolygonScaleAndExtract;DrawEngine4FMXBitmap;FillColor;GeometryIntersect;HoughRotationDetectAndCalibrate;MatrixAndVectorExpression;MemoryMapping;MemoryRasterMoreFont;NumTrans;ParallelCompressor;PascalCodeDependencyAnslysis;TriangleOptimization;zExpressionSupport;zSoundWithBASS;zSoundWithFMX"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="ParticleTest:Clean;TextureAtlas:Clean;PropsTest:Clean;movementdebug:Clean;findpathdebug:Clean;FFMPEG_ReaderDemo:Clean;memoryRasterProjection:Clean;RasterizationFormatDemo:Clean"/>
+        <CallTarget Targets="FFMPEG_ReaderDemo:Clean;findpath:Clean;movementdebug:Clean;ParticleTest:Clean;memoryRasterProjection:Clean;PropsTest:Clean;RasterizationFormatDemo:Clean;TextureAtlas:Clean;yuv2Video:Clean;SoftRenderer:Clean;Render2Video:Clean;zDrawEngine_HelloWorld:Clean;TextDraw:Clean;PolygonScaleAndExtract:Clean;DrawEngine4FMXBitmap:Clean;FillColor:Clean;GeometryIntersect:Clean;HoughRotationDetectAndCalibrate:Clean;MatrixAndVectorExpression:Clean;MemoryMapping:Clean;MemoryRasterMoreFont:Clean;NumTrans:Clean;ParallelCompressor:Clean;PascalCodeDependencyAnslysis:Clean;TriangleOptimization:Clean;zExpressionSupport:Clean;zSoundWithBASS:Clean;zSoundWithFMX:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="ParticleTest:Make;TextureAtlas:Make;PropsTest:Make;movementdebug:Make;findpathdebug:Make;FFMPEG_ReaderDemo:Make;memoryRasterProjection:Make;RasterizationFormatDemo:Make"/>
+        <CallTarget Targets="FFMPEG_ReaderDemo:Make;findpath:Make;movementdebug:Make;ParticleTest:Make;memoryRasterProjection:Make;PropsTest:Make;RasterizationFormatDemo:Make;TextureAtlas:Make;yuv2Video:Make;SoftRenderer:Make;Render2Video:Make;zDrawEngine_HelloWorld:Make;TextDraw:Make;PolygonScaleAndExtract:Make;DrawEngine4FMXBitmap:Make;FillColor:Make;GeometryIntersect:Make;HoughRotationDetectAndCalibrate:Make;MatrixAndVectorExpression:Make;MemoryMapping:Make;MemoryRasterMoreFont:Make;NumTrans:Make;ParallelCompressor:Make;PascalCodeDependencyAnslysis:Make;TriangleOptimization:Make;zExpressionSupport:Make;zSoundWithBASS:Make;zSoundWithFMX:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

@@ -301,7 +301,7 @@ begin
         R[0] := PointMake(p^.X * 64, p^.Y * 64);
         R[1] := Vec2Add(R[0], 64);
         dest := TDE4V.Init(R, 0);
-        FDrawEngine.DrawTextureInScene(bmp, sour, dest, 1);
+        FDrawEngine.DrawPictureInScene(bmp, sour, dest, 1);
       end;
 
   if FDrawTileEnabled then
@@ -318,7 +318,7 @@ begin
             sour := TDE4V.Init(bmp.BoundsRect, 0);
             dest := TDE4V.Init(R, 0);
             FDrawEngine.FillBox(MakeRectV2(Vec2Sub(R[0], 2), Vec2Add(R[1], 2)), Vec4(0, 0, 0, 0.5));
-            FDrawEngine.DrawTexture(bmp, sour, dest, 1.0);
+            FDrawEngine.DrawPicture(bmp, sour, dest, 1.0);
 
             R[0][0] := R[0][0] - PreviewSizeEndge;
             if R[0][0] < 0 then

@@ -25,8 +25,9 @@ type
   TseqGenForm = class(TForm, IComparer<TFileItm>)
     Memo: TMemo;
     OpenDialog: TOpenDialog;
-    TopLayout: TLayout;
-    ClientLayout: TLayout;
+    topLayout: TLayout;
+    StyleBook1: TStyleBook;
+    clientLayout: TLayout;
     ListBox: TListBox;
     PaintBox: TPaintBox;
     ColumnSpinBox: TSpinBox;
@@ -119,7 +120,7 @@ begin
 
   FDrawEngine := TDrawEngine.Create;
   FDrawEngine.DrawInterface := FDrawEngineInterface;
-  FDrawEngine.ViewOptions := [devpFPS, devpFrameEndge];
+  FDrawEngine.ViewOptions := [voFPS, voEdge];
 
   FSequenceBmp := TDETexture_FMX.Create;
   FAngle := 0;
@@ -140,15 +141,15 @@ begin
   bmp := TMemoryRaster.Create;
   LoadMemoryBitmap(ImportEdit.Text, bmp);
   MemoryBitmapToBitmap(bmp, ImportPreviewImage.Bitmap);
-  disposeObject(bmp);
+  DisposeObject(bmp);
 end;
 
 procedure TseqGenForm.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  disposeObject(FCadencerEng);
-  disposeObject(FDrawEngine);
-  disposeObject(FDrawEngineInterface);
-  disposeObject(FSequenceBmp);
+  DisposeObject(FCadencerEng);
+  DisposeObject(FDrawEngine);
+  DisposeObject(FDrawEngineInterface);
+  DisposeObject(FSequenceBmp);
 
   FCadencerEng := nil;
   FDrawEngine := nil;
@@ -171,7 +172,7 @@ end;
 procedure TseqGenForm.ClearPictureButtonClick(Sender: TObject);
 begin
   FSequenceBmp.Clear;
-  FSequenceBmp.ReleaseFMXResource;
+  FSequenceBmp.ReleaseGPUMemory;
   ListBox.Clear;
   Memo.Lines.Clear;
 end;
@@ -214,7 +215,7 @@ var
 begin
   bmp := TDETexture_FMX.Create;
   FSequenceBmp.GradientSequence(bmp);
-  disposeObject(FSequenceBmp);
+  DisposeObject(FSequenceBmp);
   FSequenceBmp := bmp;
   BuildSequenceFrameList(FSequenceBmp, 0, FSequenceBmp.Total);
 end;
@@ -230,7 +231,7 @@ var
 begin
   bmp := TDETexture_FMX.Create;
   FSequenceBmp.ReverseSequence(bmp);
-  disposeObject(FSequenceBmp);
+  DisposeObject(FSequenceBmp);
   FSequenceBmp := bmp;
   BuildSequenceFrameList(FSequenceBmp, 0, FSequenceBmp.Total);
 end;
@@ -242,27 +243,27 @@ end;
 
 procedure TseqGenForm.PaintBoxPaint(Sender: TObject; Canvas: TCanvas);
 var
-  r: TDERect;
+  R: TDERect;
 begin
   FDrawEngineInterface.Canvas := Canvas;
-  FDrawEngine.SetSize(PaintBox.Width, PaintBox.Height);
+  FDrawEngine.SetSize(PaintBox.width, PaintBox.height);
 
-  FDrawEngine.FillBox(FDrawEngine.ScreenRect, DEColor(ColorPanel.Color));
+  FDrawEngine.FillBox(FDrawEngine.ScreenRect, DEColor(ColorPanel.COLOR));
 
-  if (FSequenceBmp.Width > 0) and (FSequenceBmp.Height > 0) then
+  if (FSequenceBmp.width > 0) and (FSequenceBmp.height > 0) then
     begin
       // FAngle := FAngle + FDrawEngine.LastDeltaTime * 180;
 
       FDrawEngine.DrawSequenceTexture(101, FSequenceBmp, 2.0, True, TDE4V.Init(RectFit(DERect(0, 0, 128, 128), FDrawEngine.ScreenRect), FAngle), 1.0);
 
-      r := DERect(FDrawEngine.Width * 0.7 - 5, 5, FDrawEngine.Width - 5, FDrawEngine.Height * 0.3 + 5);
-      r := RectFit(FSequenceBmp.BoundsRectV2, r);
-      FDrawEngine.DrawTexture(FSequenceBmp, FSequenceBmp.BoundsRectV2, r, 1.0);
-      FDrawEngine.DrawBox(r, DEColor(1, 1, 1, 1), 1);
+      R := DERect(FDrawEngine.width * 0.7 - 5, 5, FDrawEngine.width - 5, FDrawEngine.height * 0.3 + 5);
+      R := RectFit(FSequenceBmp.BoundsRectV2, R);
+      FDrawEngine.DrawPicture(FSequenceBmp, FSequenceBmp.BoundsRectV2, R, 1.0);
+      FDrawEngine.DrawBox(R, DEColor(1, 1, 1, 1), 1);
       FDrawEngine.DrawText(
         Format('img: %d x %d' + #13#10 + 'frame:%d x %d' + #13#10 + 'frame count:%d',
-        [FSequenceBmp.Width, FSequenceBmp.Height, FSequenceBmp.FrameWidth, FSequenceBmp.FrameHeight, FSequenceBmp.Total]),
-        10, DEColor(1, 1, 1, 1), DEVec(r[0][0], r[1][1]));
+        [FSequenceBmp.width, FSequenceBmp.height, FSequenceBmp.FrameWidth, FSequenceBmp.FrameHeight, FSequenceBmp.Total]),
+        10, DEColor(1, 1, 1, 1), DEVec(R[0][0], R[1][1]));
     end;
 
   FDrawEngine.Flush;
@@ -271,22 +272,22 @@ end;
 procedure TseqGenForm.CadencerProgress(Sender: TObject; const deltaTime, newTime: Double);
 begin
   FDrawEngine.Progress(0.05);
-  PaintBox.Repaint;
+  PaintBox.RepaInt;
 end;
 
 function TseqGenForm.Compare(const Left, Right: TFileItm): Integer;
 var
-  n1, n2: string;
+  N1, N2: string;
 begin
-  n1 := umlDeleteChar(Left.FileName, [c0to9]);
-  n2 := umlDeleteChar(Right.FileName, [c0to9]);
-  Result := CompareText(n1, n2);
+  N1 := umlDeleteChar(Left.FileName, [c0to9]);
+  N2 := umlDeleteChar(Right.FileName, [c0to9]);
+  Result := CompareText(N1, N2);
   if Result = EqualsValue then
     begin
-      n1 := umlGetNumberCharInText(Left.FileName);
-      n2 := umlGetNumberCharInText(Right.FileName);
-      if (n1 <> '') and (n2 <> '') then
-          Result := CompareValue(StrToInt(n1), StrToInt(n2));
+      N1 := umlGetNumberCharInText(Left.FileName);
+      N2 := umlGetNumberCharInText(Right.FileName);
+      if (N1 <> '') and (N2 <> '') then
+          Result := CompareValue(StrToInt(N1), StrToInt(N2));
     end;
 end;
 
@@ -296,10 +297,10 @@ var
 
   function ExistsF(s: string): Boolean;
   var
-    t: TFileItm;
+    T: TFileItm;
   begin
-    for t in FileList do
-      if SameText(t.FullPath, s) then
+    for T in FileList do
+      if SameText(T.FullPath, s) then
           Exit(True);
     Result := False;
   end;
@@ -307,7 +308,7 @@ var
 var
   i: Integer;
   n: string;
-  t: TFileItm;
+  T: TFileItm;
 begin
   FileList := System.Generics.Collections.TList<TFileItm>.Create;
   for i := 0 to Memo.Lines.Count - 1 do
@@ -315,11 +316,11 @@ begin
       n := Memo.Lines[i];
 
       if ExistsF(n) then
-          continue;
+          Continue;
 
-      t.FullPath := n;
-      t.FileName := LowerCase(System.IOUtils.TPath.ChangeExtension(System.IOUtils.TPath.GetFileName(n), ''));
-      FileList.Add(t);
+      T.FullPath := n;
+      T.FileName := LowerCase(System.IOUtils.TPath.ChangeExtension(System.IOUtils.TPath.GetFileName(n), ''));
+      FileList.Add(T);
     end;
 
   if fs <> nil then
@@ -328,22 +329,22 @@ begin
         n := fs[i];
 
         if ExistsF(n) then
-            continue;
+            Continue;
 
-        t.FullPath := n;
-        t.FileName := LowerCase(System.IOUtils.TPath.ChangeExtension(System.IOUtils.TPath.GetFileName(n), ''));
-        FileList.Add(t);
+        T.FullPath := n;
+        T.FileName := LowerCase(System.IOUtils.TPath.ChangeExtension(System.IOUtils.TPath.GetFileName(n), ''));
+        FileList.Add(T);
       end;
 
-  FileList.Sort(self);
+  FileList.Sort(Self);
 
   Memo.Lines.BeginUpdate;
   Memo.Lines.Clear;
-  for t in FileList do
-      Memo.Lines.Add(t.FullPath);
+  for T in FileList do
+      Memo.Lines.Add(T.FullPath);
   Memo.Lines.EndUpdate;
 
-  disposeObject(FileList);
+  DisposeObject(FileList);
 
   BuildSequenceFrameList;
   BuildSequenceFrameImage;
@@ -354,7 +355,7 @@ var
   i: Integer;
   n: string;
 
-  li: TListBoxItem;
+  Li: TListBoxItem;
   img: TImage;
   bmp: TSequenceMemoryRaster;
 begin
@@ -364,23 +365,23 @@ begin
   for i := 0 to Memo.Lines.Count - 1 do
     begin
       n := Memo.Lines[i];
-      li := TListBoxItem.Create(ListBox);
-      li.Width := 60;
-      li.Height := ListBox.Height;
-      li.TextSettings.HorzAlign := TTextAlign.Center;
-      li.TextSettings.VertAlign := TTextAlign.Center;
-      img := TImage.Create(li);
-      img.Parent := li;
+      Li := TListBoxItem.Create(ListBox);
+      Li.width := 60;
+      Li.height := ListBox.height;
+      Li.TextSettings.HorzAlign := TTextAlign.center;
+      Li.TextSettings.VertAlign := TTextAlign.center;
+      img := TImage.Create(Li);
+      img.Parent := Li;
       img.Align := TAlignLayout.Client;
 
       bmp := TSequenceMemoryRaster.Create;
       LoadMemoryBitmap(n, bmp);
       MemoryBitmapToBitmap(bmp, img.Bitmap);
-      disposeObject(bmp);
+      DisposeObject(bmp);
 
-      li.Text := Format('%d', [i]);
-      li.Parent := ListBox;
-      li.TagObject := img;
+      Li.Text := Format('%d', [i]);
+      Li.Parent := ListBox;
+      Li.TagObject := img;
     end;
 
   ListBox.EndUpdate;
@@ -390,7 +391,7 @@ procedure TseqGenForm.BuildSequenceFrameList(bmp: TSequenceMemoryRaster; bIdx, e
 var
   i: Integer;
 
-  li: TListBoxItem;
+  Li: TListBoxItem;
   img: TImage;
   output: TMemoryRaster;
 begin
@@ -400,30 +401,30 @@ begin
 
   for i := bIdx to eIdx - 1 do
     begin
-      li := TListBoxItem.Create(ListBox);
-      li.Width := 60;
-      li.Height := ListBox.Height;
-      li.TextSettings.HorzAlign := TTextAlign.Center;
-      li.TextSettings.VertAlign := TTextAlign.Center;
-      img := TImage.Create(li);
-      img.Parent := li;
+      Li := TListBoxItem.Create(ListBox);
+      Li.width := 60;
+      Li.height := ListBox.height;
+      Li.TextSettings.HorzAlign := TTextAlign.center;
+      Li.TextSettings.VertAlign := TTextAlign.center;
+      img := TImage.Create(Li);
+      img.Parent := Li;
       img.Align := TAlignLayout.Client;
 
       bmp.ExportSequenceFrame(i, output);
       MemoryBitmapToBitmap(output, img.Bitmap);
 
-      li.Text := Format('%d', [i + 1]);
-      li.Parent := ListBox;
-      li.TagObject := img;
+      Li.Text := Format('%d', [i + 1]);
+      Li.Parent := ListBox;
+      Li.TagObject := img;
     end;
 
   ListBox.EndUpdate;
-  disposeObject(output);
+  DisposeObject(output);
 end;
 
 procedure TseqGenForm.BuildImportAsSequenceButtonClick(Sender: TObject);
 begin
-  FSequenceBmp.ReleaseFMXResource;
+  FSequenceBmp.ReleaseGPUMemory;
   LoadMemoryBitmap(ImportEdit.Text, FSequenceBmp);
   FSequenceBmp.Total := Round(ImportTotalSpinBox.Value);
   FSequenceBmp.Column := Round(ImportColumnSpinBox.Value);
@@ -446,7 +447,7 @@ begin
       SaveMemoryBitmap(n, bmp);
       ExpMemo.Lines.Add(n);
     end;
-  disposeObject(bmp);
+  DisposeObject(bmp);
 end;
 
 procedure TseqGenForm.BuildSequenceFrameImage;
@@ -468,17 +469,17 @@ begin
       lst.Add(bmp);
     end;
 
-  FSequenceBmp.ReleaseFMXResource;
+  FSequenceBmp.ReleaseGPUMemory;
   output := BuildSequenceFrame(lst, Round(ColumnSpinBox.Value), TransparentCheckBox.IsChecked);
   FSequenceBmp.Assign(output);
   FSequenceBmp.Total := output.Total;
   FSequenceBmp.Column := output.Column;
-  disposeObject(output);
+  DisposeObject(output);
 
   for i := 0 to lst.Count - 1 do
-      disposeObject(lst[i]);
+      DisposeObject(lst[i]);
 
-  disposeObject(lst);
+  DisposeObject(lst);
 end;
 
 end.

@@ -18,7 +18,7 @@
 { ****************************************************************************** }
 unit zNavigationPathFinding;
 
-{$INCLUDE zDefine.inc}
+{$INCLUDE ..\zDefine.inc}
 
 interface
 

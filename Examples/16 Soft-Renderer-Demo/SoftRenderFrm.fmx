@@ -1,0 +1,57 @@
+object Form1: TForm1
+  Left = 0
+  Top = 0
+  Caption = 'Soft Renderer'
+  ClientHeight = 559
+  ClientWidth = 1239
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  DesignerMasterStyle = 0
+  object RenderButton: TButton
+    Position.X = 11.000000000000000000
+    Position.Y = 13.000000000000000000
+    Size.Width = 94.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    Text = 'Render'
+    OnClick = RenderButtonClick
+  end
+  object PaintBox: TPaintBox
+    Position.X = 635.000000000000000000
+    Position.Y = 43.000000000000000000
+    Size.Width = 590.000000000000000000
+    Size.Height = 470.000000000000000000
+    Size.PlatformDefault = False
+    OnPaint = PaintBoxPaint
+  end
+  object Timer1: TTimer
+    Interval = 10
+    OnTimer = Timer1Timer
+    Left = 300
+    Top = 211
+  end
+  object Image: TImage
+    MultiResBitmap = <
+      item
+      end>
+    MarginWrapMode = Original
+    Position.X = 15.000000000000000000
+    Position.Y = 43.000000000000000000
+    Size.Width = 590.000000000000000000
+    Size.Height = 470.000000000000000000
+    Size.PlatformDefault = False
+  end
+  object usedAggCheckBox: TCheckBox
+    Position.X = 120.000000000000000000
+    Position.Y = 16.000000000000000000
+    Size.Width = 161.000000000000000000
+    Size.Height = 19.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    Text = 'used AGG Render'
+  end
+end
