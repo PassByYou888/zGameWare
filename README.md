@@ -1,9 +1,9 @@
 
 # 什么是 zGameWare？
 
-zGameWare是一款跨平台2d游戏的制作中间件，它内置了并行化和多线程渲染框架，兼容fpc3.0.4和delphi xe10.1.2及以上版本。
+zGameWare是一款跨平台2d游戏的制作中间件，它内置了并行化和多线程渲染框架，兼容fpc3.0.4和delphi xe10.3.2及以上版本。
 
-底层api支持各类渲染引擎，内置强大工具链，高级几何系统，导航网络，音频，核心规则，人工智能，大型资源包，内置跨平台ffmpeg支持
+底层api支持各类渲染引擎，内置强大工具链，高级几何系统，导航网络，音频，核心规则，大型资源包，内置跨平台ffmpeg支持
 
 **渲染器支持**
 - zGameWare内置软件渲染器，软件渲染器支持HPC服务器，跨平台
@@ -21,7 +21,7 @@ zGameWare是一款跨平台2d游戏的制作中间件，它内置了并行化和
 - FPC编译器支持:FPC3.0.4 or last,可参看本项目随附的[IOT入手指南](https://github.com/PassByYou888/ZServer4D/blob/master/Documents/%E5%85%A5%E6%89%8BIOT%E7%9A%84%E5%AE%8C%E5%85%A8%E6%94%BB%E7%95%A5.pdf)将FPC升级至github最新的版本
 - CodeTyphon 6.0 or last（尽量使用Online更新到最新的Cross工具链+相关库）
 
-## 平台支持，test with Delphi 10.2 upate 1 Tokyo and FPC 3.0.4
+## 平台支持，test with Delphi 10.3 update 2 and FPC 3.0.4
 
 - Windows: delphi-CrossSocket(C/S OK), delphi-DIOCP(C/S OK), delphi-ICS(C/S OK), delphi-Indy(C/S OK),delphi+fpc Synapse(C/S OK)
 - Android:Indy(C/S OK), CrossSocket(Only Client)
@@ -37,7 +37,7 @@ zGameWare是一款跨平台2d游戏的制作中间件，它内置了并行化和
 - Raspberry Pi 3 Debian linux armv7 desktop,only fpc 3.0.4,test passed.
 - wince(arm eabi hard flaot),windows 10 IOT,only fpc 3.3.1,test passed.
 
-## CPU架构支持，test with Delphi 10.2 upate 1 Tokyo and FPC 3.0.4
+## CPU架构支持，test with Delphi 10.3 update 2 and FPC 3.0.4
 
 - MIPS(fpc-little endian), soft float, test pass on QEMU 
 - intel X86(fpc-x86), soft float
