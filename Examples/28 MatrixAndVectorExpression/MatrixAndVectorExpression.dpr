@@ -39,6 +39,6 @@ end;
 begin
   MatrixExp;
   MatrixVec;
-  DoStatus('preee exter key to exit.');
+  DoStatus('press enter key to exit.');
   readln;
 end.
