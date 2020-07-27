@@ -44,11 +44,11 @@ uses GBK, GBKMediaCenter;
 
 function WordPart(const s: TUPascalString; const Unidentified, Completed: TListPascalString): Integer;
 var
-  ns, n2   : TUPascalString;
-  i, j     : Integer;
+  ns, n2: TUPascalString;
+  i, j: Integer;
   Successed: Boolean;
 begin
-  Completed.Clear;
+  WaitGBKMediaInit;
   ns := GBKString(s);
   Result := 0;
 
@@ -91,9 +91,10 @@ end;
 function WordPart(const s: TUPascalString): TPascalString;
 var
   Unidentified: TListPascalString;
-  Completed   : TListPascalString;
-  i           : Integer;
+  Completed: TListPascalString;
+  i: Integer;
 begin
+  WaitGBKMediaInit;
   Result := '';
   Unidentified := TListPascalString.Create;
   Completed := TListPascalString.Create;
@@ -112,9 +113,10 @@ end;
 function WordPartN(const s: TUPascalString): TPascalString;
 var
   Unidentified: TListPascalString;
-  Completed   : TListPascalString;
-  i           : Integer;
+  Completed: TListPascalString;
+  i: Integer;
 begin
+  WaitGBKMediaInit;
   Result := '';
   Unidentified := TListPascalString.Create;
   Completed := TListPascalString.Create;
@@ -133,9 +135,10 @@ end;
 function WordPartD(const s: TUPascalString): TPascalString;
 var
   Unidentified: TListPascalString;
-  Completed   : TListPascalString;
-  i           : Integer;
+  Completed: TListPascalString;
+  i: Integer;
 begin
+  WaitGBKMediaInit;
   Result := '';
   Unidentified := TListPascalString.Create;
   Completed := TListPascalString.Create;
@@ -154,9 +157,10 @@ end;
 function FullQuery_Table(const List: THashList; const s: TUPascalString): Integer; overload;
 var
   ns, n2, n3: TUPascalString;
-  i, j, L   : Integer;
-  Successed : Boolean;
+  i, j, L: Integer;
+  Successed: Boolean;
 begin
+  WaitGBKMediaInit;
   ns := GBKString(s);
 
   Result := 0;
@@ -193,8 +197,8 @@ end;
 function FullQuery_Table(const List: THashTextEngine; const s: TUPascalString): Integer; overload;
   function InternalQuery(const vl: THashVariantList; const ns: TUPascalString): Integer;
   var
-    n2       : TUPascalString;
-    i, j, L  : Integer;
+    n2: TUPascalString;
+    i, j, L: Integer;
     Successed: Boolean;
   begin
     Result := 0;
@@ -229,10 +233,11 @@ function FullQuery_Table(const List: THashTextEngine; const s: TUPascalString): 
   end;
 
 var
-  ns  : TUPascalString;
+  ns: TUPascalString;
   i, r: Integer;
-  pl  : TListPascalString;
+  pl: TListPascalString;
 begin
+  WaitGBKMediaInit;
   ns := GBKString(s);
   Result := 0;
   pl := TListPascalString.Create;
@@ -247,34 +252,38 @@ end;
 
 function WillVec(const s: TUPascalString): Integer;
 begin
+  WaitGBKMediaInit;
   Result := FullQuery_Table(WillVecDict, s);
 end;
 
 function WordVec(const s: TUPascalString): Integer;
 begin
+  WaitGBKMediaInit;
   Result := FullQuery_Table(WordVecDict, s);
 end;
 
 function BadEmotion(const s: TUPascalString): Integer;
 begin
+  WaitGBKMediaInit;
   Result := FullQuery_Table(BadEmotionDict, s);
 end;
 
 function BadRep(const s: TUPascalString): Integer;
 begin
+  WaitGBKMediaInit;
   Result := FullQuery_Table(BadRepDict, s);
 end;
 
 function GoodEmotion(const s: TUPascalString): Integer;
 begin
+  WaitGBKMediaInit;
   Result := FullQuery_Table(GoodEmotionDict, s);
 end;
 
 function GoodRep(const s: TUPascalString): Integer;
 begin
+  WaitGBKMediaInit;
   Result := FullQuery_Table(GoodRepDict, s);
 end;
 
-end. 
- 
- 
+end.

@@ -33,6 +33,15 @@
         <Projects Include="PascalCodeUnification\PascalCodeUnification.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="FMX_FontBuild\FMX_FontBuild.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="FMX_FontBuild\FMX_FONTConsoleBuild.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="ImagingFormatConvert2TIF\ImgFmtConver2TIF.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -131,14 +140,41 @@
     <Target Name="PascalCodeUnification:Make">
         <MSBuild Projects="PascalCodeUnification\PascalCodeUnification.dproj" Targets="Make"/>
     </Target>
+    <Target Name="FMX_FontBuild">
+        <MSBuild Projects="FMX_FontBuild\FMX_FontBuild.dproj"/>
+    </Target>
+    <Target Name="FMX_FontBuild:Clean">
+        <MSBuild Projects="FMX_FontBuild\FMX_FontBuild.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMX_FontBuild:Make">
+        <MSBuild Projects="FMX_FontBuild\FMX_FontBuild.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="FMX_FONTConsoleBuild">
+        <MSBuild Projects="FMX_FontBuild\FMX_FONTConsoleBuild.dproj"/>
+    </Target>
+    <Target Name="FMX_FONTConsoleBuild:Clean">
+        <MSBuild Projects="FMX_FontBuild\FMX_FONTConsoleBuild.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="FMX_FONTConsoleBuild:Make">
+        <MSBuild Projects="FMX_FontBuild\FMX_FONTConsoleBuild.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ImgFmtConver2TIF">
+        <MSBuild Projects="ImagingFormatConvert2TIF\ImgFmtConver2TIF.dproj"/>
+    </Target>
+    <Target Name="ImgFmtConver2TIF:Clean">
+        <MSBuild Projects="ImagingFormatConvert2TIF\ImgFmtConver2TIF.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ImgFmtConver2TIF:Make">
+        <MSBuild Projects="ImagingFormatConvert2TIF\ImgFmtConver2TIF.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="DPRCodeSort;ConvFile2Pascal;seqGen;BitmapConver;ImgFmtConver2PNG;FontBuild;TileDraw;FilePackageWithZDB;StringTranslate;PascalCodeUnification"/>
+        <CallTarget Targets="DPRCodeSort;ConvFile2Pascal;seqGen;BitmapConver;ImgFmtConver2PNG;FontBuild;TileDraw;FilePackageWithZDB;StringTranslate;PascalCodeUnification;FMX_FontBuild;FMX_FONTConsoleBuild;ImgFmtConver2TIF"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="DPRCodeSort:Clean;ConvFile2Pascal:Clean;seqGen:Clean;BitmapConver:Clean;ImgFmtConver2PNG:Clean;FontBuild:Clean;TileDraw:Clean;FilePackageWithZDB:Clean;StringTranslate:Clean;PascalCodeUnification:Clean"/>
+        <CallTarget Targets="DPRCodeSort:Clean;ConvFile2Pascal:Clean;seqGen:Clean;BitmapConver:Clean;ImgFmtConver2PNG:Clean;FontBuild:Clean;TileDraw:Clean;FilePackageWithZDB:Clean;StringTranslate:Clean;PascalCodeUnification:Clean;FMX_FontBuild:Clean;FMX_FONTConsoleBuild:Clean;ImgFmtConver2TIF:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="DPRCodeSort:Make;ConvFile2Pascal:Make;seqGen:Make;BitmapConver:Make;ImgFmtConver2PNG:Make;FontBuild:Make;TileDraw:Make;FilePackageWithZDB:Make;StringTranslate:Make;PascalCodeUnification:Make"/>
+        <CallTarget Targets="DPRCodeSort:Make;ConvFile2Pascal:Make;seqGen:Make;BitmapConver:Make;ImgFmtConver2PNG:Make;FontBuild:Make;TileDraw:Make;FilePackageWithZDB:Make;StringTranslate:Make;PascalCodeUnification:Make;FMX_FontBuild:Make;FMX_FONTConsoleBuild:Make;ImgFmtConver2TIF:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

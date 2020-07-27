@@ -35,7 +35,7 @@ uses SysUtils, Classes,
   DataFrameEngine, ItemStream;
 
 type
-  TDBStoreBase = class;
+  TDBStore = class;
 
   TStoreArray = array of Int64;
   PStoreArray = ^TStoreArray;
@@ -43,49 +43,61 @@ type
   // Base Data Struct
   TDBEngineDF = class(TDataFrameEngine)
   protected
-    DBStorePos: Int64;
-    dbEng: TDBStoreBase;
+    FDBStorePos: Int64;
+    dbEng: TDBStore;
     CreateTime, ModificationTime: TDateTime;
     MemoryUsed: nativeUInt;
   public
     constructor Create;
     procedure Save;
+
+    property StorePos: Int64 read FDBStorePos;
+    property Eng: TDBStore read dbEng;
   end;
 
   // Base Data Struct
   TDBEngineVL = class(THashVariantList)
   protected
-    DBStorePos: Int64;
-    dbEng: TDBStoreBase;
+    FDBStorePos: Int64;
+    dbEng: TDBStore;
     CreateTime, ModificationTime: TDateTime;
     MemoryUsed: nativeUInt;
   public
     constructor Create;
     procedure Save;
+
+    property StorePos: Int64 read FDBStorePos;
+    property Eng: TDBStore read dbEng;
   end;
 
   // Base Data Struct
   TDBEngineVT = class(THashStringList)
   protected
-    DBStorePos: Int64;
-    dbEng: TDBStoreBase;
+    FDBStorePos: Int64;
+    dbEng: TDBStore;
     CreateTime, ModificationTime: TDateTime;
     MemoryUsed: nativeUInt;
   public
     constructor Create;
     procedure Save;
+
+    property StorePos: Int64 read FDBStorePos;
+    property Eng: TDBStore read dbEng;
   end;
 
   // Base Data Struct
   TDBEngineTE = class(TSectionTextData)
   protected
-    DBStorePos: Int64;
-    dbEng: TDBStoreBase;
+    FDBStorePos: Int64;
+    dbEng: TDBStore;
     CreateTime, ModificationTime: TDateTime;
     MemoryUsed: nativeUInt;
   public
     constructor Create;
     procedure Save;
+
+    property StorePos: Int64 read FDBStorePos;
+    property Eng: TDBStore read dbEng;
   end;
 
 {$IFNDEF FPC}
@@ -93,38 +105,40 @@ type
   // Base Data Struct
   TDBEngineJson = class(TJsonObject)
   protected
-    DBStorePos: Int64;
-    dbEng: TDBStoreBase;
+    FDBStorePos: Int64;
+    dbEng: TDBStore;
     CreateTime, ModificationTime: TDateTime;
     MemoryUsed: nativeUInt;
   public
     constructor Create;
     procedure Save;
+
+    property StorePos: Int64 read FDBStorePos;
+    property Eng: TDBStore read dbEng;
   end;
 {$ENDIF}
 
   // Base Data Struct
   TDBEnginePascalString = class(TCoreClassObject)
   protected
-    DBStorePos: Int64;
-    dbEng: TDBStoreBase;
+    FDBStorePos: Int64;
+    dbEng: TDBStore;
     CreateTime, ModificationTime: TDateTime;
     MemoryUsed: nativeUInt;
-    FBuff: TPascalString;
-    procedure SetBuff(const Value: TPascalString);
   public
     hash: THash;
-    property buff: TPascalString read FBuff write SetBuff;
+    Buff: TPascalString;
 
     constructor Create;
     destructor Destroy; override;
-
     procedure Clear;
-
     procedure Save;
 
     procedure LoadFromStream(stream: TCoreClassStream);
     procedure SaveToStream(stream: TCoreClassStream);
+
+    property StorePos: Int64 read FDBStorePos;
+    property Eng: TDBStore read dbEng;
 
     class procedure LoadPascalStringFromStream(p: PPascalString; stream: TCoreClassStream);
     class procedure SavePascalStringToStream(p: PPascalString; stream: TCoreClassStream);
@@ -146,8 +160,8 @@ type
     procedure Add(Value: TDBEngineDF); overload;
     procedure Delete(index: Integer);
 
-    procedure LoadFromStoreEngine(dbEng: TDBStoreBase);
-    procedure ExportToStoreEngine(dbEng: TDBStoreBase);
+    procedure LoadFromStoreEngine(dbEng: TDBStore);
+    procedure ExportToStoreEngine(dbEng: TDBStore);
 
     property HashListBuff: TCoreClassListForObj read FHashListBuff;
   end;
@@ -176,8 +190,8 @@ type
     procedure ExportTextStream(stream: TCoreClassStream);
     procedure ExportTextFile(fn: SystemString);
 
-    procedure LoadFromStoreEngine(dbEng: TDBStoreBase);
-    procedure ExportToStoreEngine(dbEng: TDBStoreBase);
+    procedure LoadFromStoreEngine(dbEng: TDBStore);
+    procedure ExportToStoreEngine(dbEng: TDBStore);
 
     property HashListBuff: TCoreClassListForObj read FHashListBuff;
   end;
@@ -206,8 +220,8 @@ type
     procedure ExportTextStream(stream: TCoreClassStream);
     procedure ExportTextFile(fn: SystemString);
 
-    procedure LoadFromStoreEngine(dbEng: TDBStoreBase);
-    procedure ExportToStoreEngine(dbEng: TDBStoreBase);
+    procedure LoadFromStoreEngine(dbEng: TDBStore);
+    procedure ExportToStoreEngine(dbEng: TDBStore);
 
     property HashListBuff: TCoreClassListForObj read FHashListBuff;
   end;
@@ -227,8 +241,8 @@ type
     function Add: TDBEngineTE; overload;
     procedure Add(Value: TDBEngineTE); overload;
 
-    procedure LoadFromStoreEngine(dbEng: TDBStoreBase);
-    procedure ExportToStoreEngine(dbEng: TDBStoreBase);
+    procedure LoadFromStoreEngine(dbEng: TDBStore);
+    procedure ExportToStoreEngine(dbEng: TDBStore);
 
     property HashListBuff: TCoreClassListForObj read FHashListBuff;
   end;
@@ -254,8 +268,8 @@ type
     procedure ImportCSVStream(stream: TCoreClassStream);
     procedure ImportCSVFile(fn: SystemString);
 
-    procedure LoadFromStoreEngine(dbEng: TDBStoreBase);
-    procedure ExportToStoreEngine(dbEng: TDBStoreBase);
+    procedure LoadFromStoreEngine(dbEng: TDBStore);
+    procedure ExportToStoreEngine(dbEng: TDBStore);
 
     property HashListBuff: TCoreClassListForObj read FHashListBuff;
   end;
@@ -279,8 +293,8 @@ type
 
     procedure ImportTextStream(stream: TCoreClassStream);
 
-    procedure LoadFromStoreEngine(dbEng: TDBStoreBase);
-    procedure ExportToStoreEngine(dbEng: TDBStoreBase);
+    procedure LoadFromStoreEngine(dbEng: TDBStore);
+    procedure ExportToStoreEngine(dbEng: TDBStore);
 
     property HashListBuff: TCoreClassListForObj read FHashListBuff;
   end;
@@ -290,13 +304,14 @@ type
   PQueryState = ^TQueryState;
 
   TQueryState = record
-    dbEng: TDBStoreBase;
+    Eng: TDBStore;
     StorePos: Int64;
     QueryHnd: PHeader;
     index: NativeInt;
     TaskTag: SystemString;
-    deltaTime, newTime: TTimeTick;
+    deltaTime, NewTime: TTimeTick;
     Aborted: Boolean;
+    property dbEng: TDBStore read Eng;
 
     function ID: Cardinal;
     function IsDF: Boolean;
@@ -311,6 +326,8 @@ type
     function Cache: TDBCacheStream64;
     function NextCache: TDBCacheStream64;
     function PrevCache: TDBCacheStream64;
+    function NextPos: Int64;
+    function PrevPos: Int64;
   end;
 
   TQueryCall = procedure(var qState: TQueryState);
@@ -322,40 +339,35 @@ type
   TRemoveCall = procedure(StorePos: Int64; RemoveSuccesed: Boolean);
   TRemoveMethod = procedure(StorePos: Int64; RemoveSuccesed: Boolean) of object;
 
-{$IFNDEF FPC}
+{$IFDEF FPC}
+  TQueryProc = procedure(var qState: TQueryState) is nested;
+  TQueryDoneProc = procedure() is nested;
+  TRemoveProc = procedure(StorePos: Int64; RemoveSuccesed: Boolean) is nested;
+{$ELSE FPC}
   TQueryProc = reference to procedure(var qState: TQueryState);
   TQueryDoneProc = reference to procedure();
   TRemoveProc = reference to procedure(StorePos: Int64; RemoveSuccesed: Boolean);
-{$ENDIF}
+{$ENDIF FPC}
 
   TQueryTask = class(TCoreClassObject)
   protected
-    FDBEng: TDBStoreBase;
+    FDBEng: TDBStore;
     FInited: Boolean;
     FReverse: Boolean;
     FItmSrHnd: THeader;
     FState: TQueryState;
-
     FTriggerTime: TTimeTick;
     FTaskTag: SystemString;
-
     FLastTime: TTimeTick;
-
     FStoped, FPaused: Boolean;
-
-{$IFDEF FPC}
-    FOnQueryCall: TQueryCall;
-    FOnQueryMethod: TQueryMethod;
-    FOnQueryDoneCall: TQueryDoneCall;
-    FOnQueryDoneMethod: TQueryDoneMethod;
-{$ELSE}
+    FProcessQueryDone: Boolean;
+    FSyncTrigger: Boolean;
     FOnQueryCall: TQueryCall;
     FOnQueryMethod: TQueryMethod;
     FOnQueryProc: TQueryProc;
     FOnQueryDoneCall: TQueryDoneCall;
     FOnQueryDoneMethod: TQueryDoneMethod;
     FOnQueryDoneProc: TQueryDoneProc;
-{$ENDIF}
     procedure DoTriggerQuery;
     procedure DoQueryDone;
   public
@@ -365,7 +377,7 @@ type
     procedure Pause;
     procedure Play;
 
-    function ProcessQuery: Boolean;
+    function ProcessQuery(): Boolean;
     property Paused: Boolean read FPaused;
     function ConsumTime: Double;
   end;
@@ -375,17 +387,21 @@ type
   TRemoveQueueData = record
     OnRemoveCall: TRemoveCall;
     OnRemoveMethod: TRemoveMethod;
-{$IFNDEF FPC} OnRemoveProc: TRemoveProc; {$ENDIF FPC}
+    OnRemoveProc: TRemoveProc;
   end;
 
   TQueryThread = class(TCoreClassThread)
   public
-    StoreEngine: TDBStoreBase;
+    StoreEngine: TDBStore;
     Paused: Boolean;
     PausedIdleTime: Double;
     RemoveQueue, RemoveCompletedQueue: TInt64HashPointerList;
+    PickedQueryQueue: TCoreClassListForObj;
 
-    procedure SyncQuery;
+    procedure PickQueryQueue;
+    procedure AsyncQuery;
+
+    procedure SyncQueryDone;
     procedure SyncRemove;
     procedure SyncCheckCache;
     procedure SyncUpdateCacheState;
@@ -397,17 +413,17 @@ type
 
     procedure RemoveDeleteProc(p: Pointer);
 
-    procedure PostRemoveQueue(StorePos: Int64); overload;
-    procedure PostRemoveQueue(StorePos: Int64; OnRemove: TRemoveCall); overload;
-    procedure PostRemoveQueue(StorePos: Int64; OnRemove: TRemoveMethod); overload;
-{$IFNDEF FPC} procedure PostRemoveQueue(StorePos: Int64; OnRemove: TRemoveProc); overload; {$ENDIF FPC}
+    procedure PostRemoveQueue(StorePos: Int64);
+    procedure PostRemoveQueueC(StorePos: Int64; OnRemove: TRemoveCall);
+    procedure PostRemoveQueueM(StorePos: Int64; OnRemove: TRemoveMethod);
+    procedure PostRemoveQueueP(StorePos: Int64; OnRemove: TRemoveProc);
   end;
 
   IDBStoreBaseNotify = interface
-    procedure DoInsertData(Sender: TDBStoreBase; InsertPos: Int64; buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64);
-    procedure DoAddData(Sender: TDBStoreBase; buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64);
-    procedure DoModifyData(Sender: TDBStoreBase; const StorePos: Int64; buff: TCoreClassStream);
-    procedure DoDeleteData(Sender: TDBStoreBase; const StorePos: Int64);
+    procedure DoInsertData(Sender: TDBStore; InsertPos: Int64; Buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64);
+    procedure DoAddData(Sender: TDBStore; Buff: TCoreClassStream; ID: Cardinal; CompletePos: Int64);
+    procedure DoModifyData(Sender: TDBStore; const StorePos: Int64; Buff: TCoreClassStream);
+    procedure DoDeleteData(Sender: TDBStore; const StorePos: Int64);
   end;
 
   // store engine
@@ -415,7 +431,7 @@ type
 
   TDBCacheStream64 = class(TMemoryStream64)
   private
-    OwnerEng: TDBStoreBase;
+    OwnerEng: TDBStore;
     OwnerCache: TInt64HashObjectList;
     ID: Cardinal;
     CreateTime, ModificationTime: TDateTime;
@@ -428,7 +444,7 @@ type
     property CacheID: Cardinal read ID;
   end;
 
-  TDBStoreBase = class(TCoreClassInterfacedObject)
+  TDBStore = class(TCoreClassInterfacedObject)
   protected
     FDBEngine: TObjectDataManagerOfCache;
     FStoreFieldPos: Int64;
@@ -515,14 +531,17 @@ type
       using memory to speed up all entries, memory crashes maybe when the database is large.
     }
     property CacheStyle: TCacheStyle read FCacheStyle write FCacheStyle;
+
     // only work in CacheStyle = csAutomation
     property CacheAnnealingTime: Double read FCacheAnnealingTime write FCacheAnnealingTime;
     property MaximumCacheMemorySize: Int64 read FMaximumCacheMemorySize write FMaximumCacheMemorySize;
     property MinimizeCacheMemorySize: Int64 read FMinimizeCacheMemorySize write FMinimizeCacheMemorySize;
     property MaximumStreamCacheMemorySize: Int64 read FMaximumStreamCacheMemorySize write FMaximumStreamCacheMemorySize;
     property MinimizeCacheOfFileSize: Int64 read FMinimizeCacheOfFileSize write FMinimizeCacheOfFileSize;
+
     // cache information
     property CacheAnnealingState: SystemString read FCacheAnnealingState;
+
     // user define
     property UserPointer: Pointer read FUserPointer write FUserPointer;
     property UserObject: TCoreClassObject read FUserObject write FUserObject;
@@ -532,13 +551,13 @@ type
     // Security delete operation
     procedure DeleteData(const StorePos: Int64);
     // insert
-    function InsertData(const InsertPos: Int64; buff: TCoreClassStream; ID: Cardinal; var itmHnd: TItemHandle): Int64; overload;
-    function InsertData(const InsertPos: Int64; buff: TCoreClassStream; ID: Cardinal): Int64; overload;
+    function InsertData(const InsertPos: Int64; Buff: TCoreClassStream; ID: Cardinal; var itmHnd: TItemHandle): Int64; overload;
+    function InsertData(const InsertPos: Int64; Buff: TCoreClassStream; ID: Cardinal): Int64; overload;
     // append
-    function AddData(buff: TCoreClassStream; ID: Cardinal; var itmHnd: TItemHandle): Int64; overload;
-    function AddData(buff: TCoreClassStream; ID: Cardinal): Int64; overload;
+    function AddData(Buff: TCoreClassStream; ID: Cardinal; var itmHnd: TItemHandle): Int64; overload;
+    function AddData(Buff: TCoreClassStream; ID: Cardinal): Int64; overload;
     // modify
-    function SetData(const StorePos: Int64; buff: TCoreClassStream): Boolean;
+    function SetData(const StorePos: Int64; Buff: TCoreClassStream): Boolean;
     // get cache
     function GetCacheStream(const StorePos: Int64; ID: Cardinal): TDBCacheStream64; overload;
     function GetCacheStream(const StorePos: Int64): TDBCacheStream64; overload;
@@ -556,17 +575,6 @@ type
     procedure BuildStoreArray(ReverseBuild: Boolean; const OutputPtr: PStoreArray);
 
     // wait query
-{$IFDEF FPC}
-    procedure WaitQuery(ReverseQuery: Boolean;
-      const OnQueryCall: TQueryCall;
-      const OnQueryMethod: TQueryMethod); overload;
-
-    procedure WaitQueryC(ReverseQuery: Boolean; const OnQueryCall: TQueryCall); overload;
-    procedure WaitQueryM(ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod); overload;
-
-    procedure WaitQueryC(const OnQueryCall: TQueryCall); overload;
-    procedure WaitQueryM(const OnQueryMethod: TQueryMethod); overload;
-{$ELSE}
     procedure WaitQuery(ReverseQuery: Boolean;
       const OnQueryCall: TQueryCall;
       const OnQueryProc: TQueryProc;
@@ -579,26 +587,8 @@ type
     procedure WaitQueryC(const OnQueryCall: TQueryCall); overload;
     procedure WaitQueryP(const OnQueryProc: TQueryProc); overload;
     procedure WaitQueryM(const OnQueryMethod: TQueryMethod); overload;
-{$ENDIF}
-    //
+
     // background query
-{$IFDEF FPC}
-    function Query(const TaskTag: SystemString; const ReverseQuery: Boolean;
-      const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall;
-      const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask; overload;
-
-    function QueryC(const TaskTag: SystemString; const ReverseQuery: Boolean; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask; overload;
-    function QueryM(const TaskTag: SystemString; const ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask; overload;
-
-    function QueryC(const TaskTag: SystemString; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask; overload;
-    function QueryM(const TaskTag: SystemString; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask; overload;
-
-    function QueryC(const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask; overload;
-    function QueryM(const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask; overload;
-
-    function QueryC(const ReverseQuery: Boolean; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask; overload;
-    function QueryM(const ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask; overload;
-{$ELSE}
     function Query(const TaskTag: SystemString; const ReverseQuery: Boolean;
       const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall;
       const OnQueryProc: TQueryProc; const OnQueryDoneProc: TQueryDoneProc;
@@ -619,7 +609,7 @@ type
     function QueryC(const ReverseQuery: Boolean; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask; overload;
     function QueryM(const ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask; overload;
     function QueryP(const ReverseQuery: Boolean; const OnQueryProc: TQueryProc; const OnQueryDoneProc: TQueryDoneProc): TQueryTask; overload;
-{$ENDIF}
+
     procedure WaitQueryThread; overload;
     procedure WaitQueryThread(waitTime: TTimeTick); overload;
 
@@ -633,8 +623,8 @@ type
     function QueryThreadCount: Integer;
 
     // dataframe operation
-    function InsertData(const InsertPos: Int64; buff: TDataFrameEngine): Int64; overload;
-    function AddData(buff: TDataFrameEngine): Int64; overload;
+    function InsertData(const InsertPos: Int64; Buff: TDataFrameEngine): Int64; overload;
+    function AddData(Buff: TDataFrameEngine): Int64; overload;
     function GetDF(const StorePos: Int64): TDBEngineDF; overload;
     function GetDF(var qState: TQueryState): TDBEngineDF; overload;
     function BuildDF(const StorePos: Int64): TDBEngineDF; overload;
@@ -642,8 +632,8 @@ type
     property DF[const StorePos: Int64]: TDBEngineDF read GetDF;
 
     // key-value operation
-    function InsertData(const InsertPos: Int64; buff: THashVariantList): Int64; overload;
-    function AddData(buff: THashVariantList): Int64; overload;
+    function InsertData(const InsertPos: Int64; Buff: THashVariantList): Int64; overload;
+    function AddData(Buff: THashVariantList): Int64; overload;
     function GetVL(const StorePos: Int64): TDBEngineVL; overload;
     function GetVL(var qState: TQueryState): TDBEngineVL; overload;
     function BuildVL(const StorePos: Int64): TDBEngineVL; overload;
@@ -651,8 +641,8 @@ type
     property VL[const StorePos: Int64]: TDBEngineVL read GetVL;
 
     // key-string operation
-    function InsertData(const InsertPos: Int64; buff: THashStringList): Int64; overload;
-    function AddData(buff: THashStringList): Int64; overload;
+    function InsertData(const InsertPos: Int64; Buff: THashStringList): Int64; overload;
+    function AddData(Buff: THashStringList): Int64; overload;
     function GetVT(const StorePos: Int64): TDBEngineVT; overload;
     function GetVT(var qState: TQueryState): TDBEngineVT; overload;
     function BuildVT(const StorePos: Int64): TDBEngineVT; overload;
@@ -660,8 +650,8 @@ type
     property VT[const StorePos: Int64]: TDBEngineVT read GetVT;
 
     // text section operation
-    function InsertData(const InsertPos: Int64; buff: TSectionTextData): Int64; overload;
-    function AddData(buff: TSectionTextData): Int64; overload;
+    function InsertData(const InsertPos: Int64; Buff: TSectionTextData): Int64; overload;
+    function AddData(Buff: TSectionTextData): Int64; overload;
     function GetTE(const StorePos: Int64): TDBEngineTE; overload;
     function GetTE(var qState: TQueryState): TDBEngineTE; overload;
     function BuildTE(const StorePos: Int64): TDBEngineTE; overload;
@@ -670,8 +660,8 @@ type
 
     // json operation
 {$IFNDEF FPC}
-    function InsertData(const InsertPos: Int64; buff: TJsonObject): Int64; overload;
-    function AddData(buff: TJsonObject): Int64; overload;
+    function InsertData(const InsertPos: Int64; Buff: TJsonObject): Int64; overload;
+    function AddData(Buff: TJsonObject): Int64; overload;
     function GetJson(const StorePos: Int64): TDBEngineJson; overload;
     function GetJson(var qState: TQueryState): TDBEngineJson; overload;
     function BuildJson(const StorePos: Int64): TDBEngineJson; overload;
@@ -680,12 +670,12 @@ type
 {$ENDIF}
     //
     // string operation
-    function InsertData(const InsertPos: Int64; buff: TDBEnginePascalString): Int64; overload;
-    function InsertData(const InsertPos: Int64; buff: TPascalString): Int64; overload;
-    function InsertString(const InsertPos: Int64; buff: TPascalString): Int64; overload;
-    function AddData(buff: TDBEnginePascalString): Int64; overload;
-    function AddData(buff: TPascalString): Int64; overload;
-    function AddString(buff: TPascalString): Int64; overload;
+    function InsertData(const InsertPos: Int64; Buff: TDBEnginePascalString): Int64; overload;
+    function InsertData(const InsertPos: Int64; Buff: TPascalString): Int64; overload;
+    function InsertString(const InsertPos: Int64; Buff: TPascalString): Int64; overload;
+    function AddData(Buff: TDBEnginePascalString): Int64; overload;
+    function AddData(Buff: TPascalString): Int64; overload;
+    function AddString(Buff: TPascalString): Int64; overload;
     function GetPascalString(const StorePos: Int64): TDBEnginePascalString; overload;
     function GetPascalString(var qState: TQueryState): TDBEnginePascalString; overload;
     function GetString(const StorePos: Int64): TPascalString; overload;
@@ -722,26 +712,19 @@ uses MH_ZDB, CoreCipher, DoStatusIO;
 
 procedure zDBthSync(t: TCoreClassThread; Sync: Boolean; proc: TThreadMethod);
 begin
-  if Sync then
-    begin
-      try
-          TCoreClassThread.Synchronize(t, proc);
-      except
-      end;
-    end
-  else
-    begin
-      try
-          proc;
-      except
-      end;
-    end;
+  try
+    if Sync then
+        TCoreClassThread.Synchronize(t, proc)
+    else
+        proc();
+  except
+  end;
 end;
 
 constructor TDBEngineDF.Create;
 begin
   inherited Create;
-  DBStorePos := -1;
+  FDBStorePos := -1;
   dbEng := nil;
   CreateTime := umlDefaultTime;
   ModificationTime := CreateTime;
@@ -752,19 +735,19 @@ procedure TDBEngineDF.Save;
 var
   M: TMemoryStream64;
 begin
-  if (DBStorePos < 0) or (dbEng = nil) then
+  if (FDBStorePos < 0) or (dbEng = nil) then
       Exit;
 
   M := TMemoryStream64.Create;
   EncodeTo(M, True);
-  dbEng.SetData(DBStorePos, M);
+  dbEng.SetData(FDBStorePos, M);
   DisposeObject(M);
 end;
 
 constructor TDBEngineVL.Create;
 begin
   inherited CustomCreate(2);
-  DBStorePos := -1;
+  FDBStorePos := -1;
   dbEng := nil;
   CreateTime := umlDefaultTime;
   ModificationTime := CreateTime;
@@ -775,19 +758,19 @@ procedure TDBEngineVL.Save;
 var
   M: TMemoryStream64;
 begin
-  if (DBStorePos < 0) or (dbEng = nil) then
+  if (FDBStorePos < 0) or (dbEng = nil) then
       Exit;
 
   M := TMemoryStream64.Create;
   SaveToStream(M);
-  dbEng.SetData(DBStorePos, M);
+  dbEng.SetData(FDBStorePos, M);
   DisposeObject(M);
 end;
 
 constructor TDBEngineVT.Create;
 begin
   inherited CustomCreate(2);
-  DBStorePos := -1;
+  FDBStorePos := -1;
   dbEng := nil;
   CreateTime := umlDefaultTime;
   ModificationTime := CreateTime;
@@ -798,19 +781,19 @@ procedure TDBEngineVT.Save;
 var
   M: TMemoryStream64;
 begin
-  if (DBStorePos < 0) or (dbEng = nil) then
+  if (FDBStorePos < 0) or (dbEng = nil) then
       Exit;
 
   M := TMemoryStream64.Create;
   SaveToStream(M);
-  dbEng.SetData(DBStorePos, M);
+  dbEng.SetData(FDBStorePos, M);
   DisposeObject(M);
 end;
 
 constructor TDBEngineTE.Create;
 begin
   inherited Create;
-  DBStorePos := -1;
+  FDBStorePos := -1;
   dbEng := nil;
   CreateTime := umlDefaultTime;
   ModificationTime := CreateTime;
@@ -821,12 +804,12 @@ procedure TDBEngineTE.Save;
 var
   M: TMemoryStream64;
 begin
-  if (DBStorePos < 0) or (dbEng = nil) then
+  if (FDBStorePos < 0) or (dbEng = nil) then
       Exit;
 
   M := TMemoryStream64.Create;
   SaveToStream(M);
-  dbEng.SetData(DBStorePos, M);
+  dbEng.SetData(FDBStorePos, M);
   DisposeObject(M);
 end;
 
@@ -836,7 +819,7 @@ end;
 constructor TDBEngineJson.Create;
 begin
   inherited Create;
-  DBStorePos := -1;
+  FDBStorePos := -1;
   dbEng := nil;
   CreateTime := umlDefaultTime;
   ModificationTime := CreateTime;
@@ -847,44 +830,38 @@ procedure TDBEngineJson.Save;
 var
   M: TMemoryStream64;
 begin
-  if (DBStorePos < 0) or (dbEng = nil) then
+  if (FDBStorePos < 0) or (dbEng = nil) then
       Exit;
 
   M := TMemoryStream64.Create;
   SaveToStream(M, True, TEncoding.UTF8, True);
-  dbEng.SetData(DBStorePos, M);
+  dbEng.SetData(FDBStorePos, M);
   DisposeObject(M);
 end;
 {$ENDIF}
 
 
-procedure TDBEnginePascalString.SetBuff(const Value: TPascalString);
-begin
-  FBuff := Value;
-  hash := FBuff.hash;
-end;
-
 constructor TDBEnginePascalString.Create;
 begin
   inherited Create;
-  DBStorePos := -1;
+  FDBStorePos := -1;
   dbEng := nil;
   CreateTime := umlDefaultTime;
   ModificationTime := CreateTime;
-  FBuff.Len := 0;
+  Buff.Len := 0;
   hash := 0;
   MemoryUsed := 0;
 end;
 
 destructor TDBEnginePascalString.Destroy;
 begin
-  FBuff := '';
+  Buff := '';
   inherited Destroy;
 end;
 
 procedure TDBEnginePascalString.Clear;
 begin
-  buff.Len := 0;
+  Buff.Len := 0;
   hash := 0;
 end;
 
@@ -892,24 +869,24 @@ procedure TDBEnginePascalString.Save;
 var
   M: TMemoryStream64;
 begin
-  if (DBStorePos < 0) or (dbEng = nil) then
+  if (FDBStorePos < 0) or (dbEng = nil) then
       Exit;
 
   M := TMemoryStream64.Create;
   SaveToStream(M);
-  dbEng.SetData(DBStorePos, M);
+  dbEng.SetData(FDBStorePos, M);
   DisposeObject(M);
 end;
 
 procedure TDBEnginePascalString.LoadFromStream(stream: TCoreClassStream);
 begin
-  LoadPascalStringFromStream(@FBuff, stream);
-  hash := FBuff.hash;
+  TDBEnginePascalString.LoadPascalStringFromStream(@Buff, stream);
+  hash := Buff.hash;
 end;
 
 procedure TDBEnginePascalString.SaveToStream(stream: TCoreClassStream);
 begin
-  SavePascalStringToStream(@FBuff, stream);
+  TDBEnginePascalString.SavePascalStringToStream(@Buff, stream);
 end;
 
 class procedure TDBEnginePascalString.LoadPascalStringFromStream(p: PPascalString; stream: TCoreClassStream);
@@ -971,7 +948,7 @@ end;
 function TDBListDF.Add: TDBEngineDF;
 begin
   Result := TDBEngineDF.Create;
-  Result.DBStorePos := -1;
+  Result.FDBStorePos := -1;
   Result.dbEng := nil;
   FHashListBuff.Add(Result);
 end;
@@ -987,7 +964,7 @@ begin
   FHashListBuff.Delete(index);
 end;
 
-procedure TDBListDF.LoadFromStoreEngine(dbEng: TDBStoreBase);
+procedure TDBListDF.LoadFromStoreEngine(dbEng: TDBStore);
 var
   itmSearHnd: THeader;
   qState: TQueryState;
@@ -1003,7 +980,7 @@ begin
     end;
 end;
 
-procedure TDBListDF.ExportToStoreEngine(dbEng: TDBStoreBase);
+procedure TDBListDF.ExportToStoreEngine(dbEng: TDBStore);
 var
   i: Integer;
 begin
@@ -1056,7 +1033,7 @@ end;
 function TDBListVL.Add: TDBEngineVL;
 begin
   Result := TDBEngineVL.Create;
-  Result.DBStorePos := -1;
+  Result.FDBStorePos := -1;
   Result.dbEng := nil;
   FHashListBuff.Add(Result);
 end;
@@ -1069,21 +1046,21 @@ end;
 procedure TDBListVL.ImportCSVStream(stream: TCoreClassStream);
 var
   lst: TListPascalString;
-  buff: TArrayPascalString;
+  Buff: TArrayPascalString;
 begin
   lst := TListPascalString.Create;
   lst.LoadFromStream(stream);
-  lst.FillTo(buff);
-  ImportCSV_M(buff, {$IFDEF FPC}@{$ENDIF FPC}do_ImportCSV);
+  lst.FillTo(Buff);
+  ImportCSV_M(Buff, {$IFDEF FPC}@{$ENDIF FPC}do_ImportCSV);
   DisposeObject(lst);
-  SetLength(buff, 0);
+  SetLength(Buff, 0);
 end;
 
 procedure TDBListVL.ImportCSVFile(fn: SystemString);
 var
   fs: TCoreClassFileStream;
 begin
-  fs := TCoreClassFileStream.Create(fn, fmOpenRead or fmShareDenyWrite);
+  fs := TCoreClassFileStream.Create(fn, fmOpenRead or fmShareDenyNone);
   try
       ImportCSVStream(fs);
   finally
@@ -1153,7 +1130,7 @@ procedure TDBListVL.ImportTextFile(fn: SystemString);
 var
   fs: TCoreClassFileStream;
 begin
-  fs := TCoreClassFileStream.Create(fn, fmOpenRead or fmShareDenyWrite);
+  fs := TCoreClassFileStream.Create(fn, fmOpenRead or fmShareDenyNone);
   try
       ImportTextStream(fs);
   finally
@@ -1169,7 +1146,7 @@ var
   ls: TCoreClassList;
   s, n: TPascalString;
   b: TPascalString;
-  buff: TBytes;
+  Buff: TBytes;
 begin
   ls := TCoreClassList.Create;
 
@@ -1193,8 +1170,8 @@ begin
             end;
 
           b := b + LineBreak;
-          buff := b.Bytes;
-          stream.write(buff, length(buff));
+          Buff := b.Bytes;
+          stream.write(Buff, length(Buff));
           b := '';
         end;
     end;
@@ -1214,7 +1191,7 @@ begin
   end;
 end;
 
-procedure TDBListVL.LoadFromStoreEngine(dbEng: TDBStoreBase);
+procedure TDBListVL.LoadFromStoreEngine(dbEng: TDBStore);
 var
   itmSearHnd: THeader;
   qState: TQueryState;
@@ -1230,7 +1207,7 @@ begin
     end;
 end;
 
-procedure TDBListVL.ExportToStoreEngine(dbEng: TDBStoreBase);
+procedure TDBListVL.ExportToStoreEngine(dbEng: TDBStore);
 var
   i: Integer;
 begin
@@ -1283,7 +1260,7 @@ end;
 function TDBListVT.Add: TDBEngineVT;
 begin
   Result := TDBEngineVT.Create;
-  Result.DBStorePos := -1;
+  Result.FDBStorePos := -1;
   Result.dbEng := nil;
   FHashListBuff.Add(Result);
 end;
@@ -1296,21 +1273,21 @@ end;
 procedure TDBListVT.ImportCSVStream(stream: TCoreClassStream);
 var
   lst: TListPascalString;
-  buff: TArrayPascalString;
+  Buff: TArrayPascalString;
 begin
   lst := TListPascalString.Create;
   lst.LoadFromStream(stream);
-  lst.FillTo(buff);
-  ImportCSV_M(buff, {$IFDEF FPC}@{$ENDIF FPC}do_ImportCSV);
+  lst.FillTo(Buff);
+  ImportCSV_M(Buff, {$IFDEF FPC}@{$ENDIF FPC}do_ImportCSV);
   DisposeObject(lst);
-  SetLength(buff, 0);
+  SetLength(Buff, 0);
 end;
 
 procedure TDBListVT.ImportCSVFile(fn: SystemString);
 var
   fs: TCoreClassFileStream;
 begin
-  fs := TCoreClassFileStream.Create(fn, fmOpenRead or fmShareDenyWrite);
+  fs := TCoreClassFileStream.Create(fn, fmOpenRead or fmShareDenyNone);
   try
       ImportCSVStream(fs);
   finally
@@ -1380,7 +1357,7 @@ procedure TDBListVT.ImportTextFile(fn: SystemString);
 var
   fs: TCoreClassFileStream;
 begin
-  fs := TCoreClassFileStream.Create(fn, fmOpenRead or fmShareDenyWrite);
+  fs := TCoreClassFileStream.Create(fn, fmOpenRead or fmShareDenyNone);
   try
       ImportTextStream(fs);
   finally
@@ -1396,7 +1373,7 @@ var
   ls: TCoreClassList;
   s, n: TPascalString;
   b: TPascalString;
-  buff: TBytes;
+  Buff: TBytes;
 begin
   ls := TCoreClassList.Create;
 
@@ -1420,8 +1397,8 @@ begin
             end;
 
           b := b + LineBreak;
-          buff := b.Bytes;
-          stream.write(buff, length(buff));
+          Buff := b.Bytes;
+          stream.write(Buff, length(Buff));
           b := '';
         end;
     end;
@@ -1441,7 +1418,7 @@ begin
   end;
 end;
 
-procedure TDBListVT.LoadFromStoreEngine(dbEng: TDBStoreBase);
+procedure TDBListVT.LoadFromStoreEngine(dbEng: TDBStore);
 var
   itmSearHnd: THeader;
   qState: TQueryState;
@@ -1451,13 +1428,13 @@ begin
   if dbEng.QueryFirst(qState) then
     begin
       repeat
-        if qState.ID = c_VL then
-            FHashListBuff.Add(dbEng.BuildVL(qState.StorePos));
+        if qState.ID = c_VT then
+            FHashListBuff.Add(dbEng.BuildVT(qState.StorePos));
       until not dbEng.QueryNext(qState);
     end;
 end;
 
-procedure TDBListVT.ExportToStoreEngine(dbEng: TDBStoreBase);
+procedure TDBListVT.ExportToStoreEngine(dbEng: TDBStore);
 var
   i: Integer;
 begin
@@ -1500,7 +1477,7 @@ end;
 function TDBListTE.Add: TDBEngineTE;
 begin
   Result := TDBEngineTE.Create;
-  Result.DBStorePos := -1;
+  Result.FDBStorePos := -1;
   Result.dbEng := nil;
   FHashListBuff.Add(Result);
 end;
@@ -1510,7 +1487,7 @@ begin
   FHashListBuff.Add(Value);
 end;
 
-procedure TDBListTE.LoadFromStoreEngine(dbEng: TDBStoreBase);
+procedure TDBListTE.LoadFromStoreEngine(dbEng: TDBStore);
 var
   itmSearHnd: THeader;
   qState: TQueryState;
@@ -1526,7 +1503,7 @@ begin
     end;
 end;
 
-procedure TDBListTE.ExportToStoreEngine(dbEng: TDBStoreBase);
+procedure TDBListTE.ExportToStoreEngine(dbEng: TDBStore);
 var
   i: Integer;
 begin
@@ -1582,7 +1559,7 @@ end;
 function TDBListJson.Add: TDBEngineJson;
 begin
   Result := TDBEngineJson.Create;
-  Result.DBStorePos := -1;
+  Result.FDBStorePos := -1;
   Result.dbEng := nil;
   FHashListBuff.Add(Result);
 end;
@@ -1595,21 +1572,21 @@ end;
 procedure TDBListJson.ImportCSVStream(stream: TCoreClassStream);
 var
   lst: TListPascalString;
-  buff: TArrayPascalString;
+  Buff: TArrayPascalString;
 begin
   lst := TListPascalString.Create;
   lst.LoadFromStream(stream);
-  lst.FillTo(buff);
-  ImportCSV_M(buff, {$IFDEF FPC}@{$ENDIF FPC}do_ImportCSV);
+  lst.FillTo(Buff);
+  ImportCSV_M(Buff, {$IFDEF FPC}@{$ENDIF FPC}do_ImportCSV);
   DisposeObject(lst);
-  SetLength(buff, 0);
+  SetLength(Buff, 0);
 end;
 
 procedure TDBListJson.ImportCSVFile(fn: SystemString);
 var
   fs: TCoreClassFileStream;
 begin
-  fs := TCoreClassFileStream.Create(fn, fmOpenRead or fmShareDenyWrite);
+  fs := TCoreClassFileStream.Create(fn, fmOpenRead or fmShareDenyNone);
   try
       ImportCSVStream(fs);
   finally
@@ -1617,7 +1594,7 @@ begin
   end;
 end;
 
-procedure TDBListJson.LoadFromStoreEngine(dbEng: TDBStoreBase);
+procedure TDBListJson.LoadFromStoreEngine(dbEng: TDBStore);
 var
   itmSearHnd: THeader;
   qState: TQueryState;
@@ -1633,7 +1610,7 @@ begin
     end;
 end;
 
-procedure TDBListJson.ExportToStoreEngine(dbEng: TDBStoreBase);
+procedure TDBListJson.ExportToStoreEngine(dbEng: TDBStore);
 var
   i: Integer;
 begin
@@ -1678,7 +1655,7 @@ end;
 function TDBListPascalString.Add: TDBEnginePascalString;
 begin
   Result := TDBEnginePascalString.Create;
-  Result.DBStorePos := -1;
+  Result.FDBStorePos := -1;
   Result.dbEng := nil;
   FHashListBuff.Add(Result);
 end;
@@ -1693,7 +1670,7 @@ var
   t: TDBEnginePascalString;
 begin
   t := Add;
-  t.buff := Value;
+  t.Buff := Value;
 end;
 
 procedure TDBListPascalString.ImportTextStream(stream: TCoreClassStream);
@@ -1708,7 +1685,7 @@ begin
   DisposeObject(lst);
 end;
 
-procedure TDBListPascalString.LoadFromStoreEngine(dbEng: TDBStoreBase);
+procedure TDBListPascalString.LoadFromStoreEngine(dbEng: TDBStore);
 var
   itmSearHnd: THeader;
   qState: TQueryState;
@@ -1724,7 +1701,7 @@ begin
     end;
 end;
 
-procedure TDBListPascalString.ExportToStoreEngine(dbEng: TDBStoreBase);
+procedure TDBListPascalString.ExportToStoreEngine(dbEng: TDBStore);
 var
   i: Integer;
 begin
@@ -1777,33 +1754,49 @@ end;
 
 function TQueryState.IsFirst: Boolean;
 begin
-  Result := (QueryHnd <> nil) and (QueryHnd^.PositionID in [db_Header_FirstPositionFlags, db_Header_OnlyPositionFlags]);
+  Result := (QueryHnd <> nil) and (QueryHnd^.PositionID in [DB_Header_First, DB_Header_1]);
 end;
 
 function TQueryState.IsLast: Boolean;
 begin
-  Result := (QueryHnd <> nil) and (QueryHnd^.PositionID in [db_Header_LastPositionFlags, db_Header_OnlyPositionFlags]);
+  Result := (QueryHnd <> nil) and (QueryHnd^.PositionID in [DB_Header_Last, DB_Header_1]);
 end;
 
 function TQueryState.Cache: TDBCacheStream64;
 begin
-  Result := dbEng.GetCacheStream(StorePos);
+  Result := Eng.GetCacheStream(StorePos);
 end;
 
 function TQueryState.NextCache: TDBCacheStream64;
 begin
-  if (QueryHnd <> nil) and (QueryHnd^.PositionID in [db_Header_FirstPositionFlags, db_Header_MediumPositionFlags]) then
-      Result := dbEng.GetCacheStream(QueryHnd^.NextHeader)
+  if (QueryHnd <> nil) and (QueryHnd^.PositionID in [DB_Header_First, DB_Header_Medium]) then
+      Result := Eng.GetCacheStream(QueryHnd^.NextHeader)
   else
       Result := nil;
 end;
 
 function TQueryState.PrevCache: TDBCacheStream64;
 begin
-  if (QueryHnd <> nil) and (QueryHnd^.PositionID in [db_Header_LastPositionFlags, db_Header_MediumPositionFlags]) then
-      Result := dbEng.GetCacheStream(QueryHnd^.PrevHeader)
+  if (QueryHnd <> nil) and (QueryHnd^.PositionID in [DB_Header_Last, DB_Header_Medium]) then
+      Result := Eng.GetCacheStream(QueryHnd^.PrevHeader)
   else
       Result := nil;
+end;
+
+function TQueryState.NextPos: Int64;
+begin
+  if (QueryHnd <> nil) and (QueryHnd^.PositionID in [DB_Header_First, DB_Header_Medium]) then
+      Result := QueryHnd^.NextHeader
+  else
+      Result := 0;
+end;
+
+function TQueryState.PrevPos: Int64;
+begin
+  if (QueryHnd <> nil) and (QueryHnd^.PositionID in [DB_Header_Last, DB_Header_Medium]) then
+      Result := QueryHnd^.PrevHeader
+  else
+      Result := 0;
 end;
 
 procedure TQueryTask.DoTriggerQuery;
@@ -1865,6 +1858,8 @@ begin
 
   FStoped := False;
   FPaused := False;
+  FProcessQueryDone := False;
+  FSyncTrigger := True;
 
 {$IFDEF FPC}
   FOnQueryCall := nil;
@@ -1896,14 +1891,14 @@ begin
   FPaused := False;
 end;
 
-function TQueryTask.ProcessQuery: Boolean;
+function TQueryTask.ProcessQuery(): Boolean;
 var
   TT: TTimeTick;
 begin
   Result := False;
-  if FStoped then
+  if FStoped or FProcessQueryDone then
     begin
-      zDBthSync(FDBEng.FQueryThread, True, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
+      zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
       Exit;
     end;
 
@@ -1916,21 +1911,21 @@ begin
 
   if FInited then
     begin
-      FState.newTime := TT - FTriggerTime;
+      FState.NewTime := TT - FTriggerTime;
       FState.deltaTime := TT - FLastTime;
 
       if FReverse then
         begin
           if not FDBEng.QueryPrev(FState) then
             begin
-              zDBthSync(FDBEng.FQueryThread, True, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
+              zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
               Exit;
             end;
           dec(FState.index);
-          zDBthSync(FDBEng.FQueryThread, True, {$IFDEF FPC}@{$ENDIF FPC}DoTriggerQuery);
+          zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoTriggerQuery);
           if FState.Aborted then
             begin
-              zDBthSync(FDBEng.FQueryThread, True, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
+              zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
               Exit;
             end;
           Result := True;
@@ -1939,14 +1934,14 @@ begin
         begin
           if not FDBEng.QueryNext(FState) then
             begin
-              zDBthSync(FDBEng.FQueryThread, True, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
+              zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
               Exit;
             end;
           inc(FState.index);
-          zDBthSync(FDBEng.FQueryThread, True, {$IFDEF FPC}@{$ENDIF FPC}DoTriggerQuery);
+          zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoTriggerQuery);
           if FState.Aborted then
             begin
-              zDBthSync(FDBEng.FQueryThread, True, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
+              zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
               Exit;
             end;
           Result := True;
@@ -1963,14 +1958,14 @@ begin
         begin
           if not FDBEng.QueryLast(FState) then
             begin
-              zDBthSync(FDBEng.FQueryThread, True, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
+              zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
               Exit;
             end;
           FState.index := FDBEng.Count - 1;
-          zDBthSync(FDBEng.FQueryThread, True, {$IFDEF FPC}@{$ENDIF FPC}DoTriggerQuery);
+          zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoTriggerQuery);
           if FState.Aborted then
             begin
-              zDBthSync(FDBEng.FQueryThread, True, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
+              zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
               Exit;
             end;
           Result := True;
@@ -1979,14 +1974,14 @@ begin
         begin
           if not FDBEng.QueryFirst(FState) then
             begin
-              zDBthSync(FDBEng.FQueryThread, True, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
+              zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
               Exit;
             end;
           FState.index := 0;
-          zDBthSync(FDBEng.FQueryThread, True, {$IFDEF FPC}@{$ENDIF FPC}DoTriggerQuery);
+          zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoTriggerQuery);
           if FState.Aborted then
             begin
-              zDBthSync(FDBEng.FQueryThread, True, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
+              zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
               Exit;
             end;
           Result := True;
@@ -1996,53 +1991,75 @@ begin
         begin
           FInited := True;
           FState.TaskTag := FTaskTag;
-          FState.newTime := GetTimeTick - FTriggerTime;
-          FState.deltaTime := FState.newTime;
+          FState.NewTime := GetTimeTick - FTriggerTime;
+          FState.deltaTime := FState.NewTime;
         end;
     end;
 end;
 
 function TQueryTask.ConsumTime: Double;
 begin
-  Result := FState.newTime * 0.001;
+  Result := FState.NewTime * 0.001;
 end;
 
-procedure TQueryThread.SyncQuery;
+procedure TQueryThread.PickQueryQueue;
+var
+  i: Integer;
+begin
+  if (PickedQueryQueue.Count <> StoreEngine.FQueryQueue.Count) then
+      PickedQueryQueue.Count := StoreEngine.FQueryQueue.Count;
+  for i := 0 to StoreEngine.FQueryQueue.Count - 1 do
+      PickedQueryQueue[i] := StoreEngine.FQueryQueue[i];
+end;
+
+procedure TQueryThread.AsyncQuery;
 var
   i: Integer;
   QT: TQueryTask;
-  Completed: Boolean;
 begin
   if StoreEngine = nil then
       Exit;
 
+  zDBthSync(Self, True, {$IFDEF FPC}@{$ENDIF FPC}PickQueryQueue);
+
   i := 0;
-  while i < StoreEngine.FQueryQueue.Count do
+  for i := 0 to PickedQueryQueue.Count - 1 do
     begin
-      QT := StoreEngine.FQueryQueue[i] as TQueryTask;
-
-      Completed := not QT.ProcessQuery;
-
-      if Completed then
-        begin
-          // DoStatus('complete query task,consum time: %dms', [qt.FState.NewTime]);
-          DisposeObject(QT);
-          StoreEngine.FQueryQueue.Delete(i);
-        end
-      else
-          inc(i);
+      QT := TQueryTask(PickedQueryQueue[i]);
+      QT.FProcessQueryDone := not QT.ProcessQuery;
     end;
 
-  if StoreEngine.FQueryQueue.Count = 0 then
-      SyncRemove;
+  zDBthSync(Self, True, {$IFDEF FPC}@{$ENDIF FPC}SyncQueryDone);
 
   Paused := (StoreEngine.FQueryQueue.Count = 0) and (RemoveQueue.Count = 0);
 
   if Paused then
     begin
       StoreEngine.FQueryThreadLastActivtedTime := Now;
-      SyncUpdateCacheState;
+      zDBthSync(Self, True, {$IFDEF FPC}@{$ENDIF FPC}SyncUpdateCacheState);
     end;
+end;
+
+procedure TQueryThread.SyncQueryDone;
+var
+  i: Integer;
+  QT: TQueryTask;
+begin
+  i := 0;
+  while i < StoreEngine.FQueryQueue.Count do
+    begin
+      QT := TQueryTask(StoreEngine.FQueryQueue[i]);
+
+      if QT.FProcessQueryDone then
+        begin
+          DisposeObject(QT);
+          StoreEngine.FQueryQueue.Delete(i);
+        end
+      else
+          inc(i);
+    end;
+  if StoreEngine.FQueryQueue.Count = 0 then
+      SyncRemove;
 end;
 
 procedure TQueryThread.SyncRemove;
@@ -2140,7 +2157,7 @@ end;
 
 procedure TQueryThread.Execute;
 var
-  cloop: SmallInt;
+  cloop: NativeInt;
 begin
   cloop := 0;
   while StoreEngine <> nil do
@@ -2154,8 +2171,8 @@ begin
           zDBthSync(Self, True, {$IFDEF FPC}@{$ENDIF FPC}SyncCheckCache);
         end;
 
-      zDBthSync(Self, True, {$IFDEF FPC}@{$ENDIF FPC}SyncQuery);
-      if (cloop = 0) or (cloop > 10000) then
+      AsyncQuery();
+      if (cloop = 0) or (cloop > 1000) then
         begin
           cloop := 0;
           zDBthSync(Self, True, {$IFDEF FPC}@{$ENDIF FPC}SyncUpdateCacheState);
@@ -2176,11 +2193,13 @@ begin
   RemoveQueue.OnFreePtr := {$IFDEF FPC}@{$ENDIF FPC}RemoveDeleteProc;
   RemoveCompletedQueue := TInt64HashPointerList.CustomCreate(1024);
   RemoveCompletedQueue.AutoFreeData := False;
+  PickedQueryQueue := TCoreClassListForObj.Create;
 end;
 
 destructor TQueryThread.Destroy;
 begin
   DisposeObject([RemoveQueue, RemoveCompletedQueue]);
+  DisposeObject(PickedQueryQueue);
   inherited Destroy;
 end;
 
@@ -2195,36 +2214,29 @@ begin
   RemoveQueue.Add(StorePos, nil, False);
 end;
 
-procedure TQueryThread.PostRemoveQueue(StorePos: Int64; OnRemove: TRemoveCall);
+procedure TQueryThread.PostRemoveQueueC(StorePos: Int64; OnRemove: TRemoveCall);
 var
   p: PRemoveQueueData;
 begin
   new(p);
   p^.OnRemoveCall := OnRemove;
   p^.OnRemoveMethod := nil;
-{$IFNDEF FPC}
   p^.OnRemoveProc := nil;
-{$ENDIF FPC}
   RemoveQueue.Add(StorePos, p, False);
 end;
 
-procedure TQueryThread.PostRemoveQueue(StorePos: Int64; OnRemove: TRemoveMethod);
+procedure TQueryThread.PostRemoveQueueM(StorePos: Int64; OnRemove: TRemoveMethod);
 var
   p: PRemoveQueueData;
 begin
   new(p);
   p^.OnRemoveCall := nil;
   p^.OnRemoveMethod := OnRemove;
-{$IFNDEF FPC}
   p^.OnRemoveProc := nil;
-{$ENDIF FPC}
   RemoveQueue.Add(StorePos, p, False);
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TQueryThread.PostRemoveQueue(StorePos: Int64; OnRemove: TRemoveProc);
+procedure TQueryThread.PostRemoveQueueP(StorePos: Int64; OnRemove: TRemoveProc);
 var
   p: PRemoveQueueData;
 begin
@@ -2234,8 +2246,6 @@ begin
   p^.OnRemoveProc := OnRemove;
   RemoveQueue.Add(StorePos, p, False);
 end;
-{$ENDIF FPC}
-
 
 constructor TDBCacheStream64.Create;
 begin
@@ -2262,7 +2272,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TDBStoreBase.ReadHeaderInfo;
+procedure TDBStore.ReadHeaderInfo;
 var
   f: TFieldHandle;
 begin
@@ -2281,12 +2291,12 @@ begin
   FCount := f.HeaderCount;
 end;
 
-procedure TDBStoreBase.ThreadFreeEvent(Sender: TObject);
+procedure TDBStore.ThreadFreeEvent(Sender: TObject);
 begin
   FQueryThreadTerminate := True;
 end;
 
-procedure TDBStoreBase.DoCreateInit;
+procedure TDBStore.DoCreateInit;
 begin
   FQueryQueue := TCoreClassListForObj.Create;
 
@@ -2335,12 +2345,14 @@ begin
   FUserString := '';
 end;
 
-procedure TDBStoreBase.InstanceCacheObjectFreeProc(Obj: TCoreClassObject);
+procedure TDBStore.InstanceCacheObjectFreeProc(Obj: TCoreClassObject);
 begin
   if Obj is TDBEngineDF then
       dec(FUsedInstanceCacheMemory, TDBEngineDF(Obj).MemoryUsed)
   else if Obj is TDBEngineVL then
       dec(FUsedInstanceCacheMemory, TDBEngineVL(Obj).MemoryUsed)
+  else if Obj is TDBEngineVT then
+      dec(FUsedInstanceCacheMemory, TDBEngineVT(Obj).MemoryUsed)
   else if Obj is TDBEngineTE then
       dec(FUsedInstanceCacheMemory, TDBEngineTE(Obj).MemoryUsed)
 {$IFNDEF FPC}
@@ -2348,12 +2360,14 @@ begin
       dec(FUsedInstanceCacheMemory, TDBEngineJson(Obj).MemoryUsed)
 {$ENDIF}
   else if Obj is TDBEnginePascalString then
-      dec(FUsedInstanceCacheMemory, TDBEnginePascalString(Obj).MemoryUsed);
+      dec(FUsedInstanceCacheMemory, TDBEnginePascalString(Obj).MemoryUsed)
+  else
+      RaiseInfo('unknow class info.');
 
   DisposeObject(Obj);
 end;
 
-procedure TDBStoreBase.ProcessNewInstanceCache(StorePos: Int64; Obj: TCoreClassObject; siz: NativeInt);
+procedure TDBStore.ProcessNewInstanceCache(StorePos: Int64; Obj: TCoreClassObject; siz: NativeInt);
 begin
   FCache.Add(StorePos, Obj, False);
   inc(FUsedInstanceCacheMemory, siz);
@@ -2362,11 +2376,11 @@ begin
       Exit;
 
   if (FUsedInstanceCacheMemory > FMaximumCacheMemorySize) then
-    while (FUsedInstanceCacheMemory > FMinimizeCacheMemorySize) and (FCache.First <> Obj) do
+    while (FUsedInstanceCacheMemory > FMinimizeCacheMemorySize) do
         FCache.DeleteFirst;
 end;
 
-procedure TDBStoreBase.StreamCacheObjectFreeProc(Obj: TCoreClassObject);
+procedure TDBStore.StreamCacheObjectFreeProc(Obj: TCoreClassObject);
 begin
   try
     TDBCacheStream64(Obj).OwnerCache := nil;
@@ -2375,18 +2389,18 @@ begin
   end;
 end;
 
-procedure TDBStoreBase.ProcessNewStreamCache(M: TDBCacheStream64);
+procedure TDBStore.ProcessNewStreamCache(M: TDBCacheStream64);
 begin
   FStreamCache.Add(M.StorePos, M, False);
   M.UsedMemorySize := M.Size;
   inc(FUsedStreamCacheMemory, M.UsedMemorySize);
 
   if (FUsedStreamCacheMemory > FMaximumStreamCacheMemorySize) then
-    while (FUsedStreamCacheMemory > FMinimizeStreamCacheMemorySize) and (FStreamCache.First <> M) do
+    while (FUsedStreamCacheMemory > FMinimizeStreamCacheMemorySize) do
         FStreamCache.DeleteFirst;
 end;
 
-function TDBStoreBase.Internal_DeleteData(const StorePos: Int64): Boolean;
+function TDBStore.Internal_DeleteData(const StorePos: Int64): Boolean;
 var
   itmHnd: TItemHandle;
 begin
@@ -2410,45 +2424,43 @@ begin
     end;
 end;
 
-constructor TDBStoreBase.Create(dbFile: SystemString; OnlyRead: Boolean);
+constructor TDBStore.Create(dbFile: SystemString; OnlyRead: Boolean);
 begin
   inherited Create;
-  FDBEngine := TObjectDataManagerOfCache.Create(dbFile, ObjectDataMarshal.ID, OnlyRead);
+  FDBEngine := TObjectDataManagerOfCache.Open(dbFile, ObjectDataMarshal.ID, OnlyRead);
   ReadHeaderInfo;
-
   DoCreateInit;
 end;
 
-constructor TDBStoreBase.CreateMemory(DBMemory: TMemoryStream64; OnlyRead: Boolean);
+constructor TDBStore.CreateMemory(DBMemory: TMemoryStream64; OnlyRead: Boolean);
 begin
   inherited Create;
   FDBEngine := TObjectDataManagerOfCache.CreateAsStream(DBMemory, '', ObjectDataMarshal.ID, OnlyRead, False, True);
   ReadHeaderInfo;
-
   DoCreateInit;
 end;
 
-constructor TDBStoreBase.CreateNew(dbFile: SystemString);
+constructor TDBStore.CreateNew(dbFile: SystemString);
 begin
   inherited Create;
   FDBEngine := TObjectDataManagerOfCache.CreateNew(dbFile, ObjectDataMarshal.ID);
   FDBEngine.CreateField('/Store', '');
   ReadHeaderInfo;
-
   DoCreateInit;
+  Update;
 end;
 
-constructor TDBStoreBase.CreateNewMemory;
+constructor TDBStore.CreateNewMemory;
 begin
   inherited Create;
   FDBEngine := TObjectDataManagerOfCache.CreateAsStream(TMemoryStream64.Create, '', ObjectDataMarshal.ID, False, True, True);
   FDBEngine.CreateField('/Store', '');
   ReadHeaderInfo;
-
   DoCreateInit;
+  Update;
 end;
 
-destructor TDBStoreBase.Destroy;
+destructor TDBStore.Destroy;
 var
   i: Integer;
 begin
@@ -2469,7 +2481,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TDBStoreBase.CompressTo(DestDB: TObjectDataManager);
+procedure TDBStore.CompressTo(DestDB: TObjectDataManager);
 begin
   Update;
 
@@ -2482,7 +2494,7 @@ begin
   DestDB.UpdateIO;
 end;
 
-procedure TDBStoreBase.Compress;
+procedure TDBStore.Compress;
 var
   DestDB: TObjectDataManagerOfCache;
   fn, oldFN: SystemString;
@@ -2493,7 +2505,8 @@ begin
 
   if FDBEngine.StreamEngine <> nil then
     begin
-      DestDB := TObjectDataManagerOfCache.CreateAsStream(TMemoryStream64.Create, '', ObjectDataMarshal.ID, False, True, True);
+      DestDB := TObjectDataManagerOfCache.CreateAsStream(FDBEngine.Handle^.IOHnd.FixedStringL, TMemoryStream64.Create, '', ObjectDataMarshal.ID, False, True, True);
+      DestDB.OverWriteItem := False;
       CompressTo(DestDB);
       DisposeObject([FDBEngine]);
       FDBEngine := DestDB;
@@ -2507,24 +2520,25 @@ begin
         inc(i);
         fn := umlChangeFileExt(FDBEngine.ObjectName, '.~' + IntToStr(i)).Text;
       until not umlFileExists(fn);
-      DestDB := TObjectDataManagerOfCache.CreateNew(fn, ObjectDataMarshal.ID);
+      DestDB := TObjectDataManagerOfCache.CreateNew(FDBEngine.Handle^.IOHnd.FixedStringL, fn, ObjectDataMarshal.ID);
+      DestDB.OverWriteItem := False;
       CompressTo(DestDB);
       DisposeObject([FDBEngine, DestDB]);
 
       umlDeleteFile(oldFN);
       umlRenameFile(fn, oldFN);
 
-      FDBEngine := TObjectDataManagerOfCache.Create(oldFN, ObjectDataMarshal.ID, False);
+      FDBEngine := TObjectDataManagerOfCache.Open(oldFN, ObjectDataMarshal.ID, False);
       ReadHeaderInfo;
     end;
 end;
 
-procedure TDBStoreBase.Update;
+procedure TDBStore.Update;
 begin
-  FDBEngine.Flush;
+  FDBEngine.UpdateIO;
 end;
 
-procedure TDBStoreBase.SaveToStream(stream: TCoreClassStream);
+procedure TDBStore.SaveToStream(stream: TCoreClassStream);
 var
   DestDB: TObjectDataManager;
 begin
@@ -2533,7 +2547,7 @@ begin
   DisposeObject(DestDB);
 end;
 
-procedure TDBStoreBase.SaveToFile(fn: SystemString);
+procedure TDBStore.SaveToFile(fn: SystemString);
 var
   DestDB: TObjectDataManager;
 begin
@@ -2542,7 +2556,7 @@ begin
   DisposeObject(DestDB);
 end;
 
-procedure TDBStoreBase.LoadFromStream(stream: TCoreClassStream);
+procedure TDBStore.LoadFromStream(stream: TCoreClassStream);
 var
   DestDB: TObjectDataManager;
 begin
@@ -2559,13 +2573,13 @@ begin
   DisposeObject(DestDB);
 end;
 
-procedure TDBStoreBase.LoadFromFile(fn: SystemString);
+procedure TDBStore.LoadFromFile(fn: SystemString);
 var
   fs: TCoreClassFileStream;
 begin
   if not umlFileExists(fn) then
       Exit;
-  fs := TCoreClassFileStream.Create(fn, fmOpenRead or fmShareDenyWrite);
+  fs := TCoreClassFileStream.Create(fn, fmOpenRead or fmShareDenyNone);
   try
       LoadFromStream(fs);
   finally
@@ -2573,17 +2587,17 @@ begin
   end;
 end;
 
-function TDBStoreBase.IsMemoryMode: Boolean;
+function TDBStore.IsMemoryMode: Boolean;
 begin
   Result := FDBEngine.StreamEngine is TMemoryStream64;
 end;
 
-function TDBStoreBase.IsReadOnly: Boolean;
+function TDBStore.IsReadOnly: Boolean;
 begin
   Result := FDBEngine.IsOnlyRead;
 end;
 
-procedure TDBStoreBase.ResetDB;
+procedure TDBStore.ResetDB;
 begin
   StopAllQuery;
   Recache;
@@ -2594,7 +2608,7 @@ begin
   Compress;
 end;
 
-function TDBStoreBase.RenameDB(NewName: SystemString): Boolean;
+function TDBStore.RenameDB(NewName: SystemString): Boolean;
 var
   oldFN, newfn: SystemString;
 begin
@@ -2626,11 +2640,11 @@ begin
       Result := True;
     end;
 
-  FDBEngine := TObjectDataManagerOfCache.Create(oldFN, ObjectDataMarshal.ID, False);
+  FDBEngine := TObjectDataManagerOfCache.Open(oldFN, ObjectDataMarshal.ID, False);
   ReadHeaderInfo;
 end;
 
-procedure TDBStoreBase.Recache;
+procedure TDBStore.Recache;
 begin
   FCache.Clear;
   FDBEngine.CleaupCache;
@@ -2648,7 +2662,7 @@ begin
   FQueryThread.SyncUpdateCacheState;
 end;
 
-function TDBStoreBase.AllowedCache: Boolean;
+function TDBStore.AllowedCache: Boolean;
 begin
   case FCacheStyle of
     TCacheStyle.csAutomation:
@@ -2669,14 +2683,14 @@ begin
   end;
 end;
 
-procedure TDBStoreBase.DeleteData(const StorePos: Int64);
+procedure TDBStore.DeleteData(const StorePos: Int64);
 begin
   FQueryThread.PostRemoveQueue(StorePos);
   FQueryThread.Paused := False;
   FQueryThreadLastActivtedTime := Now;
 end;
 
-function TDBStoreBase.InsertData(const InsertPos: Int64; buff: TCoreClassStream; ID: Cardinal; var itmHnd: TItemHandle): Int64;
+function TDBStore.InsertData(const InsertPos: Int64; Buff: TCoreClassStream; ID: Cardinal; var itmHnd: TItemHandle): Int64;
 var
   itmStream: TItemStream;
 begin
@@ -2687,8 +2701,8 @@ begin
       itmHnd.Item.RHeader.UserProperty := ID;
       itmHnd.Name := '0x' + TCipher.BuffToString(@itmHnd.Item.RHeader.CurrentHeader, C_Int64_Size);
       itmStream := TItemStream.Create(FDBEngine, itmHnd);
-      buff.Position := 0;
-      itmStream.CopyFrom(buff, buff.Size);
+      Buff.Position := 0;
+      itmStream.CopyFrom(Buff, Buff.Size);
       itmStream.UpdateHandle;
       DisposeObject(itmStream);
       Result := itmHnd.Item.RHeader.CurrentHeader;
@@ -2696,7 +2710,7 @@ begin
 
       try
         if Assigned(FNotifyIntf) then
-            FNotifyIntf.DoInsertData(Self, InsertPos, buff, ID, Result);
+            FNotifyIntf.DoInsertData(Self, InsertPos, Buff, ID, Result);
       except
       end;
       FQueryThread.Paused := False;
@@ -2704,14 +2718,14 @@ begin
     end;
 end;
 
-function TDBStoreBase.InsertData(const InsertPos: Int64; buff: TCoreClassStream; ID: Cardinal): Int64;
+function TDBStore.InsertData(const InsertPos: Int64; Buff: TCoreClassStream; ID: Cardinal): Int64;
 var
   itmHnd: TItemHandle;
 begin
-  Result := InsertData(InsertPos, buff, ID, itmHnd);
+  Result := InsertData(InsertPos, Buff, ID, itmHnd);
 end;
 
-function TDBStoreBase.AddData(buff: TCoreClassStream; ID: Cardinal; var itmHnd: TItemHandle): Int64;
+function TDBStore.AddData(Buff: TCoreClassStream; ID: Cardinal; var itmHnd: TItemHandle): Int64;
 var
   itmStream: TItemStream;
 begin
@@ -2725,8 +2739,8 @@ begin
       itmHnd.Item.RHeader.UserProperty := ID;
       itmHnd.Name := '0x' + TCipher.BuffToString(@itmHnd.Item.RHeader.CurrentHeader, C_Int64_Size);
       itmStream := TItemStream.Create(FDBEngine, itmHnd);
-      buff.Position := 0;
-      itmStream.CopyFrom(buff, buff.Size);
+      Buff.Position := 0;
+      itmStream.CopyFrom(Buff, Buff.Size);
       itmStream.UpdateHandle;
       DisposeObject(itmStream);
       Result := itmHnd.Item.RHeader.CurrentHeader;
@@ -2734,7 +2748,7 @@ begin
 
       try
         if Assigned(FNotifyIntf) then
-            FNotifyIntf.DoAddData(Self, buff, ID, Result);
+            FNotifyIntf.DoAddData(Self, Buff, ID, Result);
       except
       end;
       FQueryThread.Paused := False;
@@ -2742,14 +2756,14 @@ begin
     end;
 end;
 
-function TDBStoreBase.AddData(buff: TCoreClassStream; ID: Cardinal): Int64;
+function TDBStore.AddData(Buff: TCoreClassStream; ID: Cardinal): Int64;
 var
   itmHnd: TItemHandle;
 begin
-  Result := AddData(buff, ID, itmHnd);
+  Result := AddData(Buff, ID, itmHnd);
 end;
 
-function TDBStoreBase.SetData(const StorePos: Int64; buff: TCoreClassStream): Boolean;
+function TDBStore.SetData(const StorePos: Int64; Buff: TCoreClassStream): Boolean;
 var
   itmHnd: TItemHandle;
   itmStream: TItemStream;
@@ -2763,8 +2777,8 @@ begin
     if FDBEngine.ItemFastOpen(StorePos, itmHnd) then
       begin
         itmStream := TItemStream.Create(FDBEngine, itmHnd);
-        buff.Position := 0;
-        itmStream.CopyFrom(buff, buff.Size);
+        Buff.Position := 0;
+        itmStream.CopyFrom(Buff, Buff.Size);
         itmStream.UpdateHandle;
         DisposeObject(itmStream);
         Result := True;
@@ -2774,7 +2788,7 @@ begin
 
         try
           if Assigned(FNotifyIntf) then
-              FNotifyIntf.DoModifyData(Self, StorePos, buff);
+              FNotifyIntf.DoModifyData(Self, StorePos, Buff);
         except
         end;
         FQueryThread.Paused := False;
@@ -2782,7 +2796,7 @@ begin
       end;
 end;
 
-function TDBStoreBase.GetCacheStream(const StorePos: Int64; ID: Cardinal): TDBCacheStream64;
+function TDBStore.GetCacheStream(const StorePos: Int64; ID: Cardinal): TDBCacheStream64;
 var
   itmHnd: TItemHandle;
   itmStream: TItemStream;
@@ -2821,7 +2835,7 @@ begin
       Result.Position := 0;
 end;
 
-function TDBStoreBase.GetCacheStream(const StorePos: Int64): TDBCacheStream64;
+function TDBStore.GetCacheStream(const StorePos: Int64): TDBCacheStream64;
 var
   itmHnd: TItemHandle;
   itmStream: TItemStream;
@@ -2855,15 +2869,15 @@ begin
       Result.Position := 0;
 end;
 
-function TDBStoreBase.QueryFirst(var qState: TQueryState): Boolean;
+function TDBStore.QueryFirst(var qState: TQueryState): Boolean;
 begin
   Result := False;
-  qState.dbEng := Self;
+  qState.Eng := Self;
   qState.StorePos := -1;
   qState.Aborted := False;
   qState.TaskTag := '';
   qState.deltaTime := 0;
-  qState.newTime := 0;
+  qState.NewTime := 0;
   if qState.QueryHnd = nil then
       Exit;
 
@@ -2876,13 +2890,13 @@ begin
   end;
 end;
 
-function TDBStoreBase.QueryNext(var qState: TQueryState): Boolean;
+function TDBStore.QueryNext(var qState: TQueryState): Boolean;
 begin
   Result := False;
 
   if qState.QueryHnd = nil then
       Exit;
-  if qState.QueryHnd^.PositionID in [db_Header_LastPositionFlags, db_Header_OnlyPositionFlags] then
+  if qState.QueryHnd^.PositionID in [DB_Header_Last, DB_Header_1] then
       Exit;
 
   try
@@ -2894,15 +2908,15 @@ begin
   end;
 end;
 
-function TDBStoreBase.QueryLast(var qState: TQueryState): Boolean;
+function TDBStore.QueryLast(var qState: TQueryState): Boolean;
 begin
   Result := False;
-  qState.dbEng := Self;
+  qState.Eng := Self;
   qState.StorePos := -1;
   qState.Aborted := False;
   qState.TaskTag := '';
   qState.deltaTime := 0;
-  qState.newTime := 0;
+  qState.NewTime := 0;
   if qState.QueryHnd = nil then
       Exit;
 
@@ -2915,13 +2929,13 @@ begin
   end;
 end;
 
-function TDBStoreBase.QueryPrev(var qState: TQueryState): Boolean;
+function TDBStore.QueryPrev(var qState: TQueryState): Boolean;
 begin
   Result := False;
 
   if qState.QueryHnd = nil then
       Exit;
-  if qState.QueryHnd^.PositionID in [db_Header_FirstPositionFlags, db_Header_OnlyPositionFlags] then
+  if qState.QueryHnd^.PositionID in [DB_Header_First, DB_Header_1] then
       Exit;
 
   try
@@ -2933,7 +2947,7 @@ begin
   end;
 end;
 
-procedure TDBStoreBase.BuildStorePosArray(ReverseBuild: Boolean; const OutputPtr: PStoreArray);
+procedure TDBStore.BuildStorePosArray(ReverseBuild: Boolean; const OutputPtr: PStoreArray);
 type
   TDynamicQueryMethod = function(var qState: TQueryState): Boolean of object;
 var
@@ -2972,65 +2986,12 @@ begin
     end;
 end;
 
-procedure TDBStoreBase.BuildStoreArray(ReverseBuild: Boolean; const OutputPtr: PStoreArray);
+procedure TDBStore.BuildStoreArray(ReverseBuild: Boolean; const OutputPtr: PStoreArray);
 begin
   BuildStorePosArray(ReverseBuild, OutputPtr);
 end;
 
-{$IFDEF FPC}
-
-
-procedure TDBStoreBase.WaitQuery(ReverseQuery: Boolean; const OnQueryCall: TQueryCall; const OnQueryMethod: TQueryMethod);
-type
-  TDynamicQueryMethod = function(var qState: TQueryState): Boolean of object;
-var
-  itmSearHnd: THeader;
-  qState: TQueryState;
-  f, n: TDynamicQueryMethod;
-begin
-  qState.StorePos := -1;
-  qState.Aborted := False;
-  qState.QueryHnd := @itmSearHnd;
-  qState.index := 0;
-
-  if ReverseQuery then
-    begin
-      f := @QueryLast;
-      n := @QueryPrev;
-      qState.index := Count - 1;
-    end
-  else
-    begin
-      f := @QueryFirst;
-      n := @QueryNext;
-      qState.index := 0;
-    end;
-
-  if f(qState) then
-    begin
-      repeat
-        try
-          if Assigned(OnQueryCall) then
-              OnQueryCall(qState);
-          if Assigned(OnQueryMethod) then
-              OnQueryMethod(qState);
-        except
-        end;
-
-        if qState.Aborted then
-            Break;
-
-        if ReverseQuery then
-            dec(qState.index)
-        else
-            inc(qState.index);
-      until (not n(qState));
-    end;
-end;
-{$ELSE}
-
-
-procedure TDBStoreBase.WaitQuery(ReverseQuery: Boolean; const OnQueryCall: TQueryCall; const OnQueryProc: TQueryProc; const OnQueryMethod: TQueryMethod);
+procedure TDBStore.WaitQuery(ReverseQuery: Boolean; const OnQueryCall: TQueryCall; const OnQueryProc: TQueryProc; const OnQueryMethod: TQueryMethod);
 type
   TDynamicQueryMethod = function(var qState: TQueryState): Boolean of object;
 var
@@ -3044,14 +3005,14 @@ begin
 
   if ReverseQuery then
     begin
-      f := QueryLast;
-      n := QueryPrev;
+      f := {$IFDEF FPC}@{$ENDIF FPC}QueryLast;
+      n := {$IFDEF FPC}@{$ENDIF FPC}QueryPrev;
       qState.index := Count - 1;
     end
   else
     begin
-      f := QueryFirst;
-      n := QueryNext;
+      f := {$IFDEF FPC}@{$ENDIF FPC}QueryFirst;
+      n := {$IFDEF FPC}@{$ENDIF FPC}QueryNext;
       qState.index := 0;
     end;
 
@@ -3078,122 +3039,38 @@ begin
       until (not n(qState));
     end;
 end;
-{$ENDIF}
 
-
-procedure TDBStoreBase.WaitQueryC(ReverseQuery: Boolean; const OnQueryCall: TQueryCall);
+procedure TDBStore.WaitQueryC(ReverseQuery: Boolean; const OnQueryCall: TQueryCall);
 begin
-{$IFDEF FPC}
-  WaitQuery(ReverseQuery, OnQueryCall, nil);
-{$ELSE}
   WaitQuery(ReverseQuery, OnQueryCall, nil, nil);
-{$ENDIF}
 end;
 
-procedure TDBStoreBase.WaitQueryM(ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod);
+procedure TDBStore.WaitQueryM(ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod);
 begin
-{$IFDEF FPC}
-  WaitQuery(ReverseQuery, nil, OnQueryMethod);
-{$ELSE}
   WaitQuery(ReverseQuery, nil, nil, OnQueryMethod);
-{$ENDIF}
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TDBStoreBase.WaitQueryP(ReverseQuery: Boolean; const OnQueryProc: TQueryProc);
+procedure TDBStore.WaitQueryP(ReverseQuery: Boolean; const OnQueryProc: TQueryProc);
 begin
   WaitQuery(ReverseQuery, nil, OnQueryProc, nil);
 end;
-{$ENDIF}
 
-
-procedure TDBStoreBase.WaitQueryC(const OnQueryCall: TQueryCall);
+procedure TDBStore.WaitQueryC(const OnQueryCall: TQueryCall);
 begin
   WaitQueryC(False, OnQueryCall);
 end;
 
-procedure TDBStoreBase.WaitQueryM(const OnQueryMethod: TQueryMethod);
+procedure TDBStore.WaitQueryM(const OnQueryMethod: TQueryMethod);
 begin
   WaitQueryM(False, OnQueryMethod);
 end;
 
-{$IFNDEF FPC}
-
-
-procedure TDBStoreBase.WaitQueryP(const OnQueryProc: TQueryProc);
+procedure TDBStore.WaitQueryP(const OnQueryProc: TQueryProc);
 begin
   WaitQueryP(False, OnQueryProc);
 end;
 
-{$ENDIF}
-
-{$IFDEF FPC}
-
-
-function TDBStoreBase.Query(const TaskTag: SystemString; const ReverseQuery: Boolean;
-  const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall;
-  const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask;
-begin
-  Result := TQueryTask.Create;
-  Result.FDBEng := Self;
-  Result.FReverse := ReverseQuery;
-  Result.FTaskTag := TaskTag;
-  Result.FOnQueryCall := OnQueryCall;
-  Result.FOnQueryDoneCall := OnQueryDoneCall;
-  Result.FOnQueryMethod := OnQueryMethod;
-  Result.FOnQueryDoneMethod := OnQueryDoneMethod;
-
-  FQueryQueue.Add(Result);
-  FQueryThread.Paused := False;
-  FQueryThreadLastActivtedTime := Now;
-end;
-
-function TDBStoreBase.QueryC(const TaskTag: SystemString; const ReverseQuery: Boolean; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask;
-begin
-  Result := Query(TaskTag, ReverseQuery, OnQueryCall, OnQueryDoneCall, nil, nil);
-end;
-
-function TDBStoreBase.QueryM(const TaskTag: SystemString; const ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask;
-begin
-  Result := Query(TaskTag, ReverseQuery, nil, nil, OnQueryMethod, OnQueryDoneMethod);
-end;
-
-function TDBStoreBase.QueryC(const TaskTag: SystemString; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask;
-begin
-  Result := QueryC(TaskTag, False, OnQueryCall, OnQueryDoneCall);
-end;
-
-function TDBStoreBase.QueryM(const TaskTag: SystemString; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask;
-begin
-  Result := QueryM(TaskTag, False, OnQueryMethod, OnQueryDoneMethod);
-end;
-
-function TDBStoreBase.QueryC(const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask;
-begin
-  Result := QueryC('', OnQueryCall, OnQueryDoneCall);
-end;
-
-function TDBStoreBase.QueryM(const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask;
-begin
-  Result := QueryM('', OnQueryMethod, OnQueryDoneMethod);
-end;
-
-function TDBStoreBase.QueryC(const ReverseQuery: Boolean; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask;
-begin
-  Result := QueryC('', ReverseQuery, OnQueryCall, OnQueryDoneCall);
-end;
-
-function TDBStoreBase.QueryM(const ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask;
-begin
-  Result := QueryM('', ReverseQuery, OnQueryMethod, OnQueryDoneMethod);
-end;
-
-{$ELSE}
-
-
-function TDBStoreBase.Query(const TaskTag: SystemString; const ReverseQuery: Boolean;
+function TDBStore.Query(const TaskTag: SystemString; const ReverseQuery: Boolean;
   const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall;
   const OnQueryProc: TQueryProc; const OnQueryDoneProc: TQueryDoneProc;
   const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask;
@@ -3214,76 +3091,73 @@ begin
   FQueryThreadLastActivtedTime := Now;
 end;
 
-function TDBStoreBase.QueryC(const TaskTag: SystemString; const ReverseQuery: Boolean; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask;
+function TDBStore.QueryC(const TaskTag: SystemString; const ReverseQuery: Boolean; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask;
 begin
   Result := Query(TaskTag, ReverseQuery, OnQueryCall, OnQueryDoneCall, nil, nil, nil, nil);
 end;
 
-function TDBStoreBase.QueryP(const TaskTag: SystemString; const ReverseQuery: Boolean; const OnQueryProc: TQueryProc; const OnQueryDoneProc: TQueryDoneProc): TQueryTask;
+function TDBStore.QueryP(const TaskTag: SystemString; const ReverseQuery: Boolean; const OnQueryProc: TQueryProc; const OnQueryDoneProc: TQueryDoneProc): TQueryTask;
 begin
   Result := Query(TaskTag, ReverseQuery, nil, nil, OnQueryProc, OnQueryDoneProc, nil, nil);
 end;
 
-function TDBStoreBase.QueryM(const TaskTag: SystemString; const ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask;
+function TDBStore.QueryM(const TaskTag: SystemString; const ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask;
 begin
   Result := Query(TaskTag, ReverseQuery, nil, nil, nil, nil, OnQueryMethod, OnQueryDoneMethod);
 end;
 
-function TDBStoreBase.QueryC(const TaskTag: SystemString; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask;
+function TDBStore.QueryC(const TaskTag: SystemString; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask;
 begin
   Result := QueryC(TaskTag, False, OnQueryCall, OnQueryDoneCall);
 end;
 
-function TDBStoreBase.QueryP(const TaskTag: SystemString; const OnQueryProc: TQueryProc; const OnQueryDoneProc: TQueryDoneProc): TQueryTask;
+function TDBStore.QueryP(const TaskTag: SystemString; const OnQueryProc: TQueryProc; const OnQueryDoneProc: TQueryDoneProc): TQueryTask;
 begin
   Result := QueryP(TaskTag, False, OnQueryProc, OnQueryDoneProc);
 end;
 
-function TDBStoreBase.QueryM(const TaskTag: SystemString; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask;
+function TDBStore.QueryM(const TaskTag: SystemString; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask;
 begin
   Result := QueryM(TaskTag, False, OnQueryMethod, OnQueryDoneMethod);
 end;
 
-function TDBStoreBase.QueryC(const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask;
+function TDBStore.QueryC(const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask;
 begin
   Result := QueryC('', OnQueryCall, OnQueryDoneCall);
 end;
 
-function TDBStoreBase.QueryP(const OnQueryProc: TQueryProc; const OnQueryDoneProc: TQueryDoneProc): TQueryTask;
+function TDBStore.QueryP(const OnQueryProc: TQueryProc; const OnQueryDoneProc: TQueryDoneProc): TQueryTask;
 begin
   Result := QueryP('', OnQueryProc, OnQueryDoneProc);
 end;
 
-function TDBStoreBase.QueryC(const ReverseQuery: Boolean; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask;
+function TDBStore.QueryC(const ReverseQuery: Boolean; const OnQueryCall: TQueryCall; const OnQueryDoneCall: TQueryDoneCall): TQueryTask;
 begin
   Result := QueryC('', ReverseQuery, OnQueryCall, OnQueryDoneCall);
 end;
 
-function TDBStoreBase.QueryM(const ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask;
+function TDBStore.QueryM(const ReverseQuery: Boolean; const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask;
 begin
   Result := QueryM('', ReverseQuery, OnQueryMethod, OnQueryDoneMethod);
 end;
 
-function TDBStoreBase.QueryP(const ReverseQuery: Boolean; const OnQueryProc: TQueryProc; const OnQueryDoneProc: TQueryDoneProc): TQueryTask;
+function TDBStore.QueryP(const ReverseQuery: Boolean; const OnQueryProc: TQueryProc; const OnQueryDoneProc: TQueryDoneProc): TQueryTask;
 begin
   Result := QueryP('', ReverseQuery, OnQueryProc, OnQueryDoneProc);
 end;
 
-function TDBStoreBase.QueryM(const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask;
+function TDBStore.QueryM(const OnQueryMethod: TQueryMethod; const OnQueryDoneMethod: TQueryDoneMethod): TQueryTask;
 begin
   Result := QueryM('', OnQueryMethod, OnQueryDoneMethod);
 end;
 
-{$ENDIF}
-
-
-procedure TDBStoreBase.WaitQueryThread;
+procedure TDBStore.WaitQueryThread;
 begin
   while not FQueryThread.Paused do
       CheckThreadSynchronize(1);
 end;
 
-procedure TDBStoreBase.WaitQueryThread(waitTime: TTimeTick);
+procedure TDBStore.WaitQueryThread(waitTime: TTimeTick);
 var
   st: TTimeTick;
 begin
@@ -3292,12 +3166,12 @@ begin
       CheckThreadSynchronize;
 end;
 
-function TDBStoreBase.QueryProcessing: Boolean;
+function TDBStore.QueryProcessing: Boolean;
 begin
   Result := not FQueryThread.Paused;
 end;
 
-procedure TDBStoreBase.StopQuery(const TaskTag: SystemString);
+procedure TDBStore.StopQuery(const TaskTag: SystemString);
 var
   i: Integer;
   t: TQueryTask;
@@ -3312,45 +3186,45 @@ begin
     end;
 end;
 
-procedure TDBStoreBase.StopAllQuery;
+procedure TDBStore.StopAllQuery;
 var
   i: Integer;
 begin
   for i := 0 to FQueryQueue.Count - 1 do
       TQueryTask(FQueryQueue[i]).stop;
-  FQueryThread.SyncQuery;
+  WaitQueryThread;
 end;
 
-function TDBStoreBase.QueryThreadCount: Integer;
+function TDBStore.QueryThreadCount: Integer;
 begin
   Result := FQueryQueue.Count;
 end;
 
-function TDBStoreBase.InsertData(const InsertPos: Int64; buff: TDataFrameEngine): Int64;
+function TDBStore.InsertData(const InsertPos: Int64; Buff: TDataFrameEngine): Int64;
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
 
-  buff.EncodeTo(M, False);
+  Buff.EncodeTo(M, False);
 
   Result := InsertData(InsertPos, M, c_DF);
   DisposeObject(M);
 end;
 
-function TDBStoreBase.AddData(buff: TDataFrameEngine): Int64;
+function TDBStore.AddData(Buff: TDataFrameEngine): Int64;
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
 
-  buff.EncodeTo(M, False);
+  Buff.EncodeTo(M, False);
 
   Result := AddData(M, c_DF);
   DisposeObject(M);
 end;
 
-function TDBStoreBase.GetDF(const StorePos: Int64): TDBEngineDF;
+function TDBStore.GetDF(const StorePos: Int64): TDBEngineDF;
 var
   lastAcc: TCoreClassObject;
   M: TDBCacheStream64;
@@ -3383,7 +3257,7 @@ begin
             Result.DecodeFrom(M, True);
         except
         end;
-        Result.DBStorePos := StorePos;
+        Result.FDBStorePos := StorePos;
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
         Result.ModificationTime := M.ModificationTime;
@@ -3396,12 +3270,12 @@ begin
     end;
 end;
 
-function TDBStoreBase.GetDF(var qState: TQueryState): TDBEngineDF;
+function TDBStore.GetDF(var qState: TQueryState): TDBEngineDF;
 begin
   Result := GetDF(qState.StorePos);
 end;
 
-function TDBStoreBase.BuildDF(const StorePos: Int64): TDBEngineDF;
+function TDBStore.BuildDF(const StorePos: Int64): TDBEngineDF;
 var
   M: TDBCacheStream64;
 begin
@@ -3418,7 +3292,7 @@ begin
             Result.DecodeFrom(M, True);
         except
         end;
-        Result.DBStorePos := StorePos;
+        Result.FDBStorePos := StorePos;
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
         Result.ModificationTime := M.ModificationTime;
@@ -3429,32 +3303,32 @@ begin
     end;
 end;
 
-function TDBStoreBase.BuildDF(var qState: TQueryState): TDBEngineDF;
+function TDBStore.BuildDF(var qState: TQueryState): TDBEngineDF;
 begin
   Result := BuildDF(qState.StorePos);
 end;
 
-function TDBStoreBase.InsertData(const InsertPos: Int64; buff: THashVariantList): Int64;
+function TDBStore.InsertData(const InsertPos: Int64; Buff: THashVariantList): Int64;
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
-  buff.SaveToStream(M);
+  Buff.SaveToStream(M);
   Result := InsertData(InsertPos, M, c_VL);
   DisposeObject(M);
 end;
 
-function TDBStoreBase.AddData(buff: THashVariantList): Int64;
+function TDBStore.AddData(Buff: THashVariantList): Int64;
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
-  buff.SaveToStream(M);
+  Buff.SaveToStream(M);
   Result := AddData(M, c_VL);
   DisposeObject(M);
 end;
 
-function TDBStoreBase.GetVL(const StorePos: Int64): TDBEngineVL;
+function TDBStore.GetVL(const StorePos: Int64): TDBEngineVL;
 var
   lastAcc: TCoreClassObject;
   M: TDBCacheStream64;
@@ -3487,7 +3361,7 @@ begin
             Result.LoadFromStream(M);
         except
         end;
-        Result.DBStorePos := StorePos;
+        Result.FDBStorePos := StorePos;
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
         Result.ModificationTime := M.ModificationTime;
@@ -3500,12 +3374,12 @@ begin
     end;
 end;
 
-function TDBStoreBase.GetVL(var qState: TQueryState): TDBEngineVL;
+function TDBStore.GetVL(var qState: TQueryState): TDBEngineVL;
 begin
   Result := GetVL(qState.StorePos);
 end;
 
-function TDBStoreBase.BuildVL(const StorePos: Int64): TDBEngineVL;
+function TDBStore.BuildVL(const StorePos: Int64): TDBEngineVL;
 var
   M: TDBCacheStream64;
 begin
@@ -3521,7 +3395,7 @@ begin
             Result.LoadFromStream(M);
         except
         end;
-        Result.DBStorePos := StorePos;
+        Result.FDBStorePos := StorePos;
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
         Result.ModificationTime := M.ModificationTime;
@@ -3532,32 +3406,32 @@ begin
     end;
 end;
 
-function TDBStoreBase.BuildVL(var qState: TQueryState): TDBEngineVL;
+function TDBStore.BuildVL(var qState: TQueryState): TDBEngineVL;
 begin
   Result := BuildVL(qState.StorePos);
 end;
 
-function TDBStoreBase.InsertData(const InsertPos: Int64; buff: THashStringList): Int64;
+function TDBStore.InsertData(const InsertPos: Int64; Buff: THashStringList): Int64;
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
-  buff.SaveToStream(M);
+  Buff.SaveToStream(M);
   Result := InsertData(InsertPos, M, c_VT);
   DisposeObject(M);
 end;
 
-function TDBStoreBase.AddData(buff: THashStringList): Int64;
+function TDBStore.AddData(Buff: THashStringList): Int64;
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
-  buff.SaveToStream(M);
+  Buff.SaveToStream(M);
   Result := AddData(M, c_VT);
   DisposeObject(M);
 end;
 
-function TDBStoreBase.GetVT(const StorePos: Int64): TDBEngineVT;
+function TDBStore.GetVT(const StorePos: Int64): TDBEngineVT;
 var
   lastAcc: TCoreClassObject;
   M: TDBCacheStream64;
@@ -3590,7 +3464,7 @@ begin
             Result.LoadFromStream(M);
         except
         end;
-        Result.DBStorePos := StorePos;
+        Result.FDBStorePos := StorePos;
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
         Result.ModificationTime := M.ModificationTime;
@@ -3603,12 +3477,12 @@ begin
     end;
 end;
 
-function TDBStoreBase.GetVT(var qState: TQueryState): TDBEngineVT;
+function TDBStore.GetVT(var qState: TQueryState): TDBEngineVT;
 begin
   Result := GetVT(qState.StorePos);
 end;
 
-function TDBStoreBase.BuildVT(const StorePos: Int64): TDBEngineVT;
+function TDBStore.BuildVT(const StorePos: Int64): TDBEngineVT;
 var
   M: TDBCacheStream64;
 begin
@@ -3624,7 +3498,7 @@ begin
             Result.LoadFromStream(M);
         except
         end;
-        Result.DBStorePos := StorePos;
+        Result.FDBStorePos := StorePos;
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
         Result.ModificationTime := M.ModificationTime;
@@ -3635,32 +3509,32 @@ begin
     end;
 end;
 
-function TDBStoreBase.BuildVT(var qState: TQueryState): TDBEngineVT;
+function TDBStore.BuildVT(var qState: TQueryState): TDBEngineVT;
 begin
   Result := BuildVT(qState.StorePos);
 end;
 
-function TDBStoreBase.InsertData(const InsertPos: Int64; buff: TSectionTextData): Int64;
+function TDBStore.InsertData(const InsertPos: Int64; Buff: TSectionTextData): Int64;
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
-  buff.SaveToStream(M);
+  Buff.SaveToStream(M);
   Result := InsertData(InsertPos, M, c_TE);
   DisposeObject(M);
 end;
 
-function TDBStoreBase.AddData(buff: TSectionTextData): Int64;
+function TDBStore.AddData(Buff: TSectionTextData): Int64;
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
-  buff.SaveToStream(M);
+  Buff.SaveToStream(M);
   Result := AddData(M, c_TE);
   DisposeObject(M);
 end;
 
-function TDBStoreBase.GetTE(const StorePos: Int64): TDBEngineTE;
+function TDBStore.GetTE(const StorePos: Int64): TDBEngineTE;
 var
   lastAcc: TCoreClassObject;
   M: TDBCacheStream64;
@@ -3693,7 +3567,7 @@ begin
             Result.LoadFromStream(M);
         except
         end;
-        Result.DBStorePos := StorePos;
+        Result.FDBStorePos := StorePos;
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
         Result.ModificationTime := M.ModificationTime;
@@ -3706,12 +3580,12 @@ begin
     end;
 end;
 
-function TDBStoreBase.GetTE(var qState: TQueryState): TDBEngineTE;
+function TDBStore.GetTE(var qState: TQueryState): TDBEngineTE;
 begin
   Result := GetTE(qState.StorePos);
 end;
 
-function TDBStoreBase.BuildTE(const StorePos: Int64): TDBEngineTE;
+function TDBStore.BuildTE(const StorePos: Int64): TDBEngineTE;
 var
   M: TDBCacheStream64;
 begin
@@ -3727,7 +3601,7 @@ begin
             Result.LoadFromStream(M);
         except
         end;
-        Result.DBStorePos := StorePos;
+        Result.FDBStorePos := StorePos;
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
         Result.ModificationTime := M.ModificationTime;
@@ -3738,7 +3612,7 @@ begin
     end;
 end;
 
-function TDBStoreBase.BuildTE(var qState: TQueryState): TDBEngineTE;
+function TDBStore.BuildTE(var qState: TQueryState): TDBEngineTE;
 begin
   Result := BuildTE(qState.StorePos);
 end;
@@ -3746,27 +3620,27 @@ end;
 {$IFNDEF FPC}
 
 
-function TDBStoreBase.InsertData(const InsertPos: Int64; buff: TJsonObject): Int64;
+function TDBStore.InsertData(const InsertPos: Int64; Buff: TJsonObject): Int64;
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
-  buff.SaveToStream(M, True, TEncoding.UTF8, True);
+  Buff.SaveToStream(M, True, TEncoding.UTF8, True);
   Result := InsertData(InsertPos, M, c_Json);
   DisposeObject(M);
 end;
 
-function TDBStoreBase.AddData(buff: TJsonObject): Int64;
+function TDBStore.AddData(Buff: TJsonObject): Int64;
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
-  buff.SaveToStream(M, True, TEncoding.UTF8, True);
+  Buff.SaveToStream(M, True, TEncoding.UTF8, True);
   Result := AddData(M, c_Json);
   DisposeObject(M);
 end;
 
-function TDBStoreBase.GetJson(const StorePos: Int64): TDBEngineJson;
+function TDBStore.GetJson(const StorePos: Int64): TDBEngineJson;
 var
   lastAcc: TCoreClassObject;
   M: TDBCacheStream64;
@@ -3799,7 +3673,7 @@ begin
             Result.LoadFromStream(M, TEncoding.UTF8, False);
         except
         end;
-        Result.DBStorePos := StorePos;
+        Result.FDBStorePos := StorePos;
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
         Result.ModificationTime := M.ModificationTime;
@@ -3812,12 +3686,12 @@ begin
     end;
 end;
 
-function TDBStoreBase.GetJson(var qState: TQueryState): TDBEngineJson;
+function TDBStore.GetJson(var qState: TQueryState): TDBEngineJson;
 begin
   Result := GetJson(qState.StorePos);
 end;
 
-function TDBStoreBase.BuildJson(const StorePos: Int64): TDBEngineJson;
+function TDBStore.BuildJson(const StorePos: Int64): TDBEngineJson;
 var
   M: TDBCacheStream64;
 begin
@@ -3833,7 +3707,7 @@ begin
             Result.LoadFromStream(M, TEncoding.UTF8, False);
         except
         end;
-        Result.DBStorePos := StorePos;
+        Result.FDBStorePos := StorePos;
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
         Result.ModificationTime := M.ModificationTime;
@@ -3844,29 +3718,29 @@ begin
     end;
 end;
 
-function TDBStoreBase.BuildJson(var qState: TQueryState): TDBEngineJson;
+function TDBStore.BuildJson(var qState: TQueryState): TDBEngineJson;
 begin
   Result := BuildJson(qState.StorePos);
 end;
 {$ENDIF}
 
 
-function TDBStoreBase.InsertData(const InsertPos: Int64; buff: TDBEnginePascalString): Int64;
+function TDBStore.InsertData(const InsertPos: Int64; Buff: TDBEnginePascalString): Int64;
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
-  buff.SaveToStream(M);
+  Buff.SaveToStream(M);
   Result := InsertData(InsertPos, M, c_PascalString);
   DisposeObject(M);
 end;
 
-function TDBStoreBase.InsertData(const InsertPos: Int64; buff: TPascalString): Int64;
+function TDBStore.InsertData(const InsertPos: Int64; Buff: TPascalString): Int64;
 begin
-  Result := InsertString(InsertPos, buff);
+  Result := InsertString(InsertPos, Buff);
 end;
 
-function TDBStoreBase.InsertString(const InsertPos: Int64; buff: TPascalString): Int64;
+function TDBStore.InsertString(const InsertPos: Int64; Buff: TPascalString): Int64;
 var
   t: TDBEnginePascalString;
   M: TMemoryStream64;
@@ -3876,7 +3750,7 @@ begin
     begin
       MH_ZDB.BeginMemoryHook;
       t := TDBEnginePascalString.Create;
-      t.buff := buff;
+      t.Buff := Buff;
       t.MemoryUsed := MH_ZDB.GetHookMemorySize;
       MH_ZDB.EndMemoryHook;
 
@@ -3886,17 +3760,17 @@ begin
       Result := InsertData(InsertPos, M, c_PascalString, itmHnd);
       DisposeObject(M);
 
-      t.DBStorePos := Result;
+      t.FDBStorePos := Result;
       t.dbEng := Self;
       t.CreateTime := itmHnd.CreateTime;
       t.ModificationTime := itmHnd.ModificationTime;
 
-      ProcessNewInstanceCache(t.DBStorePos, t, t.MemoryUsed);
+      ProcessNewInstanceCache(t.FDBStorePos, t, t.MemoryUsed);
     end
   else
     begin
       t := TDBEnginePascalString.Create;
-      t.buff := buff;
+      t.Buff := Buff;
 
       M := TMemoryStream64.Create;
       t.SaveToStream(M);
@@ -3908,23 +3782,23 @@ begin
     end;
 end;
 
-function TDBStoreBase.AddData(buff: TDBEnginePascalString): Int64;
+function TDBStore.AddData(Buff: TDBEnginePascalString): Int64;
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
-  buff.SaveToStream(M);
+  Buff.SaveToStream(M);
   M.Position := 0;
   Result := AddData(M, c_PascalString);
   DisposeObject(M);
 end;
 
-function TDBStoreBase.AddData(buff: TPascalString): Int64;
+function TDBStore.AddData(Buff: TPascalString): Int64;
 begin
-  Result := AddString(buff);
+  Result := AddString(Buff);
 end;
 
-function TDBStoreBase.AddString(buff: TPascalString): Int64;
+function TDBStore.AddString(Buff: TPascalString): Int64;
 var
   t: TDBEnginePascalString;
   M: TMemoryStream64;
@@ -3934,7 +3808,7 @@ begin
     begin
       MH_ZDB.BeginMemoryHook;
       t := TDBEnginePascalString.Create;
-      t.buff := buff;
+      t.Buff := Buff;
       t.MemoryUsed := MH_ZDB.GetHookMemorySize;
       MH_ZDB.EndMemoryHook;
 
@@ -3944,17 +3818,17 @@ begin
       Result := AddData(M, c_PascalString, itmHnd);
       DisposeObject(M);
 
-      t.DBStorePos := Result;
+      t.FDBStorePos := Result;
       t.dbEng := Self;
       t.CreateTime := itmHnd.CreateTime;
       t.ModificationTime := itmHnd.ModificationTime;
 
-      ProcessNewInstanceCache(t.DBStorePos, t, t.MemoryUsed);
+      ProcessNewInstanceCache(t.FDBStorePos, t, t.MemoryUsed);
     end
   else
     begin
       t := TDBEnginePascalString.Create;
-      t.buff := buff;
+      t.Buff := Buff;
 
       M := TMemoryStream64.Create;
       t.SaveToStream(M);
@@ -3966,7 +3840,7 @@ begin
     end;
 end;
 
-function TDBStoreBase.GetPascalString(const StorePos: Int64): TDBEnginePascalString;
+function TDBStore.GetPascalString(const StorePos: Int64): TDBEnginePascalString;
 var
   lastAcc: TCoreClassObject;
   M: TDBCacheStream64;
@@ -3999,7 +3873,7 @@ begin
             Result.LoadFromStream(M);
         except
         end;
-        Result.DBStorePos := StorePos;
+        Result.FDBStorePos := StorePos;
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
         Result.ModificationTime := M.ModificationTime;
@@ -4012,40 +3886,40 @@ begin
     end;
 end;
 
-function TDBStoreBase.GetPascalString(var qState: TQueryState): TDBEnginePascalString;
+function TDBStore.GetPascalString(var qState: TQueryState): TDBEnginePascalString;
 begin
   Result := GetPascalString(qState.StorePos);
 end;
 
-function TDBStoreBase.GetString(const StorePos: Int64): TPascalString;
+function TDBStore.GetString(const StorePos: Int64): TPascalString;
 var
   t: TDBEnginePascalString;
 begin
   t := GetPascalString(StorePos);
   if t <> nil then
-      Result := t.buff
+      Result := t.Buff
   else
       Result := '';
 end;
 
-function TDBStoreBase.GetString(var qState: TQueryState): TPascalString;
+function TDBStore.GetString(var qState: TQueryState): TPascalString;
 begin
   Result := GetString(qState.StorePos);
 end;
 
-procedure TDBStoreBase.SetString(const StorePos: Int64; const Value: TPascalString);
+procedure TDBStore.SetString(const StorePos: Int64; const Value: TPascalString);
 var
   t: TDBEnginePascalString;
 begin
   t := GetPascalString(StorePos);
   if t <> nil then
     begin
-      t.buff := Value;
+      t.Buff := Value;
       t.Save;
     end;
 end;
 
-function TDBStoreBase.BuildPascalString(const StorePos: Int64): TDBEnginePascalString;
+function TDBStore.BuildPascalString(const StorePos: Int64): TDBEnginePascalString;
 var
   M: TDBCacheStream64;
 begin
@@ -4061,7 +3935,7 @@ begin
             Result.LoadFromStream(M);
         except
         end;
-        Result.DBStorePos := StorePos;
+        Result.FDBStorePos := StorePos;
         Result.dbEng := Self;
         Result.CreateTime := M.CreateTime;
         Result.ModificationTime := M.ModificationTime;
@@ -4072,7 +3946,7 @@ begin
     end;
 end;
 
-function TDBStoreBase.BuildPascalString(var qState: TQueryState): TDBEnginePascalString;
+function TDBStore.BuildPascalString(var qState: TQueryState): TDBEnginePascalString;
 begin
   Result := BuildPascalString(qState.StorePos);
 end;
@@ -4080,22 +3954,22 @@ end;
 initialization
 
 DefaultCacheAnnealingTime := 15.0;
-DefaultMinimizeCacheOfFileSize := 64 * 1024 * 1024; // 64M
+DefaultMinimizeCacheOfFileSize := 16 * 1024 * 1024; // 16M
 
 {$IFDEF CPU64}
-DefaultCacheBufferLength := 10000 * 20;
-DefaultIndexCacheBufferLength := 10000 * 20;
-DefaultMinimizeInstanceCacheSize := Int64(1048576 * 128); // 128M
-DefaultMaximumInstanceCacheSize := Int64(5368709120);     // 5GB
-DefaultMinimizeStreamCacheSize := Int64(16 * 1048576);    // 16M
-DefaultMaximumStreamCacheSize := Int64(1048576 * 128);    // 128M
+DefaultCacheBufferLength := 10000 * 40;
+DefaultIndexCacheBufferLength := 10000 * 40;
+DefaultMinimizeInstanceCacheSize := 512 * 1024 * 1024; // 512M
+DefaultMaximumInstanceCacheSize := 1024 * 1024 * 1024; // 1GB
+DefaultMinimizeStreamCacheSize := 96 * 1024 * 1024;    // 96M
+DefaultMaximumStreamCacheSize := 128 * 1024 * 1024;    // 128M
 {$ELSE}
-DefaultCacheBufferLength := 10000;
-DefaultIndexCacheBufferLength := 10000;
-DefaultMinimizeInstanceCacheSize := 16 * 1024 * 1024; // 16M
+DefaultCacheBufferLength := 10000 * 10;
+DefaultIndexCacheBufferLength := 10000 * 10;
+DefaultMinimizeInstanceCacheSize := 32 * 1024 * 1024; // 32M
 DefaultMaximumInstanceCacheSize := 128 * 1024 * 1024; // 128M
-DefaultMinimizeStreamCacheSize := 8 * 1048576;        // 8M
-DefaultMaximumStreamCacheSize := 128 * 1024 * 1024;   // 128M
+DefaultMinimizeStreamCacheSize := 24 * 1024 * 1024;   // 24M
+DefaultMaximumStreamCacheSize := 32 * 1024 * 1024;    // 32M
 {$ENDIF}
 
 finalization

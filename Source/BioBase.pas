@@ -29,7 +29,7 @@ uses CoreClasses,
 type
   TBioBase = class;
 
-  TBioActions    = class;
+  TBioActions = class;
   TBioActionBase = class;
 
   TBioActionClass = class of TBioActionBase;
@@ -764,7 +764,7 @@ end;
 
 procedure TBioBase.RegisterFreeBackcall(AFlagObject: TCoreClassObject; ANotifyMethod: TBackcallNotifyMethod);
 begin
-  FDestroyBackcallList.RegisterBackcall(AFlagObject, ANotifyMethod);
+  FDestroyBackcallList.RegisterBackcallM(AFlagObject, ANotifyMethod);
 end;
 
 procedure TBioBase.UnRegisterFreeBackcall(AFlagObject: TCoreClassObject);
@@ -774,7 +774,7 @@ end;
 
 procedure TBioBase.RegisterDieBackcall(AFlagObject: TObject; ANotifyMethod: TBackcallNotifyMethod);
 begin
-  FDieBackcallList.RegisterBackcall(AFlagObject, ANotifyMethod);
+  FDieBackcallList.RegisterBackcallM(AFlagObject, ANotifyMethod);
 end;
 
 procedure TBioBase.UnRegisterDieBackcall(AFlagObject: TObject);
@@ -784,7 +784,7 @@ end;
 
 procedure TBioBase.RegisterResuscitationBackcall(AFlagObject: TObject; ANotifyMethod: TBackcallNotifyMethod);
 begin
-  FResuscitationBackcallList.RegisterBackcall(AFlagObject, ANotifyMethod);
+  FResuscitationBackcallList.RegisterBackcallM(AFlagObject, ANotifyMethod);
 end;
 
 procedure TBioBase.UnRegisterResuscitationBackcall(AFlagObject: TObject);
@@ -904,7 +904,4 @@ begin
   FActions.PlayAction;
 end;
 
-end. 
- 
- 
- 
+end.

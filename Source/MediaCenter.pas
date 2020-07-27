@@ -1,5 +1,5 @@
 { ****************************************************************************** }
-{ * media center                                                               * }
+{ * mediaCenter                                                                * }
 { * written by QQ 600585@qq.com                                                * }
 { * https://zpascal.net                                                        * }
 { * https://github.com/PassByYou888/zAI                                        * }
@@ -25,12 +25,10 @@ interface
 
 uses Classes, Types,
   CoreClasses, PascalStrings,
-  LibraryManager, UnicodeMixedLib,
-  ObjectDataManager, MemoryStream64, TextDataEngine, ListEngine, StreamList,
+  ObjectDataHashField, UnicodeMixedLib,
+  ObjectDataManager, MemoryStream64, TextDataEngine, ListEngine, ObjectDataHashItem,
   DataFrameEngine, ObjectData, ItemStream,
-  zSound,
-
-  Geometry2DUnit;
+  zSound, Geometry2DUnit;
 
 type
   PSearchConfigInfo = ^TSearchConfigInfo;
@@ -42,7 +40,7 @@ type
     Alias: THashVariantList;
   end;
 
-  TFileIOHook = class
+  TFileIO = class
   private
     FCritical: TCritical;
     FList: TCoreClassList;
@@ -51,12 +49,12 @@ type
     procedure SetSearchItems(index: Integer; const Value: PSearchConfigInfo);
 
     function SearchObjData(aRootDir, AName: SystemString; Recursion: Boolean; aIntf: TObjectDataManager; var Hnd: TCoreClassStream): Boolean;
-    function SearchLib(LibName, ItmName: SystemString; Intf: TLibraryManager; var Hnd: TCoreClassStream): Boolean;
-    function SearchStreamList(AName: SystemString; Intf: THashStreamList; var Hnd: TCoreClassStream): Boolean;
+    function SearchLib(LibName, ItmName: SystemString; Intf: TObjectDataHashField; var Hnd: TCoreClassStream): Boolean;
+    function SearchStreamList(AName: SystemString; Intf: TObjectDataHashItem; var Hnd: TCoreClassStream): Boolean;
 
     function ExistsObjData(aRootDir, AName: SystemString; Recursion: Boolean; aIntf: TObjectDataManager): Boolean;
-    function ExistsLib(LibName, ItmName: SystemString; Intf: TLibraryManager): Boolean;
-    function ExistsStreamList(AName: SystemString; Intf: THashStreamList): Boolean;
+    function ExistsLib(LibName, ItmName: SystemString; Intf: TObjectDataHashField): Boolean;
+    function ExistsStreamList(AName: SystemString; Intf: TObjectDataHashItem): Boolean;
   public
     constructor Create;
     destructor Destroy; override;
@@ -81,34 +79,37 @@ type
   end;
 
 var
-  FileIO: TFileIOHook = nil;
+  FileIO: TFileIO = nil;
 
   // resource: sound.ox or sound
-  SoundLibrary: TLibraryManager = nil;
+  SoundLibrary: TObjectDataHashField = nil;
   // resource: art.ox or art
-  ArtLibrary: TLibraryManager = nil;
+  ArtLibrary: TObjectDataHashField = nil;
   // resource: tile.ox or tile
-  TileLibrary: TLibraryManager = nil;
+  TileLibrary: TObjectDataHashField = nil;
   // resource: brush.ox or brush
-  BrushLibrary: TLibraryManager = nil;
+  BrushLibrary: TObjectDataHashField = nil;
   // resource: user.ox or user
-  UserLibrary: TLibraryManager = nil;
+  UserLibrary: TObjectDataHashField = nil;
+  // resource: ai.ox or ai
+  AILibrary: TObjectDataHashField = nil;
+  // resource: model.ox or model
+  ModelLibrary: TObjectDataHashField = nil;
 
-  // default sound engine
-  Media: TzSound = nil;
+  // sound engine
+  SoundEngine: TzSound = nil;
 
 function FileIOCreate(const FileName: SystemString): TCoreClassStream;
 function FileIOOpen(const FileName: SystemString): TCoreClassStream;
 function FileIOExists(const FileName: SystemString): Boolean;
-
 function GetResourceStream(const FileName: SystemString): TStream;
 
 type
-  TGlobalMediaType = (gmtSound, gmtArt, gmtTile, gmtBrush, gmtUser);
+  TGlobalMediaType = (gmtSound, gmtArt, gmtTile, gmtBrush, gmtAI, gmtModel, gmtUser);
   TGlobalMediaTypes = set of TGlobalMediaType;
 
 const
-  AllGlobalMediaTypes: TGlobalMediaTypes = ([gmtSound, gmtArt, gmtTile, gmtBrush, gmtUser]);
+  AllGlobalMediaTypes: TGlobalMediaTypes = ([gmtSound, gmtArt, gmtTile, gmtBrush, gmtAI, gmtModel, gmtUser]);
 
 procedure InitGlobalMedia(t: TGlobalMediaTypes);
 procedure FreeGlobalMedia;
@@ -156,17 +157,17 @@ begin
   end;
 end;
 
-function TFileIOHook.GetSearchItems(index: Integer): PSearchConfigInfo;
+function TFileIO.GetSearchItems(index: Integer): PSearchConfigInfo;
 begin
   Result := FList[index];
 end;
 
-procedure TFileIOHook.SetSearchItems(index: Integer; const Value: PSearchConfigInfo);
+procedure TFileIO.SetSearchItems(index: Integer; const Value: PSearchConfigInfo);
 begin
   FList[index] := Value;
 end;
 
-function TFileIOHook.SearchObjData(aRootDir, AName: SystemString; Recursion: Boolean; aIntf: TObjectDataManager; var Hnd: TCoreClassStream): Boolean;
+function TFileIO.SearchObjData(aRootDir, AName: SystemString; Recursion: Boolean; aIntf: TObjectDataManager; var Hnd: TCoreClassStream): Boolean;
 var
   ItemHnd: TItemHandle;
   ItmSearchHnd: TItemSearch;
@@ -204,10 +205,10 @@ begin
     end;
 end;
 
-function TFileIOHook.SearchLib(LibName, ItmName: SystemString; Intf: TLibraryManager; var Hnd: TCoreClassStream): Boolean;
+function TFileIO.SearchLib(LibName, ItmName: SystemString; Intf: TObjectDataHashField; var Hnd: TCoreClassStream): Boolean;
 var
   n: SystemString;
-  p: PHashStreamListData;
+  p: PHashItemData;
 begin
   Hnd := nil;
   Result := False;
@@ -223,9 +224,9 @@ begin
     end;
 end;
 
-function TFileIOHook.SearchStreamList(AName: SystemString; Intf: THashStreamList; var Hnd: TCoreClassStream): Boolean;
+function TFileIO.SearchStreamList(AName: SystemString; Intf: TObjectDataHashItem; var Hnd: TCoreClassStream): Boolean;
 var
-  p: PHashStreamListData;
+  p: PHashItemData;
 begin
   Hnd := nil;
   Result := False;
@@ -237,7 +238,7 @@ begin
     end;
 end;
 
-function TFileIOHook.ExistsObjData(aRootDir, AName: SystemString; Recursion: Boolean; aIntf: TObjectDataManager): Boolean;
+function TFileIO.ExistsObjData(aRootDir, AName: SystemString; Recursion: Boolean; aIntf: TObjectDataManager): Boolean;
 var
   ItmSearchHnd: TItemSearch;
   ItmRecursionHnd: TItemRecursionSearch;
@@ -262,7 +263,7 @@ begin
       Result := aIntf.ItemFindFirst(aRootDir, AName, ItmSearchHnd);
 end;
 
-function TFileIOHook.ExistsLib(LibName, ItmName: SystemString; Intf: TLibraryManager): Boolean;
+function TFileIO.ExistsLib(LibName, ItmName: SystemString; Intf: TObjectDataHashField): Boolean;
 var
   n: SystemString;
 begin
@@ -273,19 +274,19 @@ begin
   Result := Intf.PathItems[n] <> nil;
 end;
 
-function TFileIOHook.ExistsStreamList(AName: SystemString; Intf: THashStreamList): Boolean;
+function TFileIO.ExistsStreamList(AName: SystemString; Intf: TObjectDataHashItem): Boolean;
 begin
   Result := Intf.Names[AName] <> nil;
 end;
 
-constructor TFileIOHook.Create;
+constructor TFileIO.Create;
 begin
   inherited Create;
   FCritical := TCritical.Create;
   FList := TCoreClassList.Create;
 end;
 
-destructor TFileIOHook.Destroy;
+destructor TFileIO.Destroy;
 begin
   while SearchCount > 0 do
       DeleteSearchIndex(0);
@@ -295,7 +296,7 @@ begin
   inherited Destroy;
 end;
 
-function TFileIOHook.FileIOStream(FileName: SystemString; Mode: Word): TCoreClassStream;
+function TFileIO.FileIOStream(FileName: SystemString; Mode: Word): TCoreClassStream;
 var
   i: Integer;
   p: PSearchConfigInfo;
@@ -331,22 +332,22 @@ begin
               if SearchObjData(p^.Info, n, p^.Recursion, p^.Intf as TObjectDataManager, Result) then
                   Exit;
             end
-          else if p^.Intf is TLibraryManager then
+          else if p^.Intf is TObjectDataHashField then
             begin
               if (p^.Alias <> nil) and (p^.Alias.Exists(n)) and (VarIsStr(p^.Alias[n])) and
-                (SearchLib(p^.Info, p^.Alias[n], p^.Intf as TLibraryManager, Result)) then
+                (SearchLib(p^.Info, p^.Alias[n], p^.Intf as TObjectDataHashField, Result)) then
                   Exit;
 
-              if SearchLib(p^.Info, n, p^.Intf as TLibraryManager, Result) then
+              if SearchLib(p^.Info, n, p^.Intf as TObjectDataHashField, Result) then
                   Exit;
             end
-          else if p^.Intf is THashStreamList then
+          else if p^.Intf is TObjectDataHashItem then
             begin
               if (p^.Alias <> nil) and (p^.Alias.Exists(n)) and (VarIsStr(p^.Alias[n])) and
-                (SearchStreamList(p^.Alias[n], p^.Intf as THashStreamList, Result)) then
+                (SearchStreamList(p^.Alias[n], p^.Intf as TObjectDataHashItem, Result)) then
                   Exit;
 
-              if SearchStreamList(n, p^.Intf as THashStreamList, Result) then
+              if SearchStreamList(n, p^.Intf as TObjectDataHashItem, Result) then
                   Exit;
             end
           else if p^.Intf = nil then
@@ -378,7 +379,7 @@ begin
 
   if umlFileExists(FileName) then
     begin
-      Result := TCoreClassFileStream.Create(FileName, fmOpenRead or fmShareDenyWrite);
+      Result := TCoreClassFileStream.Create(FileName, fmOpenRead or fmShareDenyNone);
       Exit;
     end;
 
@@ -388,7 +389,7 @@ begin
   n := umlCombineFileName(TPath.GetLibraryPath, n);
   if umlFileExists(n) then
     begin
-      Result := TCoreClassFileStream.Create(n, fmOpenRead or fmShareDenyWrite);
+      Result := TCoreClassFileStream.Create(n, fmOpenRead or fmShareDenyNone);
       Exit;
     end;
 
@@ -396,7 +397,7 @@ begin
   n := umlCombineFileName(TPath.GetDocumentsPath, n);
   if umlFileExists(n) then
     begin
-      Result := TCoreClassFileStream.Create(n, fmOpenRead or fmShareDenyWrite);
+      Result := TCoreClassFileStream.Create(n, fmOpenRead or fmShareDenyNone);
       Exit;
     end;
 
@@ -404,7 +405,7 @@ begin
   n := umlCombineFileName(TPath.GetDownloadsPath, n);
   if umlFileExists(n) then
     begin
-      Result := TCoreClassFileStream.Create(n, fmOpenRead or fmShareDenyWrite);
+      Result := TCoreClassFileStream.Create(n, fmOpenRead or fmShareDenyNone);
       Exit;
     end;
 
@@ -412,14 +413,14 @@ begin
   n := umlCombineFileName(TPath.GetSharedDownloadsPath, n);
   if umlFileExists(n) then
     begin
-      Result := TCoreClassFileStream.Create(n, fmOpenRead or fmShareDenyWrite);
+      Result := TCoreClassFileStream.Create(n, fmOpenRead or fmShareDenyNone);
       Exit;
     end;
 {$ENDIF}
   Result := nil;
 end;
 
-function TFileIOHook.FileIOStreamExists(FileName: SystemString): Boolean;
+function TFileIO.FileIOStreamExists(FileName: SystemString): Boolean;
 var
   i: Integer;
   p: PSearchConfigInfo;
@@ -446,15 +447,15 @@ begin
                   (ExistsObjData(p^.Info, p^.Alias[n], p^.Recursion, p^.Intf as TObjectDataManager))) or
                   (ExistsObjData(p^.Info, n, p^.Recursion, p^.Intf as TObjectDataManager));
               end
-            else if p^.Intf is TLibraryManager then
+            else if p^.Intf is TObjectDataHashField then
               begin
                 Result := ((p^.Alias <> nil) and (p^.Alias.Exists(n)) and (VarIsStr(p^.Alias[n])) and
-                  (ExistsLib(p^.Info, p^.Alias[n], p^.Intf as TLibraryManager))) or (ExistsLib(p^.Info, n, p^.Intf as TLibraryManager));
+                  (ExistsLib(p^.Info, p^.Alias[n], p^.Intf as TObjectDataHashField))) or (ExistsLib(p^.Info, n, p^.Intf as TObjectDataHashField));
               end
-            else if p^.Intf is THashStreamList then
+            else if p^.Intf is TObjectDataHashItem then
               begin
                 Result := ((p^.Alias <> nil) and (p^.Alias.Exists(n)) and (VarIsStr(p^.Alias[n])) and
-                  (ExistsStreamList(p^.Alias[n], p^.Intf as THashStreamList))) or (ExistsStreamList(n, p^.Intf as THashStreamList));
+                  (ExistsStreamList(p^.Alias[n], p^.Intf as TObjectDataHashItem))) or (ExistsStreamList(n, p^.Intf as TObjectDataHashItem));
               end
             else if p^.Intf = nil then
               begin
@@ -510,18 +511,18 @@ begin
   end;
 end;
 
-procedure TFileIOHook.Clear;
+procedure TFileIO.Clear;
 begin
   while SearchCount > 0 do
       DeleteSearchIndex(0);
 end;
 
-function TFileIOHook.SearchCount: Integer;
+function TFileIO.SearchCount: Integer;
 begin
   Result := FList.Count;
 end;
 
-procedure TFileIOHook.AddPrioritySearchObj(Recursion: Boolean; Intf: TCoreClassObject; Info: SystemString);
+procedure TFileIO.AddPrioritySearchObj(Recursion: Boolean; Intf: TCoreClassObject; Info: SystemString);
 var
   p: PSearchConfigInfo;
 begin
@@ -540,7 +541,7 @@ begin
     end;
 end;
 
-procedure TFileIOHook.AddSearchObj(Recursion: Boolean; Intf: TCoreClassObject; Info: SystemString);
+procedure TFileIO.AddSearchObj(Recursion: Boolean; Intf: TCoreClassObject; Info: SystemString);
 var
   p: PSearchConfigInfo;
 begin
@@ -552,7 +553,7 @@ begin
   FList.Add(p);
 end;
 
-procedure TFileIOHook.DeleteSearchObj(Value: TCoreClassObject);
+procedure TFileIO.DeleteSearchObj(Value: TCoreClassObject);
 var
   i: Integer;
   p: PSearchConfigInfo;
@@ -579,7 +580,7 @@ begin
     end;
 end;
 
-procedure TFileIOHook.DeleteSearchIndex(Value: Integer);
+procedure TFileIO.DeleteSearchIndex(Value: Integer);
 var
   p: PSearchConfigInfo;
 begin
@@ -595,7 +596,7 @@ begin
   FList.Delete(Value);
 end;
 
-function TFileIOHook.ChangePrioritySearchOption(Intf: TCoreClassObject; Recursion: Boolean; Info: SystemString): Boolean;
+function TFileIO.ChangePrioritySearchOption(Intf: TCoreClassObject; Recursion: Boolean; Info: SystemString): Boolean;
 var
   i: Integer;
   p: PSearchConfigInfo;
@@ -620,7 +621,7 @@ begin
   Result := True;
 end;
 
-function TFileIOHook.SetSearchObjAlias(Intf: TCoreClassObject; SourFileName, DestFileName: SystemString): Boolean;
+function TFileIO.SetSearchObjAlias(Intf: TCoreClassObject; SourFileName, DestFileName: SystemString): Boolean;
 var
   i: Integer;
   p: PSearchConfigInfo;
@@ -642,7 +643,7 @@ begin
     end;
 end;
 
-function TFileIOHook.SetSearchObjAliasFromList(Intf: TCoreClassObject; Alias: THashVariantList): Boolean;
+function TFileIO.SetSearchObjAliasFromList(Intf: TCoreClassObject; Alias: THashVariantList): Boolean;
 var
   i: Integer;
   p: PSearchConfigInfo;
@@ -665,7 +666,7 @@ begin
     end;
 end;
 
-function TFileIOHook.SetSearchObjAliasFromStream(Intf: TCoreClassObject; Alias: TCoreClassStream): Boolean;
+function TFileIO.SetSearchObjAliasFromStream(Intf: TCoreClassObject; Alias: TCoreClassStream): Boolean;
 var
   i: Integer;
   p: PSearchConfigInfo;
@@ -712,7 +713,7 @@ begin
       n := umlCombineFileName(TPath.GetLibraryPath, n);
       if umlFileExists(n) then
         begin
-          Result := TCoreClassFileStream.Create(n, fmOpenRead or fmShareDenyWrite);
+          Result := TCoreClassFileStream.Create(n, fmOpenRead or fmShareDenyNone);
           Exit;
         end;
 
@@ -720,7 +721,7 @@ begin
       n := umlCombineFileName(TPath.GetDocumentsPath, n);
       if umlFileExists(n) then
         begin
-          Result := TCoreClassFileStream.Create(n, fmOpenRead or fmShareDenyWrite);
+          Result := TCoreClassFileStream.Create(n, fmOpenRead or fmShareDenyNone);
           Exit;
         end;
 
@@ -728,7 +729,7 @@ begin
       n := umlCombineFileName(TPath.GetDownloadsPath, n);
       if umlFileExists(n) then
         begin
-          Result := TCoreClassFileStream.Create(n, fmOpenRead or fmShareDenyWrite);
+          Result := TCoreClassFileStream.Create(n, fmOpenRead or fmShareDenyNone);
           Exit;
         end;
 
@@ -736,7 +737,7 @@ begin
       n := umlCombineFileName(TPath.GetSharedDownloadsPath, n);
       if umlFileExists(n) then
         begin
-          Result := TCoreClassFileStream.Create(n, fmOpenRead or fmShareDenyWrite);
+          Result := TCoreClassFileStream.Create(n, fmOpenRead or fmShareDenyNone);
           Exit;
         end;
 {$ENDIF}
@@ -763,50 +764,66 @@ begin
 
   if gmtSound in t then
     begin
-      db := TObjectDataManager.CreateAsStream(GetResourceStream('sound.ox'), 'sound.ox', ObjectDataMarshal.ID, True, False, True);
-      SoundLibrary := TLibraryManager.Create(db, '/');
+      db := TObjectDataManagerOfCache.CreateAsStream(GetResourceStream('sound.ox'), 'sound.ox', ObjectDataMarshal.ID, True, False, True);
+      SoundLibrary := TObjectDataHashField.Create(db, '/');
       SoundLibrary.AutoFreeDataEngine := True;
       FileIO.AddSearchObj(True, SoundLibrary, '/');
     end;
 
   if gmtArt in t then
     begin
-      db := TObjectDataManager.CreateAsStream(GetResourceStream('art.ox'), 'art.ox', ObjectDataMarshal.ID, True, False, True);
-      ArtLibrary := TLibraryManager.Create(db, '/');
+      db := TObjectDataManagerOfCache.CreateAsStream(GetResourceStream('art.ox'), 'art.ox', ObjectDataMarshal.ID, True, False, True);
+      ArtLibrary := TObjectDataHashField.Create(db, '/');
       ArtLibrary.AutoFreeDataEngine := True;
       FileIO.AddSearchObj(True, ArtLibrary, '/');
     end;
 
   if gmtTile in t then
     begin
-      db := TObjectDataManager.CreateAsStream(GetResourceStream('tile.ox'), 'tile.ox', ObjectDataMarshal.ID, True, False, True);
-      TileLibrary := TLibraryManager.Create(db, '/');
+      db := TObjectDataManagerOfCache.CreateAsStream(GetResourceStream('tile.ox'), 'tile.ox', ObjectDataMarshal.ID, True, False, True);
+      TileLibrary := TObjectDataHashField.Create(db, '/');
       TileLibrary.AutoFreeDataEngine := True;
       FileIO.AddSearchObj(True, TileLibrary, '/');
     end;
 
   if gmtBrush in t then
     begin
-      db := TObjectDataManager.CreateAsStream(GetResourceStream('brush.ox'), 'brush.ox', ObjectDataMarshal.ID, True, False, True);
-      BrushLibrary := TLibraryManager.Create(db, '/');
+      db := TObjectDataManagerOfCache.CreateAsStream(GetResourceStream('brush.ox'), 'brush.ox', ObjectDataMarshal.ID, True, False, True);
+      BrushLibrary := TObjectDataHashField.Create(db, '/');
       BrushLibrary.AutoFreeDataEngine := True;
       FileIO.AddSearchObj(True, BrushLibrary, '/');
     end;
 
+  if gmtAI in t then
+    begin
+      db := TObjectDataManagerOfCache.CreateAsStream(GetResourceStream('ai.ox'), 'ai.ox', ObjectDataMarshal.ID, True, False, True);
+      AILibrary := TObjectDataHashField.Create(db, '/');
+      AILibrary.AutoFreeDataEngine := True;
+      FileIO.AddSearchObj(True, AILibrary, '/');
+    end;
+
+  if gmtModel in t then
+    begin
+      db := TObjectDataManagerOfCache.CreateAsStream(GetResourceStream('model.ox'), 'model.ox', ObjectDataMarshal.ID, True, False, True);
+      ModelLibrary := TObjectDataHashField.Create(db, '/');
+      ModelLibrary.AutoFreeDataEngine := True;
+      FileIO.AddSearchObj(True, ModelLibrary, '/');
+    end;
+
   if gmtUser in t then
     begin
-      db := TObjectDataManager.CreateAsStream(GetResourceStream('user.ox'), 'user.ox', ObjectDataMarshal.ID, True, False, True);
-      UserLibrary := TLibraryManager.Create(db, '/');
+      db := TObjectDataManagerOfCache.CreateAsStream(GetResourceStream('user.ox'), 'user.ox', ObjectDataMarshal.ID, True, False, True);
+      UserLibrary := TObjectDataHashField.Create(db, '/');
       UserLibrary.AutoFreeDataEngine := True;
       FileIO.AddSearchObj(True, UserLibrary, '/');
     end;
 
 {$IFDEF FPC}
-  Media := DefaultSoundEngineClass.Create(umlCurrentPath);
+  SoundEngine := DefaultSoundEngineClass.Create(umlCurrentPath);
 {$ELSE}
-  Media := DefaultSoundEngineClass.Create(TPath.GetTempPath);
+  SoundEngine := DefaultSoundEngineClass.Create(TPath.GetTempPath);
 {$ENDIF}
-  Media.SearchDB := SoundLibrary;
+  SoundEngine.SearchDB := SoundLibrary;
 
 end;
 
@@ -847,23 +864,39 @@ begin
       UserLibrary := nil;
     end;
 
-  if Media <> nil then
+  if SoundEngine <> nil then
     begin
-      DisposeObject(Media);
-      Media := nil;
+      DisposeObject(SoundEngine);
+      SoundEngine := nil;
+    end;
+
+  if AILibrary <> nil then
+    begin
+      FileIO.DeleteSearchObj(AILibrary);
+      DisposeObject(AILibrary);
+      AILibrary := nil;
+    end;
+
+  if ModelLibrary <> nil then
+    begin
+      FileIO.DeleteSearchObj(ModelLibrary);
+      DisposeObject(ModelLibrary);
+      ModelLibrary := nil;
     end;
 end;
 
 initialization
 
-FileIO := TFileIOHook.Create;
+FileIO := TFileIO.Create;
 
 SoundLibrary := nil;
 ArtLibrary := nil;
 TileLibrary := nil;
 BrushLibrary := nil;
 UserLibrary := nil;
-Media := nil;
+AILibrary := nil;
+ModelLibrary := nil;
+SoundEngine := nil;
 
 finalization
 

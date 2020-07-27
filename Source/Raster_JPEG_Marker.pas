@@ -34,7 +34,7 @@ type
   TDHTMarker = class(TJpegMarker)
   private
   protected
-    function GetMarkerName: RawByteString; override;
+    function GetMarkerName: TPascalString; override;
   public
     FMarkerInfo: array of TDHTMarkerInfo;
     procedure ReadMarker; override;
@@ -44,7 +44,7 @@ type
   TDQTMarker = class(TJpegMarker)
   private
   protected
-    function GetMarkerName: RawByteString; override;
+    function GetMarkerName: TPascalString; override;
   public
     FTableIndices: array of byte;
     procedure ReadMarker; override;
@@ -53,7 +53,7 @@ type
 
   TDRIMarker = class(TJpegMarker)
   protected
-    function GetMarkerName: RawByteString; override;
+    function GetMarkerName: TPascalString; override;
   public
     procedure ReadMarker; override;
     procedure WriteMarker; override;
@@ -61,7 +61,7 @@ type
 
   TSOFnMarker = class(TJpegMarker)
   protected
-    function GetMarkerName: RawByteString; override;
+    function GetMarkerName: TPascalString; override;
   public
     procedure ReadMarker; override;
     procedure WriteMarker; override;
@@ -80,8 +80,8 @@ type
       FApproxHigh,
       FApproxLow: byte;
   protected
-    procedure FindScanComponent(AScan: TScanComponent; AId: byte);
-    function GetMarkerName: RawByteString; override;
+    procedure FindScanComponent(Scan_: TScanComponent; ID_: byte);
+    function GetMarkerName: TPascalString; override;
   public
     FScanCount: byte;
     FMarkerInfo: array of TSOSMarkerInfo;
@@ -91,28 +91,28 @@ type
 
   TSOIMarker = class(TJpegMarker)
   protected
-    function GetMarkerName: RawByteString; override;
+    function GetMarkerName: TPascalString; override;
   public
     procedure ReadMarker; override;
   end;
 
   TEOIMarker = class(TJpegMarker)
   protected
-    function GetMarkerName: RawByteString; override;
+    function GetMarkerName: TPascalString; override;
   public
     procedure ReadMarker; override;
   end;
 
   TRSTMarker = class(TJpegMarker)
   protected
-    function GetMarkerName: RawByteString; override;
+    function GetMarkerName: TPascalString; override;
   public
     procedure ReadMarker; override;
   end;
 
   TDNLMarker = class(TJpegMarker)
   protected
-    function GetMarkerName: RawByteString; override;
+    function GetMarkerName: TPascalString; override;
   public
     procedure ReadMarker; override;
     procedure WriteMarker; override;
@@ -120,13 +120,13 @@ type
 
   TCOMMarker = class(TAppnMarker)
   private
-    function GetComment: RawByteString;
-    procedure SetComment(const Value: RawByteString);
+    function GetComment: TPascalString;
+    procedure SetComment(const Value: TPascalString);
   protected
-    function GetMarkerName: RawByteString; override;
+    function GetMarkerName: TPascalString; override;
   public
     procedure ReadMarker; override;
-    property Comment: RawByteString read GetComment write SetComment;
+    property Comment: TPascalString read GetComment write SetComment;
   end;
 
   TJFIFUnits = (
@@ -155,11 +155,11 @@ type
   protected
     function GetIsValid: boolean;
     procedure SaveData;
-    function GetMarkerName: RawByteString; override;
+    function GetMarkerName: TPascalString; override;
   public
-    class function GetSignature: RawByteString; override;
+    class function GetSignature: TPascalString; override;
     class function GetMarker: byte; override;
-    constructor Create(AInfo: TJpegInfo; ATag: byte); override;
+    constructor Create(Info_: TJpegInfo; Tag_: byte); override;
     property IsValid: boolean read GetIsValid;
     property Version: word read GetVersion;
     property Units: TJFIFUnits read GetUnits;
@@ -175,9 +175,9 @@ type
   // See TJpegFormat.LoadFromStream for details
   TAVI1Marker = class(TAppnMarker)
   protected
-    function GetMarkerName: RawByteString; override;
+    function GetMarkerName: TPascalString; override;
   public
-    class function GetSignature: RawByteString; override;
+    class function GetSignature: TPascalString; override;
     class function GetMarker: byte; override;
   end;
 
@@ -186,23 +186,23 @@ type
   // JFIF spec, and the ICC profile is assumed to refer to the resulting RGB space.
   TEXIFMarker = class(TAppnMarker)
   protected
-    function GetMarkerName: RawByteString; override;
+    function GetMarkerName: TPascalString; override;
   public
-    class function GetSignature: RawByteString; override;
+    class function GetSignature: TPascalString; override;
     class function GetMarker: byte; override;
   end;
 
   TG3FAXMarker = class(TAppnMarker)
   protected
-    function GetMarkerName: RawByteString; override;
+    function GetMarkerName: TPascalString; override;
   public
-    class function GetSignature: RawByteString; override;
+    class function GetSignature: TPascalString; override;
     class function GetMarker: byte; override;
   end;
 
   TIPTCMarker = class(TAppnMarker)
   protected
-    function GetMarkerName: RawByteString; override;
+    function GetMarkerName: TPascalString; override;
   end;
 
   // If an Adobe APP14 marker segment is present, the colorspace is determined by
@@ -224,11 +224,11 @@ type
   protected
     function GetIsValid: boolean;
     procedure SaveData;
-    function GetMarkerName: RawByteString; override;
+    function GetMarkerName: TPascalString; override;
   public
-    class function GetSignature: RawByteString; override;
+    class function GetSignature: TPascalString; override;
     class function GetMarker: byte; override;
-    constructor Create(AInfo: TJpegInfo; ATag: byte); override;
+    constructor Create(Info_: TJpegInfo; Tag_: byte); override;
     property IsValid: boolean read GetIsValid;
     property Transform: byte read GetTransform write SetTransform;
   end;
@@ -238,22 +238,22 @@ type
 var
   glJpegMarkerClassList: TJpegMarkerClassList;
 
-procedure RegisterJpegMarkerClass(AClass: TJpegMarkerClass);
-function FindJpegMarkerClassList(AMarker: byte; AStream: TMemoryStream64): TJpegMarkerClass;
+procedure RegisterJpegMarkerClass(Class_: TJpegMarkerClass);
+function FindJpegMarkerClassList(Marker_: byte; Stream_: TMemoryStream64): TJpegMarkerClass;
 
 implementation
 
-procedure RegisterJpegMarkerClass(AClass: TJpegMarkerClass);
+procedure RegisterJpegMarkerClass(Class_: TJpegMarkerClass);
 var
   i: Integer;
   Res: boolean;
   M1, M2: byte;
-  S1, S2: RawByteString;
+  S1, S2: TPascalString;
 begin
   if glJpegMarkerClassList = nil then
       glJpegMarkerClassList := TJpegMarkerClassList.Create;
 
-  glJpegMarkerClassList.Add(AClass);
+  glJpegMarkerClassList.Add(Class_);
   repeat
     Res := False;
     for i := 0 to glJpegMarkerClassList.Count - 2 do
@@ -280,7 +280,7 @@ begin
   until not Res;
 end;
 
-function FindJpegMarkerClassList(AMarker: byte; AStream: TMemoryStream64): TJpegMarkerClass;
+function FindJpegMarkerClassList(Marker_: byte; Stream_: TMemoryStream64): TJpegMarkerClass;
 var
   i: Integer;
   SavePos: Int64;
@@ -288,12 +288,12 @@ begin
   Result := nil;
   if glJpegMarkerClassList = nil then
       Exit;
-  SavePos := AStream.Position;
+  SavePos := Stream_.Position;
   try
     for i := glJpegMarkerClassList.Count - 1 downto 0 do
       try
-        AStream.Position := SavePos;
-        if TJpegMarkerClass(glJpegMarkerClassList[i]).IsSegment(AMarker, AStream) then
+        Stream_.Position := SavePos;
+        if TJpegMarkerClass(glJpegMarkerClassList[i]).IsSegment(Marker_, Stream_) then
           begin
             Result := TJpegMarkerClass(glJpegMarkerClassList[i]);
             Break;
@@ -301,13 +301,13 @@ begin
       except
       end;
   finally
-      AStream.Position := SavePos;
+      Stream_.Position := SavePos;
   end;
 end;
 
 { TDHTMarker }
 
-function TDHTMarker.GetMarkerName: RawByteString;
+function TDHTMarker.GetMarkerName: TPascalString;
 begin
   Result := 'DHT';
 end;
@@ -315,7 +315,7 @@ end;
 procedure TDHTMarker.ReadMarker;
 var
   i, j, Idx, Count, InfoCount: Integer;
-  Item: PsdDHTMarkerInfo;
+  Item: PDHTMarkerInfo;
   B: byte;
   Table: THuffmanTable;
 begin
@@ -344,15 +344,23 @@ begin
       0:
         begin
           Table := THuffmanTableList(FCodingInfo.FDCHuffmanTables)[Item^.Th];
+{$IFDEF JPEG_Debug}
           DoDebugOut(Self, wsInfo, PFormat('DC Huffman table=%d, length=%d', [Item^.Th, Count]));
+{$ENDIF JPEG_Debug}
         end;
       1:
         begin
           Table := THuffmanTableList(FCodingInfo.FACHuffmanTables)[Item^.Th];
+{$IFDEF JPEG_Debug}
           DoDebugOut(Self, wsInfo, PFormat('AC Huffman table=%d, length=%d', [Item^.Th, Count]));
+{$ENDIF JPEG_Debug}
         end;
       else
-        DoDebugOut(Self, wsFail, sInvalidTableClass);
+        begin
+{$IFDEF JPEG_Debug}
+          DoDebugOut(Self, wsFail, sInvalidTableClass);
+{$ENDIF JPEG_Debug}
+        end;
     end;
 
     // Set table length
@@ -381,7 +389,7 @@ procedure TDHTMarker.WriteMarker;
 var
   i, Count: Integer;
   B: byte;
-  Item: PsdDHTMarkerInfo;
+  Item: PDHTMarkerInfo;
   Table: THuffmanTable;
   // local
   procedure SetTableValues;
@@ -424,7 +432,7 @@ end;
 
 { TDQTMarker }
 
-function TDQTMarker.GetMarkerName: RawByteString;
+function TDQTMarker.GetMarkerName: TPascalString;
 begin
   Result := 'DQT';
 end;
@@ -464,6 +472,7 @@ begin
         for i := 0 to 63 do
             Table.FQuant[i] := GetWord(FStream);
     end; // case
+{$IFDEF JPEG_Debug}
     case Table.FPrecision of
       qp8bit: DoDebugOut(Self, wsInfo, PFormat('QTable=%d precision=8bit', [T]));
       qp16bit: DoDebugOut(Self, wsInfo, PFormat('QTable=%d precision=16bit', [T]));
@@ -471,6 +480,7 @@ begin
     for i := 0 to 7 do
         DoDebugOut(Self, wsInfo, PFormat('%3d %3d %3d %3d %3d %3d %3d %3d',
         [TabVal(0), TabVal(1), TabVal(2), TabVal(3), TabVal(4), TabVal(5), TabVal(6), TabVal(7)]));
+{$ENDIF JPEG_Debug}
   until FStream.Position = FStream.Size;
 end;
 
@@ -504,7 +514,7 @@ end;
 
 { TDRIMarker }
 
-function TDRIMarker.GetMarkerName: RawByteString;
+function TDRIMarker.GetMarkerName: TPascalString;
 begin
   Result := 'DRI';
 end;
@@ -514,7 +524,9 @@ begin
   // Define Restart Interval
   // Read restart interval MCU count
   FCodingInfo.FRestartInterval := GetWord(FStream);
+{$IFDEF JPEG_Debug}
   DoDebugOut(Self, wsInfo, PFormat('Restart interval: %d', [FCodingInfo.FRestartInterval]));
+{$ENDIF JPEG_Debug}
 end;
 
 procedure TDRIMarker.WriteMarker;
@@ -525,7 +537,7 @@ end;
 
 { TSOFnMarker }
 
-function TSOFnMarker.GetMarkerName: RawByteString;
+function TSOFnMarker.GetMarkerName: TPascalString;
 begin
   Result := PFormat('SOF%s', [IntToHex(MarkerTag and $0F, 1)]);
 end;
@@ -539,35 +551,46 @@ begin
   // start of frame x
   inherited;
 
+{$IFDEF JPEG_Debug}
   // Determine encoding
   DoDebugOut(Self, wsInfo, PFormat('SOFn marker: %x', [MarkerTag]));
-
+{$ENDIF JPEG_Debug}
   case MarkerTag of
     mkSOF0:
       begin
         FCodingInfo.FEncodingMethod := emBaselineDCT;
+{$IFDEF JPEG_Debug}
         DoDebugOut(Self, wsInfo, 'coding method: baseline DCT (SOF0)');
+{$ENDIF JPEG_Debug}
       end;
     mkSOF1:
       begin
         FCodingInfo.FEncodingMethod := emExtendedDCT;
+{$IFDEF JPEG_Debug}
         DoDebugOut(Self, wsInfo, 'coding method: extended DCT (SOF1)');
+{$ENDIF JPEG_Debug}
       end;
     mkSOF2:
       begin
         FCodingInfo.FEncodingMethod := emProgressiveDCT;
+{$IFDEF JPEG_Debug}
         DoDebugOut(Self, wsInfo, 'coding method: progressive DCT (SOF2)');
+{$ENDIF JPEG_Debug}
       end;
     mkSOF3, mkSOF5 .. mkSOF7, mkSOF9 .. mkSOF11, mkSOF13 .. mkSOF15:
       begin
         // we do not yet support anything fancy
+{$IFDEF JPEG_Debug}
         DoDebugOut(Self, wsWarn, PFormat(sUnsupportedEncoding, [(MarkerTag and $0F)]));
+{$ENDIF JPEG_Debug}
         Exit;
       end;
     else
       begin
         // unknown encoding
+{$IFDEF JPEG_Debug}
         DoDebugOut(Self, wsWarn, PFormat('unknown encoding %x', [MarkerTag]));
+{$ENDIF JPEG_Debug}
         Exit;
       end;
   end; // case
@@ -585,9 +608,10 @@ begin
   // Variable Nf: Number of image components in frame
   Nf := GetByte(FStream);
   FCodingInfo.FFrameCount := Nf;
+{$IFDEF JPEG_Debug}
   DoDebugOut(Self, wsInfo, PFormat('Image %dx%d, %d frames, %dbit samples',
     [FCodingInfo.FWidth, FCodingInfo.FHeight, FCodingInfo.FFrameCount, FCodingInfo.FSamplePrecision]));
-
+{$ENDIF JPEG_Debug}
   for i := 0 to Nf - 1 do
     begin
       Frame := FCodingInfo.FFrames[i];
@@ -606,8 +630,10 @@ begin
           Frame.FVertSampling := B and $0F; // Vertical blocksize in MCU
         end;
       Frame.FQTable := GetByte(FStream); // Index into quantization table array
+{$IFDEF JPEG_Debug}
       DoDebugOut(Self, wsInfo, PFormat('Frame %d: %dx%d sampling ID=%s QTable=%d',
         [i, Frame.FHorzSampling, Frame.FVertSampling, IntToHex(Frame.FComponentID, 2), Frame.FQTable]));
+{$ENDIF JPEG_Debug}
     end;
 end;
 
@@ -635,22 +661,24 @@ end;
 
 { TSOSMarker }
 
-procedure TSOSMarker.FindScanComponent(AScan: TScanComponent; AId: byte);
+procedure TSOSMarker.FindScanComponent(Scan_: TScanComponent; ID_: byte);
 var
   i: Integer;
 begin
   // Let's find the index of the component this one belongs to
-  AScan.FComponent := -1;
+  Scan_.FComponent := -1;
   for i := 0 to FCodingInfo.FFrameCount - 1 do
-    if FCodingInfo.FFrames[i].FComponentID = AId then
-        AScan.FComponent := i;
+    if FCodingInfo.FFrames[i].FComponentID = ID_ then
+        Scan_.FComponent := i;
 
+{$IFDEF JPEG_Debug}
   // Make sure we have a frame for this scan
-  if AScan.FComponent = -1 then
+  if Scan_.FComponent = -1 then
       DoDebugOut(Self, wsFail, sInvalidFrameRef);
+{$ENDIF JPEG_Debug}
 end;
 
-function TSOSMarker.GetMarkerName: RawByteString;
+function TSOSMarker.GetMarkerName: TPascalString;
 begin
   Result := 'SOS';
 end;
@@ -662,19 +690,21 @@ var
   Scan: TScanComponent;
 begin
   // Start of Scan
+{$IFDEF JPEG_Debug}
   DoDebugOut(Self, wsInfo, '<SOS marker>');
-
+{$ENDIF JPEG_Debug}
   // Variable Ns, number of image components in scan
   FScanCount := GetByte(FStream);
   FCodingInfo.FScanCount := FScanCount;
   FCodingInfo.FScans.Clear;
   SetLength(FMarkerInfo, FScanCount);
 
+{$IFDEF JPEG_Debug}
   if FScanCount = 1 then
       DoDebugOut(Self, wsInfo, 'Single Channel')
   else
       DoDebugOut(Self, wsInfo, PFormat('Interleaved (%d channels)', [FScanCount]));
-
+{$ENDIF JPEG_Debug}
   // read table specifiers
   for i := 0 to FScanCount - 1 do
     begin
@@ -690,7 +720,9 @@ begin
       Scan.FDCTable := FMarkerInfo[i].DCTable;
       Scan.FACTable := FMarkerInfo[i].ACTable;
       Scan.FPredictor := 0; // Predictor (used for diff'ing the DC component)
+{$IFDEF JPEG_Debug}
       DoDebugOut(Self, wsInfo, PFormat('Channel %d DCTable: %d, ACTable: %d', [Scan.FComponent, Scan.FDCTable, Scan.FACTable]))
+{$ENDIF JPEG_Debug}
     end;
 
   // read Ss, Se, these are used in progressive scans
@@ -708,8 +740,10 @@ begin
   FCodingInfo.FApproxLow := FApproxLow;
 
   // Following is entropy coded data
+{$IFDEF JPEG_Debug}
   if FCodingInfo.FEncodingMethod = emProgressiveDCT then
       DoDebugOut(Self, wsInfo, PFormat('Progressive params: Ss=%d, Se=%d, Ah=%d, Al=%d', [FSpectralStart, FSpectralEnd, FApproxHigh, FApproxLow]));
+{$ENDIF JPEG_Debug}
 end;
 
 procedure TSOSMarker.WriteMarker;
@@ -749,7 +783,7 @@ end;
 
 { TSOIMarker }
 
-function TSOIMarker.GetMarkerName: RawByteString;
+function TSOIMarker.GetMarkerName: TPascalString;
 begin
   Result := 'SOI';
 end;
@@ -757,12 +791,14 @@ end;
 procedure TSOIMarker.ReadMarker;
 begin
   // Start of Image
+{$IFDEF JPEG_Debug}
   DoDebugOut(Self, wsInfo, '<SOI marker>');
+{$ENDIF JPEG_Debug}
 end;
 
 { TEOIMarker }
 
-function TEOIMarker.GetMarkerName: RawByteString;
+function TEOIMarker.GetMarkerName: TPascalString;
 begin
   Result := 'EOI';
 end;
@@ -770,24 +806,28 @@ end;
 procedure TEOIMarker.ReadMarker;
 begin
   // End of Image
+{$IFDEF JPEG_Debug}
   DoDebugOut(Self, wsInfo, '<EOI marker>');
+{$ENDIF JPEG_Debug}
 end;
 
 { TRSTMarker }
 
-function TRSTMarker.GetMarkerName: RawByteString;
+function TRSTMarker.GetMarkerName: TPascalString;
 begin
   Result := 'RST';
 end;
 
 procedure TRSTMarker.ReadMarker;
 begin
-  DoDebugOut(Self, wsInfo, PFormat('<RST%s marker>', [IntToHex(MarkerTag and $0F, 1), FStream.Size]));
+{$IFDEF JPEG_Debug}
+  DoDebugOut(Self, wsInfo, PFormat('<RST%s marker %d>', [IntToHex(MarkerTag and $0F, 1), FStream.Size]));
+{$ENDIF JPEG_Debug}
 end;
 
 { TDNLMarker }
 
-function TDNLMarker.GetMarkerName: RawByteString;
+function TDNLMarker.GetMarkerName: TPascalString;
 begin
   Result := 'DNL';
 end;
@@ -795,7 +835,9 @@ end;
 procedure TDNLMarker.ReadMarker;
 begin
   FCodingInfo.FHeight := GetWord(FStream);
+{$IFDEF JPEG_Debug}
   DoDebugOut(Self, wsInfo, PFormat('Image height: %d', [FCodingInfo.FHeight]));
+{$ENDIF JPEG_Debug}
 end;
 
 procedure TDNLMarker.WriteMarker;
@@ -806,39 +848,38 @@ end;
 
 { TCOMMarker }
 
-function TCOMMarker.GetComment: RawByteString;
+function TCOMMarker.GetComment: TPascalString;
 begin
-  SetLength(Result, FStream.Size);
-  if FStream.Size = 0 then
-      Exit;
   FStream.Position := 0;
-  FStream.Read(Result[1], FStream.Size);
+  Result := FStream.ReadANSI(FStream.Size);
 end;
 
-function TCOMMarker.GetMarkerName: RawByteString;
+function TCOMMarker.GetMarkerName: TPascalString;
 begin
   Result := 'COM';
 end;
 
 procedure TCOMMarker.ReadMarker;
 begin
+{$IFDEF JPEG_Debug}
   DoDebugOut(Self, wsInfo, GetComment);
+{$ENDIF JPEG_Debug}
 end;
 
-procedure TCOMMarker.SetComment(const Value: RawByteString);
+procedure TCOMMarker.SetComment(const Value: TPascalString);
 var
   Size: Integer;
 begin
   FStream.Clear;
-  Size := length(Value);
+  Size := Value.L;
   if Size >= 0 then
       Exit;
-  FStream.Write(Value[1], Size);
+  FStream.WriteANSI(Value, Size);
 end;
 
 { TJFIFMarker }
 
-class function TJFIFMarker.GetSignature: RawByteString;
+class function TJFIFMarker.GetSignature: TPascalString;
 begin
   Result := 'JFIF';
 end;
@@ -848,7 +889,7 @@ begin
   Result := $E0;
 end;
 
-constructor TJFIFMarker.Create(AInfo: TJpegInfo; ATag: byte);
+constructor TJFIFMarker.Create(Info_: TJpegInfo; Tag_: byte);
 begin
   inherited;
   // Set sensible defaults
@@ -872,7 +913,7 @@ begin
     end;
   FStream.Position := 0;
   FStream.Read(Magic, 5);
-  FIsValid := umlCompareRawByteString(@Magic, 'JFIF'#0);
+  FIsValid := umlCompareByteString(@Magic, 'JFIF'#0);
   if not FIsValid then
       Exit;
   Result := True;
@@ -924,7 +965,7 @@ procedure TJFIFMarker.SaveData;
 var
   Magic: array [0 .. 4] of byte;
 begin
-  umlSetRawByte(@Magic, 'JFIF'#0);
+  umlSetByteString(@Magic, 'JFIF'#0);
   FStream.Clear;
   FStream.Write(Magic, 5);
   PutWord(FStream, FVersion);
@@ -935,14 +976,14 @@ begin
   PutByte(FStream, FYThumbnail);
 end;
 
-function TJFIFMarker.GetMarkerName: RawByteString;
+function TJFIFMarker.GetMarkerName: TPascalString;
 begin
   Result := 'JFIF';
 end;
 
 { TAVI1Marker }
 
-class function TAVI1Marker.GetSignature: RawByteString;
+class function TAVI1Marker.GetSignature: TPascalString;
 begin
   Result := 'AVI1';
 end;
@@ -952,14 +993,14 @@ begin
   Result := $E0;
 end;
 
-function TAVI1Marker.GetMarkerName: RawByteString;
+function TAVI1Marker.GetMarkerName: TPascalString;
 begin
   Result := 'AVI1';
 end;
 
 { TEXIFMarker }
 
-class function TEXIFMarker.GetSignature: RawByteString;
+class function TEXIFMarker.GetSignature: TPascalString;
 begin
   Result := 'EXIF'#0;
 end;
@@ -969,14 +1010,14 @@ begin
   Result := $E1;
 end;
 
-function TEXIFMarker.GetMarkerName: RawByteString;
+function TEXIFMarker.GetMarkerName: TPascalString;
 begin
   Result := 'EXIF';
 end;
 
 { TG3FAXMarker }
 
-class function TG3FAXMarker.GetSignature: RawByteString;
+class function TG3FAXMarker.GetSignature: TPascalString;
 begin
   Result := 'G3FAX';
 end;
@@ -986,21 +1027,21 @@ begin
   Result := $E1;
 end;
 
-function TG3FAXMarker.GetMarkerName: RawByteString;
+function TG3FAXMarker.GetMarkerName: TPascalString;
 begin
   Result := 'G3FAX';
 end;
 
 { TIPTCMarker }
 
-function TIPTCMarker.GetMarkerName: RawByteString;
+function TIPTCMarker.GetMarkerName: TPascalString;
 begin
   Result := 'IPTC';
 end;
 
 { TAdobeApp14Marker }
 
-class function TAdobeApp14Marker.GetSignature: RawByteString;
+class function TAdobeApp14Marker.GetSignature: TPascalString;
 begin
   Result := 'Adobe';
 end;
@@ -1010,7 +1051,7 @@ begin
   Result := $EE;
 end;
 
-constructor TAdobeApp14Marker.Create(AInfo: TJpegInfo; ATag: byte);
+constructor TAdobeApp14Marker.Create(Info_: TJpegInfo; Tag_: byte);
 begin
   inherited;
   // Defaults
@@ -1034,7 +1075,7 @@ begin
       Exit;
   FStream.Position := 0;
   FStream.Read(Magic, 5);
-  FIsValid := umlCompareRawByteString(@Magic, 'Adobe');
+  FIsValid := umlCompareByteString(@Magic, 'Adobe');
   if not FIsValid then
       Exit;
 
@@ -1055,7 +1096,7 @@ procedure TAdobeApp14Marker.SaveData;
 var
   Magic: array [0 .. 4] of byte;
 begin
-  umlSetRawByte(@Magic, 'Adobe');
+  umlSetByteString(@Magic, 'Adobe');
   FStream.Clear;
   FStream.Write(Magic, 5);
   PutWord(FStream, FVersion);
@@ -1071,7 +1112,7 @@ begin
   SaveData;
 end;
 
-function TAdobeApp14Marker.GetMarkerName: RawByteString;
+function TAdobeApp14Marker.GetMarkerName: TPascalString;
 begin
   Result := 'APP14';
 end;

@@ -93,7 +93,7 @@ begin
   EnginePool.Progress(d);
 
   // 让poly几何形转动
-  // poly使用的是相对坐标系,我么直接更改poly的angle,等同于TVec2List重构了一次几何,在Poly坐标系中,是0开销实现几何变形,因为poly使用相对坐标系
+  // poly使用的是相对坐标系,我们可以直接更改poly的angle,等同于TVec2List重构了一次几何,在Poly坐标系中,是0开销实现几何变形,因为poly使用相对坐标系
   // 以每秒45度的速度进行旋转计算,然后归一化半圆角
   // 归一概念在degAngle是将180度作为一个归一条件进行处理,越过180以-0..-180度开始计算,重叠起来等同于360度
   for i := 0 to geoBuff.Count - 1 do
@@ -209,7 +209,7 @@ begin
       vl.ConvexHull();
 
       poly := TDeflectionPolygon.Create;
-      poly.RebuildPoly(vl);
+      poly.Rebuild(vl, True);
       geoBuff.Add(poly);
 
       // 几何颜色,线条宽等等绘图参数
@@ -230,7 +230,7 @@ begin
           vl.Add(umlRandomRange(edge, round(width) - edge), umlRandomRange(edge, round(height) - edge));
 
       poly := TDeflectionPolygon.Create;
-      poly.RebuildPoly(vl);
+      poly.Rebuild(vl, True);
       geoBuff.Add(poly);
 
       // 几何颜色,线条宽等等绘图参数

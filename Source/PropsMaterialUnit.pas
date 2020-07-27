@@ -22,8 +22,8 @@ interface
 
 uses SysUtils,
   CoreClasses, PascalStrings,
-  LibraryManager, UnicodeMixedLib,
-  ObjectDataManager, MemoryStream64, TextDataEngine, ListEngine, StreamList,
+  ObjectDataHashField, UnicodeMixedLib,
+  ObjectDataManager, MemoryStream64, TextDataEngine, ListEngine, ObjectDataHashItem,
   MemoryRaster;
 
 type
@@ -91,7 +91,7 @@ type
   TPropsMaterial = class(TCoreClassPersistent)
   protected
     FDBEng: TObjectDataManager;
-    FLibMan: TLibraryManager;
+    FLibMan: TObjectDataHashField;
     FIndexListOfTextEngine: THashObjectList;
     FItemBitmap: THashObjectList;
     FMemoryBitmapClass: TMemoryRasterClass;
@@ -110,15 +110,15 @@ type
 
     property Items[KeyExpression: U_String]: TPropsMaterialBitmap read GetItemBitmap; default;
 
-    property LibMan: TLibraryManager read FLibMan;
+    property LibMan: TObjectDataHashField read FLibMan;
     property MemoryBitmapClass: TMemoryRasterClass read FMemoryBitmapClass write FMemoryBitmapClass;
   published
   end;
 
 function PortraitType2Str(t: TPropsMaterialType): U_String;
 function Str2PortraitType(s: U_String): TPropsMaterialType;
-function PortraitBlend(StreamList: TCoreClassStrings; output: TMemoryRaster): Boolean;
-function FillPortraitKeyExpression(LibMan: TLibraryManager; const AExpression: U_String; OutList: TCoreClassStrings): TPropsMaterialType;
+function PortraitBlend(ObjectDataHashItem: TCoreClassStrings; output: TMemoryRaster): Boolean;
+function FillPortraitKeyExpression(LibMan: TObjectDataHashField; const AExpression: U_String; OutList: TCoreClassStrings): TPropsMaterialType;
 
 procedure ExportPortraitTypeToPreview(PropsMaterial: TPropsMaterial; pts: TPropsMaterialTypes; destPath: SystemString; SamplerCount: Integer);
 
@@ -142,7 +142,7 @@ begin
     end;
 end;
 
-function PortraitBlend(StreamList: TCoreClassStrings; output: TMemoryRaster): Boolean;
+function PortraitBlend(ObjectDataHashItem: TCoreClassStrings; output: TMemoryRaster): Boolean;
 
   function OpenStreamAsNewGraphic(_Name: U_String; stream: TCoreClassStream): TMemoryRaster;
   begin
@@ -157,23 +157,23 @@ var
   g: TMemoryRaster;
 begin
   Result := False;
-  if (StreamList = nil) or (output = nil) then
+  if (ObjectDataHashItem = nil) or (output = nil) then
       Exit;
-  if StreamList.Count = 0 then
+  if ObjectDataHashItem.Count = 0 then
       Exit;
 
-  output.LoadFromStream(TCoreClassStream(StreamList.Objects[0]));
+  output.LoadFromStream(TCoreClassStream(ObjectDataHashItem.Objects[0]));
   output.DrawMode := dmBlend;
   output.CombineMode := cmBlend;
 
-  if StreamList.Count > 1 then
+  if ObjectDataHashItem.Count > 1 then
     begin
       g := TMemoryRaster.Create;
       g.DrawMode := dmBlend;
       g.CombineMode := cmBlend;
-      for RepInt := 1 to StreamList.Count - 1 do
+      for RepInt := 1 to ObjectDataHashItem.Count - 1 do
         begin
-          g.LoadFromStream(TCoreClassStream(StreamList.Objects[RepInt]));
+          g.LoadFromStream(TCoreClassStream(ObjectDataHashItem.Objects[RepInt]));
           g.DrawTo(output);
         end;
       DisposeObject(g);
@@ -182,10 +182,10 @@ begin
   Result := True;
 end;
 
-function FillPortraitKeyExpression(LibMan: TLibraryManager; const AExpression: U_String; OutList: TCoreClassStrings): TPropsMaterialType;
+function FillPortraitKeyExpression(LibMan: TObjectDataHashField; const AExpression: U_String; OutList: TCoreClassStrings): TPropsMaterialType;
 var
   n, fn: U_String;
-  p: PHashStreamListData;
+  p: PHashItemData;
   errorflag: Boolean;
 begin
   n := AExpression;
@@ -211,7 +211,7 @@ procedure TPropsMaterialBitmap.SetKeyExpression(const Value: U_String);
 var
   n, fn: U_String;
   ns: TCoreClassStringList;
-  p: PHashStreamListData;
+  p: PHashItemData;
   errorflag: Boolean;
 begin
   if Value = '' then
@@ -282,14 +282,14 @@ constructor TPropsMaterial.Create(stream: TCoreClassStream);
 var
   lst: TCoreClassStrings;
   i: Integer;
-  p: PHashStreamListData;
+  p: PHashItemData;
   t: TSectionTextData;
 begin
   inherited Create;
   FMemoryBitmapClass := TMemoryRaster;
 
   FDBEng := TObjectDataManager.CreateAsStream(stream, '', ObjectDataMarshal.ID, True, False, True);
-  FLibMan := TLibraryManager.Create(FDBEng, '/');
+  FLibMan := TObjectDataHashField.Create(FDBEng, '/');
 
   FIndexListOfTextEngine := THashObjectList.Create(True);
   FItemBitmap := THashObjectList.Create(True);

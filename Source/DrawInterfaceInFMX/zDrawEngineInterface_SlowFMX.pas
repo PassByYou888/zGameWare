@@ -23,7 +23,7 @@ unit zDrawEngineInterface_SlowFMX;
 
 interface
 
-uses System.Math.Vectors, System.Math, System.Threading,
+uses System.Math.Vectors, System.Math,
   FMX.Forms,
   FMX.Graphics, System.UITypes, System.Types, FMX.Types, FMX.Controls,
   FMX.Types3D, FMX.Surfaces, System.UIConsts, Geometry3DUnit, ListEngine,
@@ -51,8 +51,8 @@ type
     procedure DrawEllipse(r: TDERect; COLOR: TDEColor); override;
     procedure FillEllipse(r: TDERect; COLOR: TDEColor); override;
     procedure FillPolygon(PolygonBuff: TArrayVec2; COLOR: TDEColor); override;
-    procedure DrawText(const Text: SystemString; Size: TDEFloat; r: TDERect; COLOR: TDEColor; center: Boolean; RotateVec: TDEVec; angle: TDEFloat); override;
-    procedure DrawPicture(t: TCoreClassObject; sour, dest: TDE4V; alpha: TDEFloat); override;
+    procedure DrawText(Shadow: Boolean; Text: SystemString; Size: TDEFloat; r: TDERect; COLOR: TDEColor; center: Boolean; RotateVec: TDEVec; angle: TDEFloat); override;
+    procedure DrawPicture(Shadow: Boolean; t: TCoreClassObject; sour, dest: TDE4V; alpha: TDEFloat); override;
     procedure Flush; override;
     procedure ResetState; override;
     procedure BeginDraw; override;
@@ -83,7 +83,6 @@ type
     destructor Destroy; override;
 
     procedure ReleaseGPUMemory; override;
-    procedure Update; override;
 
     property Texture: TBitmap read GetTexture;
   end;
@@ -127,6 +126,7 @@ function c2c(c: TDEColor): TAlphaColor; inline; overload;
 function c2c(c: TAlphaColor): TDEColor; inline; overload;
 function p2p(pt: TDEVec): TPointf; inline; overload;
 function r2r(r: TDERect): TRectf; inline; overload;
+function r2r(r: TRect): TRectf; inline; overload;
 function AlphaColor2RasterColor(c: TAlphaColor): TRasterColor; inline;
 function DE4V2Corners(sour: TDE4V): TCornersF; inline;
 function DEColor(c: TAlphaColor): TDEColor; inline; overload;
@@ -139,6 +139,8 @@ procedure SurfaceToMemoryBitmap(Surface: TBitmapSurface; bmp: TMemoryRaster);
 procedure MemoryBitmapToBitmap(b: TMemoryRaster; bmp: TBitmap); overload;
 procedure MemoryBitmapToBitmap(b: TMemoryRaster; sourRect: TRect; bmp: TBitmap); overload;
 procedure BitmapToMemoryBitmap(bmp: TBitmap; b: TMemoryRaster);
+
+function CanLoadMemoryBitmap(f: SystemString): Boolean;
 procedure LoadMemoryBitmap(f: SystemString; b: TMemoryRaster); overload;
 procedure LoadMemoryBitmap(f: SystemString; b: TSequenceMemoryRaster); overload;
 procedure LoadMemoryBitmap(f: SystemString; b: TDETexture); overload;
@@ -179,6 +181,11 @@ end;
 function r2r(r: TDERect): TRectf;
 begin
   Result := MakeRectf(r);
+end;
+
+function r2r(r: TRect): TRectf;
+begin
+  Result := TRectf.Create(r);
 end;
 
 function AlphaColor2RasterColor(c: TAlphaColor): TRasterColor;
@@ -251,32 +258,36 @@ end;
 
 procedure MemoryBitmapToSurface(bmp: TMemoryRaster; Surface: TBitmapSurface);
 var
-  i: Integer;
+  y, x: Integer;
   p1, p2: PCardinal;
   c: TRasterColorEntry;
-  DC: TAlphaColor;
 begin
 {$IF Defined(ANDROID) or Defined(IOS)}
   Surface.SetSize(bmp.width, bmp.height, TPixelFormat.RGBA);
 {$ELSE}
   Surface.SetSize(bmp.width, bmp.height, TPixelFormat.BGRA);
 {$ENDIF}
-  p1 := PCardinal(@bmp.Bits[0]);
-  p2 := PCardinal(Surface.Bits);
-  for i := bmp.width * bmp.height - 1 downto 0 do
+  for y := 0 to Surface.height - 1 do
     begin
+      p1 := PCardinal(bmp.ScanLine[y]);
+      p2 := PCardinal(Surface.ScanLine[y]);
+      for x := 0 to bmp.width - 1 do
+        begin
 {$IF Defined(ANDROID) or Defined(IOS) or Defined(OSX)}
-      c.BGRA := RGBA2BGRA(TRasterColor(p1^));
+          c.BGRA := RGBA2BGRA(TRasterColor(p1^));
 {$ELSE}
-      c.BGRA := TRasterColor(p1^);
+          c.BGRA := TRasterColor(p1^);
 {$IFEND}
-      TAlphaColorRec(DC).r := c.r;
-      TAlphaColorRec(DC).g := c.g;
-      TAlphaColorRec(DC).b := c.b;
-      TAlphaColorRec(DC).a := c.a;
-      p2^ := DC;
-      inc(p1);
-      inc(p2);
+          with TAlphaColorRec(p2^) do
+            begin
+              r := c.r;
+              g := c.g;
+              b := c.b;
+              a := c.a;
+            end;
+          inc(p1);
+          inc(p2);
+        end;
     end;
 end;
 
@@ -293,16 +304,16 @@ begin
 end;
 
 procedure SurfaceToMemoryBitmap(Surface: TBitmapSurface; bmp: TMemoryRaster);
+var
+  y, x: Integer;
 begin
   bmp.SetSize(Surface.width, Surface.height);
-  TParallel.For(0, Surface.height - 1, procedure(y: Integer)
-    var
-      x: Integer;
+  for y := 0 to Surface.height - 1 do
     begin
       for x := 0 to Surface.width - 1 do
         with TAlphaColorRec(Surface.pixels[x, y]) do
             bmp.Pixel[x, y] := RasterColor(r, g, b, a)
-    end);
+    end;
 end;
 
 procedure MemoryBitmapToBitmap(b: TMemoryRaster; bmp: TBitmap);
@@ -333,6 +344,15 @@ begin
   Surface.Assign(bmp);
   SurfaceToMemoryBitmap(Surface, b);
   DisposeObject(Surface);
+end;
+
+function CanLoadMemoryBitmap(f: SystemString): Boolean;
+begin
+  try
+      Result := TMemoryRaster.CanLoadFile(f) or TBitmapCodecManager.CodecExists(f);
+  except
+      Result := False;
+  end;
 end;
 
 procedure LoadMemoryBitmap(f: SystemString; b: TMemoryRaster);
@@ -395,6 +415,8 @@ var
 begin
   if umlMultipleMatch(['*.bmp'], f) then
       b.SaveToFile(f)
+  else if umlMultipleMatch(['*.jpg', '*.jpeg'], f) then
+      b.SaveToJpegYCbCrFile(f, 90)
   else if umlMultipleMatch(['*.seq'], f) then
       b.SaveToZLibCompressFile(f)
   else
@@ -565,7 +587,7 @@ begin
   FCanvas.FillPolygon(polygon_, COLOR[3]);
 end;
 
-procedure TDrawEngineInterface_FMX.DrawText(const Text: SystemString; Size: TDEFloat; r: TDERect; COLOR: TDEColor; center: Boolean; RotateVec: TDEVec; angle: TDEFloat);
+procedure TDrawEngineInterface_FMX.DrawText(Shadow: Boolean; Text: SystemString; Size: TDEFloat; r: TDERect; COLOR: TDEColor; center: Boolean; RotateVec: TDEVec; angle: TDEFloat);
 var
   M, bak: TMatrix;
   rf: TRectf;
@@ -595,7 +617,7 @@ begin
       FCanvas.SetMatrix(bak);
 end;
 
-procedure TDrawEngineInterface_FMX.DrawPicture(t: TCoreClassObject; sour, dest: TDE4V; alpha: TDEFloat);
+procedure TDrawEngineInterface_FMX.DrawPicture(Shadow: Boolean; t: TCoreClassObject; sour, dest: TDE4V; alpha: TDEFloat);
 var
   newSour, newDest: TDE4V;
   M, bak: TMatrix;
@@ -612,7 +634,7 @@ begin
           newSour := TDE4V.Init(TDETexture_FMX(t).BoundsRectV2, 0);
       if newDest.IsZero then
           newDest := newSour;
-      if not IsEqual(newDest.angle, 0, 0.1) then
+      if not IsEqual(newDest.angle, 0, 0.01) then
         begin
           bak := FCanvas.Matrix;
           MakeMatrixRotation(newDest.angle, newDest.width, newDest.height,
@@ -754,7 +776,10 @@ end;
 function TDETexture_FMX.GetTexture: TBitmap;
 begin
   if FTexture = nil then
-      Update;
+    begin
+      FTexture := TBitmap.Create;
+      MemoryBitmapToBitmap(Self, FTexture);
+    end;
   DrawUsage;
   Result := FTexture;
 end;
@@ -776,13 +801,6 @@ begin
   if FTexture <> nil then
       DisposeObject(FTexture);
   FTexture := nil;
-end;
-
-procedure TDETexture_FMX.Update;
-begin
-  ReleaseGPUMemory;
-  FTexture := TBitmap.Create;
-  MemoryBitmapToBitmap(Self, FTexture);
 end;
 
 constructor TResourceTexture.Create;

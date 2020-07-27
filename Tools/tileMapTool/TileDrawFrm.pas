@@ -10,7 +10,7 @@ uses
   FMX.Surfaces,
 
   PascalStrings,
-  LibraryManager, StreamList, zDrawEngine, MemoryRaster, ObjectDataManager,
+  ObjectDataHashField, ObjectDataHashItem, zDrawEngine, MemoryRaster, ObjectDataManager,
   zDrawEngineInterface_FMX, DataFrameEngine, UnicodeMixedLib, CoreClasses,
   MemoryStream64,
   TileTerrainEngine,

@@ -41,32 +41,32 @@ implementation
 
 procedure TForm1.Button1Click(Sender: TObject);
 begin
-  Media.PlayMusic('Music.mp3');
+  SoundEngine.PlayMusic('Music.mp3');
 end;
 
 procedure TForm1.Button2Click(Sender: TObject);
 begin
-  Media.StopMusic;
+  SoundEngine.StopMusic;
 end;
 
 procedure TForm1.Button3Click(Sender: TObject);
 begin
-  Media.PlayAmbient('Ambient.mp3');
+  SoundEngine.PlayAmbient('Ambient.mp3');
 end;
 
 procedure TForm1.Button4Click(Sender: TObject);
 begin
-  Media.StopAmbient;
+  SoundEngine.StopAmbient;
 end;
 
 procedure TForm1.Button5Click(Sender: TObject);
 begin
-  Media.PlaySound('hit.wav');
+  SoundEngine.PlaySound('hit.wav');
 end;
 
 procedure TForm1.Button6Click(Sender: TObject);
 begin
-  Media.StopSound('hit.wav');
+  SoundEngine.StopSound('hit.wav');
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);

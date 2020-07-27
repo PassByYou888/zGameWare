@@ -24,20 +24,21 @@ unit UPascalStrings;
 interface
 
 
-uses SysUtils, PascalStrings;
+uses CoreClasses, PascalStrings;
 
 type
 {$IFDEF FPC}
   USystemChar = UnicodeChar;
   USystemString = UnicodeString;
+  TUArrayChar = array of USystemChar;
 {$ELSE FPC}
   USystemChar = PascalStrings.SystemChar;
   USystemString = PascalStrings.SystemString;
+  TUArrayChar = TArrayChar;
 {$ENDIF FPC}
   PUSystemString = ^USystemString;
   PUPascalString = ^TUPascalString;
-  TUArrayChar = array of USystemChar;
-  TUOrdChar = (uc0to9, uc1to9, uc0to32, uc0to32no10, ucLoAtoF, ucHiAtoF, ucLoAtoZ, ucHiAtoZ, ucHex, ucAtoF, ucAtoZ);
+  TUOrdChar = (uc0to9, uc1to9, uc0to32, uc0to32no10, ucLoAtoF, ucHiAtoF, ucLoAtoZ, ucHiAtoZ, ucHex, ucAtoF, ucAtoZ, ucVisibled);
   TUOrdChars = set of TUOrdChar;
   TUHash = Cardinal;
   TUHash64 = UInt64;
@@ -54,10 +55,16 @@ type
     procedure SetBytes(const Value: TBytes);
     function GetPlatformBytes: TBytes;
     procedure SetPlatformBytes(const Value: TBytes);
+    function GetANSI: TBytes;
+    procedure SetANSI(const Value: TBytes);
     function GetLast: USystemChar;
     procedure SetLast(const Value: USystemChar);
     function GetFirst: USystemChar;
     procedure SetFirst(const Value: USystemChar);
+    function GetUpperChar(index: Integer): USystemChar;
+    procedure SetUpperChar(index: Integer; const Value: USystemChar);
+    function GetLowerChar(index: Integer): USystemChar;
+    procedure SetLowerChar(index: Integer; const Value: USystemChar);
   public
     buff: TUArrayChar;
 
@@ -97,6 +104,9 @@ type
     function Same(const t1, t2, t3: TUPascalString): Boolean; overload;
     function Same(const t1, t2, t3, t4: TUPascalString): Boolean; overload;
     function Same(const t1, t2, t3, t4, t5: TUPascalString): Boolean; overload;
+    function Same(const t1, t2, t3, t4, t5, t6: TUPascalString): Boolean; overload;
+    function Same(const t1, t2, t3, t4, t5, t6, t7: TUPascalString): Boolean; overload;
+    function Same(const t1, t2, t3, t4, t5, t6, t7, t8: TUPascalString): Boolean; overload;
     function Same(const IgnoreCase: Boolean; const t: TUPascalString): Boolean; overload;
     function ComparePos(const Offset: Integer; const p: PUPascalString): Boolean; overload;
     function ComparePos(const Offset: Integer; const t: TUPascalString): Boolean; overload;
@@ -106,6 +116,7 @@ type
     function Exists(c: array of USystemChar): Boolean; overload;
     function Exists(const s: TUPascalString): Boolean; overload;
     function GetCharCount(c: USystemChar): Integer;
+    function IsVisibledASCII: Boolean;
 
     function hash: TUHash;
     function Hash64: TUHash64;
@@ -117,8 +128,10 @@ type
     procedure DeleteFirst;
     procedure Delete(idx, cnt: Integer);
     procedure Clear;
+    procedure Reset;
     procedure Append(t: TUPascalString); overload;
     procedure Append(c: USystemChar); overload;
+    procedure Append(const Fmt: SystemString; const Args: array of const); overload;
     function GetString(bPos, ePos: NativeInt): TUPascalString;
     procedure Insert(AText: USystemString; idx: Integer);
     procedure FastAsText(var output: USystemString);
@@ -137,6 +150,9 @@ type
     function BuildPlatformPChar: Pointer;
     class procedure FreePlatformPChar(p: Pointer); static;
 
+    class function RandomString(rnd: TRandom; L_: Integer): TUPascalString; overload; static;
+    class function RandomString(L_: Integer): TUPascalString; overload; static;
+
     { https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm }
     function SmithWaterman(const p: PUPascalString): Double; overload;
     function SmithWaterman(const s: TUPascalString): Double; overload;
@@ -144,8 +160,11 @@ type
     property Len: Integer read GetLen write SetLen;
     property L: Integer read GetLen write SetLen;
     property Chars[index: Integer]: USystemChar read GetChars write SetChars; default;
+    property UpperChar[index: Integer]: USystemChar read GetUpperChar write SetUpperChar;
+    property LowerChar[index: Integer]: USystemChar read GetLowerChar write SetLowerChar;
     property Bytes: TBytes read GetBytes write SetBytes;                         // UTF8
     property PlatformBytes: TBytes read GetPlatformBytes write SetPlatformBytes; // system default
+    property ANSI: TBytes read GetANSI write SetANSI;                            // Ansi Bytes
     function BOMBytes: TBytes;
   end;
 
@@ -155,7 +174,8 @@ type
   TUArrayPascalStringPtr = array of PUPascalString;
   PUArrayPascalStringPtr = ^TUArrayPascalStringPtr;
 
-  TUPStr = TUPascalString;
+  TUP_String = TUPascalString;
+  PUP_String = PUPascalString;
 
 function UCharIn(c: USystemChar; const SomeChars: array of USystemChar): Boolean; overload;
 function UCharIn(c: USystemChar; const SomeChar: USystemChar): Boolean; overload;
@@ -165,6 +185,8 @@ function UCharIn(c: USystemChar; const SomeCharsets: TUOrdChars): Boolean; overl
 function UCharIn(c: USystemChar; const SomeCharset: TUOrdChar): Boolean; overload;
 function UCharIn(c: USystemChar; const SomeCharsets: TUOrdChars; const SomeChars: TUPascalString): Boolean; overload;
 function UCharIn(c: USystemChar; const SomeCharsets: TUOrdChars; const p: PUPascalString): Boolean; overload;
+function TextIs(t: TUPascalString; const SomeCharsets: TUOrdChars): Boolean; overload;
+function TextIs(t: TUPascalString; const SomeCharsets: TUOrdChars; const SomeChars: TUPascalString): Boolean; overload;
 
 function UFastHashPSystemString(const s: PSystemString): TUHash; overload;
 function UFastHash64PSystemString(const s: PSystemString): TUHash64; overload;
@@ -254,7 +276,7 @@ const
 
 implementation
 
-uses CoreClasses, Variants;
+uses SysUtils, Variants;
 
 procedure CombineCharsPP(const c1, c2: TUArrayChar; var output: TUArrayChar);
 var
@@ -371,6 +393,7 @@ begin
     ucHex: Result := ((v >= ordLA) and (v <= ordLF)) or ((v >= ordHA) and (v <= ordHF)) or ((v >= ord0) and (v <= ord9));
     ucAtoF: Result := ((v >= ordLA) and (v <= ordLF)) or ((v >= ordHA) and (v <= ordHF));
     ucAtoZ: Result := ((v >= ordLA) and (v <= ordLZ)) or ((v >= ordHA) and (v <= ordHZ));
+    ucVisibled: Result := (v >= $20) and (v <= $7E);
     else Result := False;
   end;
 end;
@@ -400,6 +423,28 @@ begin
       Result := True
   else
       Result := UCharIn(c, p);
+end;
+
+function TextIs(t: TUPascalString; const SomeCharsets: TUOrdChars): Boolean;
+var
+  c: USystemChar;
+begin
+  Result := False;
+  for c in t.buff do
+    if not UCharIn(c, SomeCharsets) then
+        Exit;
+  Result := True;
+end;
+
+function TextIs(t: TUPascalString; const SomeCharsets: TUOrdChars; const SomeChars: TUPascalString): Boolean;
+var
+  c: USystemChar;
+begin
+  Result := False;
+  for c in t.buff do
+    if not UCharIn(c, SomeCharsets, SomeChars) then
+        Exit;
+  Result := True;
 end;
 
 function UFastHashPSystemString(const s: PSystemString): TUHash;
@@ -1365,6 +1410,18 @@ begin
   buff[index - 1] := Value;
 end;
 
+function TUPascalString.GetBytes: TBytes;
+begin
+  SetLength(Result, 0);
+  if length(buff) = 0 then
+      Exit;
+{$IFDEF FPC}
+  Result := SysUtils.TEncoding.UTF8.GetBytes(buff);
+{$ELSE}
+  Result := SysUtils.TEncoding.UTF8.GetBytes(buff);
+{$ENDIF}
+end;
+
 procedure TUPascalString.SetBytes(const Value: TBytes);
 begin
   SetLength(buff, 0);
@@ -1377,15 +1434,15 @@ begin
   end;
 end;
 
-function TUPascalString.GetBytes: TBytes;
+function TUPascalString.GetPlatformBytes: TBytes;
 begin
   SetLength(Result, 0);
   if length(buff) = 0 then
       Exit;
 {$IFDEF FPC}
-  Result := SysUtils.TEncoding.UTF8.GetBytes(buff);
+  Result := SysUtils.TEncoding.Default.GetBytes(buff);
 {$ELSE}
-  Result := SysUtils.TEncoding.UTF8.GetBytes(buff);
+  Result := SysUtils.TEncoding.Default.GetBytes(buff);
 {$ENDIF}
 end;
 
@@ -1401,16 +1458,28 @@ begin
   end;
 end;
 
-function TUPascalString.GetPlatformBytes: TBytes;
+function TUPascalString.GetANSI: TBytes;
 begin
   SetLength(Result, 0);
   if length(buff) = 0 then
       Exit;
 {$IFDEF FPC}
-  Result := SysUtils.TEncoding.Default.GetBytes(buff);
+  Result := SysUtils.TEncoding.ANSI.GetBytes(Text);
 {$ELSE}
-  Result := SysUtils.TEncoding.Default.GetBytes(buff);
+  Result := SysUtils.TEncoding.ANSI.GetBytes(buff);
 {$ENDIF}
+end;
+
+procedure TUPascalString.SetANSI(const Value: TBytes);
+begin
+  SetLength(buff, 0);
+  if length(Value) = 0 then
+      Exit;
+  try
+      Text := SysUtils.TEncoding.ANSI.GetString(Value);
+  except
+      SetLength(buff, 0);
+  end;
 end;
 
 function TUPascalString.GetLast: USystemChar;
@@ -1439,6 +1508,35 @@ begin
   buff[0] := Value;
 end;
 
+function TUPascalString.GetUpperChar(index: Integer): USystemChar;
+begin
+  Result := GetChars(index);
+  if CharIn(Result, cLoAtoZ) then
+      Result := USystemChar(Word(Result) xor $0020);
+end;
+
+procedure TUPascalString.SetUpperChar(index: Integer; const Value: USystemChar);
+begin
+  if CharIn(Value, cLoAtoZ) then
+      SetChars(index, USystemChar(Word(Value) xor $0020))
+  else
+      SetChars(index, Value);
+end;
+
+function TUPascalString.GetLowerChar(index: Integer): USystemChar;
+begin
+  Result := GetChars(index);
+  if CharIn(Result, cHiAtoZ) then
+      Result := USystemChar(Word(Result) or $0020);
+end;
+
+procedure TUPascalString.SetLowerChar(index: Integer; const Value: USystemChar);
+begin
+  if CharIn(Value, cHiAtoZ) then
+      SetChars(index, USystemChar(Word(Value) or $0020))
+  else
+      SetChars(index, Value);
+end;
 {$IFDEF DELPHI}
 
 
@@ -1643,6 +1741,21 @@ begin
   Result := Same(@t1) or Same(@t2) or Same(@t3) or Same(@t4) or Same(@t5);
 end;
 
+function TUPascalString.Same(const t1, t2, t3, t4, t5, t6: TUPascalString): Boolean;
+begin
+  Result := Same(@t1) or Same(@t2) or Same(@t3) or Same(@t4) or Same(@t5) or Same(@t6);
+end;
+
+function TUPascalString.Same(const t1, t2, t3, t4, t5, t6, t7: TUPascalString): Boolean;
+begin
+  Result := Same(@t1) or Same(@t2) or Same(@t3) or Same(@t4) or Same(@t5) or Same(@t6) or Same(@t7);
+end;
+
+function TUPascalString.Same(const t1, t2, t3, t4, t5, t6, t7, t8: TUPascalString): Boolean;
+begin
+  Result := Same(@t1) or Same(@t2) or Same(@t3) or Same(@t4) or Same(@t5) or Same(@t6) or Same(@t7) or Same(@t8);
+end;
+
 function TUPascalString.Same(const IgnoreCase: Boolean; const t: TUPascalString): Boolean;
 var
   i: Integer;
@@ -1789,6 +1902,17 @@ begin
         inc(Result);
 end;
 
+function TUPascalString.IsVisibledASCII: Boolean;
+var
+  c: USystemChar;
+begin
+  Result := False;
+  for c in buff do
+    if not UCharIn(c, ucVisibled) then
+        Exit;
+  Result := True;
+end;
+
 procedure TUPascalString.DeleteLast;
 begin
   if Len > 0 then
@@ -1814,6 +1938,11 @@ begin
   SetLength(buff, 0);
 end;
 
+procedure TUPascalString.Reset;
+begin
+  SetLength(buff, 0);
+end;
+
 procedure TUPascalString.Append(t: TUPascalString);
 var
   r, L_: Integer;
@@ -1831,6 +1960,11 @@ procedure TUPascalString.Append(c: USystemChar);
 begin
   SetLength(buff, length(buff) + 1);
   buff[length(buff) - 1] := c;
+end;
+
+procedure TUPascalString.Append(const Fmt: SystemString; const Args: array of const);
+begin
+  Append(PFormat(Fmt, Args));
 end;
 
 function TUPascalString.GetString(bPos, ePos: NativeInt): TUPascalString;
@@ -2000,6 +2134,27 @@ begin
   FreeMemory(p);
 end;
 
+class function TUPascalString.RandomString(rnd: TRandom; L_: Integer): TUPascalString;
+var
+  i: Integer;
+begin
+  Result.L := L_;
+  for i := 1 to L_ do
+      Result[i] := USystemChar(rnd.Rand32($7E - $20) + $20);
+end;
+
+class function TUPascalString.RandomString(L_: Integer): TUPascalString;
+var
+  i: Integer;
+  rnd: TMT19937Random;
+begin
+  Result.L := L_;
+  rnd := TMT19937Random.Create;
+  for i := 1 to L_ do
+      Result[i] := USystemChar(rnd.Rand32($7E - $20) + $20);
+  DisposeObject(rnd);
+end;
+
 function TUPascalString.SmithWaterman(const p: PUPascalString): Double;
 begin
   Result := USmithWatermanCompare(@Self, @p);
@@ -2018,9 +2173,5 @@ begin
   Result := SysUtils.TEncoding.UTF8.GetPreamble + GetBytes;
 {$ENDIF}
 end;
-
-initialization
-
-finalization
 
 end.

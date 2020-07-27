@@ -22,7 +22,7 @@ interface
 
 uses SysUtils, Types, Math, Classes,
 
-  LibraryManager, StreamList, zDrawEngine, MemoryRaster,
+  ObjectDataHashField, ObjectDataHashItem, zDrawEngine, MemoryRaster,
   DataFrameEngine, UnicodeMixedLib, CoreClasses,
   ObjectDataManager, Geometry2DUnit, ListEngine, PascalStrings;
 
@@ -38,18 +38,18 @@ type
   PTileBuffers = ^TTileBuffers;
 
 const
-  _Texture_AllFullClient       = '~FullClient_*.bmp';
+  _Texture_AllFullClient = '~FullClient_*.bmp';
   _Texture_AllFullClientFormat = '~FullClient_%d.bmp';
 
-  _Texture_FullClient_1  = '~FullClient_1.bmp';
-  _Texture_FullClient_2  = '~FullClient_2.bmp';
-  _Texture_FullClient_3  = '~FullClient_3.bmp';
-  _Texture_FullClient_4  = '~FullClient_4.bmp';
-  _Texture_FullClient_5  = '~FullClient_5.bmp';
-  _Texture_FullClient_6  = '~FullClient_6.bmp';
-  _Texture_FullClient_7  = '~FullClient_7.bmp';
-  _Texture_FullClient_8  = '~FullClient_8.bmp';
-  _Texture_FullClient_9  = '~FullClient_9.bmp';
+  _Texture_FullClient_1 = '~FullClient_1.bmp';
+  _Texture_FullClient_2 = '~FullClient_2.bmp';
+  _Texture_FullClient_3 = '~FullClient_3.bmp';
+  _Texture_FullClient_4 = '~FullClient_4.bmp';
+  _Texture_FullClient_5 = '~FullClient_5.bmp';
+  _Texture_FullClient_6 = '~FullClient_6.bmp';
+  _Texture_FullClient_7 = '~FullClient_7.bmp';
+  _Texture_FullClient_8 = '~FullClient_8.bmp';
+  _Texture_FullClient_9 = '~FullClient_9.bmp';
   _Texture_FullClient_10 = '~FullClient_10.bmp';
   _Texture_FullClient_11 = '~FullClient_11.bmp';
   _Texture_FullClient_12 = '~FullClient_12.bmp';
@@ -60,14 +60,14 @@ const
   _Texture_FullClient_17 = '~FullClient_17.bmp';
   _Texture_FullClient_18 = '~FullClient_18.bmp';
 
-  _Texture_Angle_RightBottom             = '~Angle_RightBottom.bmp';
-  _Texture_Angle_LeftBottom              = '~Angle_LeftBottom.bmp';
-  _Texture_Angle_RightTop                = '~Angle_RightTop.bmp';
-  _Texture_Angle_LeftTop                 = '~Angle_LeftTop.bmp';
-  _Texture_EndgeBottom_AngleRightLeft    = '~EndgeBottom_AngleRightLeft.bmp';
-  _Texture_EndgeTop_AngleRightLeft       = '~EndgeTop_AngleRightLeft.bmp';
-  _Texture_EndgeLeft_AngleTopBottom      = '~EndgeLeft_AngleTopBottom.bmp';
-  _Texture_EndgeRight_AngleTopBottom     = '~EndgeRight_AngleTopBottom.bmp';
+  _Texture_Angle_RightBottom = '~Angle_RightBottom.bmp';
+  _Texture_Angle_LeftBottom = '~Angle_LeftBottom.bmp';
+  _Texture_Angle_RightTop = '~Angle_RightTop.bmp';
+  _Texture_Angle_LeftTop = '~Angle_LeftTop.bmp';
+  _Texture_EndgeBottom_AngleRightLeft = '~EndgeBottom_AngleRightLeft.bmp';
+  _Texture_EndgeTop_AngleRightLeft = '~EndgeTop_AngleRightLeft.bmp';
+  _Texture_EndgeLeft_AngleTopBottom = '~EndgeLeft_AngleTopBottom.bmp';
+  _Texture_EndgeRight_AngleTopBottom = '~EndgeRight_AngleTopBottom.bmp';
   _Texture_EndgeLeftBottom_AngleRightTop = '~EndgeLeftBottom_AngleRightTop.bmp';
   _Texture_EndgeRightBottom_AngleLeftTop = '~EndgeRightBottom_AngleLeftTop.bmp';
   _Texture_EndgeLeftTop_AngleRightBottom = '~EndgeLeftTop_AngleRightBottom.bmp';
@@ -81,30 +81,30 @@ function AutoChangeTexture(var _1T: U_String; const _2T: U_String): Boolean;
 function Change2Texture(var _1T: U_String; const _2T: U_String): Boolean;
 function ChangeAllTexture(var _1T: U_String; const _2T: U_String): Boolean;
 function Compare2Texture(_TexName, _NewName: U_String): Boolean;
-function Get2TextureGraphics(_Lib: TLibraryManager; _TexName: U_String; _TG: TCoreClassListForObj): Boolean;
+function Get2TextureGraphics(_Lib: TObjectDataHashField; _TexName: U_String; _TG: TCoreClassListForObj): Boolean;
 function Get2TextureGraphicsAsList(_TexName: U_String; _AsList: TCoreClassStrings): Boolean;
-function GetFullClient2(_Lib: TLibraryManager; _TTPrefix: U_String): U_String;
+function GetFullClient2(_Lib: TObjectDataHashField; _TTPrefix: U_String): U_String;
 function IsAllFullClient(_TexName, _NewTTPrefix: U_String): Boolean;
-function ProcessTerrainTexture(_Lib: TLibraryManager; _TileInfo: U_String; _GR: TMemoryRaster; _X, _Y: Integer): Boolean;
+function ProcessTerrainTexture(_Lib: TObjectDataHashField; _TileInfo: U_String; _GR: TMemoryRaster; _X, _Y: Integer): Boolean;
 function TextureCount(_TexName, _TexPrefix: U_String): Integer;
 
-function UpdateBottomTextureName(_Lib: TLibraryManager; _NewTTPrefix: U_String; var TileData: TTileDataRec): Boolean;
-function UpdateLeftBottomTextureName(_Lib: TLibraryManager; _NewTTPrefix: U_String; var TileData: TTileDataRec): Boolean;
-function UpdateLeftTextureName(_Lib: TLibraryManager; _NewTTPrefix: U_String; var TileData: TTileDataRec): Boolean;
-function UpdateLeftTopTextureName(_Lib: TLibraryManager; _NewTTPrefix: U_String; var TileData: TTileDataRec): Boolean;
-function UpdateRightBottomTextureName(_Lib: TLibraryManager; _NewTTPrefix: U_String; var TileData: TTileDataRec): Boolean;
-function UpdateRightTextureName(_Lib: TLibraryManager; _NewTTPrefix: U_String; var TileData: TTileDataRec): Boolean;
-function UpdateRightTopTextureName(_Lib: TLibraryManager; _NewTTPrefix: U_String; var TileData: TTileDataRec): Boolean;
-function UpdateTopTextureName(_Lib: TLibraryManager; _NewTTPrefix: U_String; var TileData: TTileDataRec): Boolean;
+function UpdateBottomTextureName(_Lib: TObjectDataHashField; _NewTTPrefix: U_String; var TileData: TTileDataRec): Boolean;
+function UpdateLeftBottomTextureName(_Lib: TObjectDataHashField; _NewTTPrefix: U_String; var TileData: TTileDataRec): Boolean;
+function UpdateLeftTextureName(_Lib: TObjectDataHashField; _NewTTPrefix: U_String; var TileData: TTileDataRec): Boolean;
+function UpdateLeftTopTextureName(_Lib: TObjectDataHashField; _NewTTPrefix: U_String; var TileData: TTileDataRec): Boolean;
+function UpdateRightBottomTextureName(_Lib: TObjectDataHashField; _NewTTPrefix: U_String; var TileData: TTileDataRec): Boolean;
+function UpdateRightTextureName(_Lib: TObjectDataHashField; _NewTTPrefix: U_String; var TileData: TTileDataRec): Boolean;
+function UpdateRightTopTextureName(_Lib: TObjectDataHashField; _NewTTPrefix: U_String; var TileData: TTileDataRec): Boolean;
+function UpdateTopTextureName(_Lib: TObjectDataHashField; _NewTTPrefix: U_String; var TileData: TTileDataRec): Boolean;
 
-procedure Update2Texture(_Lib: TLibraryManager; _NewTTPrefix: U_String; var LeftTop, RightTop, LeftBottom, RightBottom: TTileDataRec);
-function Update2TerrainTexture(msPtr: PTileBuffers; _Lib: TLibraryManager; _NewTTPrefix: U_String; _Point: TPoint; _Width, _Height: Integer): Boolean;
+procedure Update2Texture(_Lib: TObjectDataHashField; _NewTTPrefix: U_String; var LeftTop, RightTop, LeftBottom, RightBottom: TTileDataRec);
+function Update2TerrainTexture(msPtr: PTileBuffers; _Lib: TObjectDataHashField; _NewTTPrefix: U_String; _Point: TPoint; _Width, _Height: Integer): Boolean;
 
 procedure InternalInitMap(msPtr: PTileBuffers; _MapWidth, _MapHeight: Integer);
 procedure GenerateDefaultFullClientTexture(msPtr: PTileBuffers; _DefaultTexturePrefix: U_String);
 procedure FreeTileMap(msPtr: PTileBuffers);
 
-procedure PrepareTileCache(_Lib: TLibraryManager; const LibName: SystemString);
+procedure PrepareTileCache(_Lib: TObjectDataHashField; const LibName: SystemString);
 
 procedure LoadTileMapFromStream(msPtr: PTileBuffers; var width, height: Integer; var LibName: SystemString; stream: TCoreClassStream);
 procedure SaveTileMapToStream(msPtr: PTileBuffers; const width, height: Integer; const LibName: SystemString; stream: TCoreClassStream);
@@ -167,9 +167,9 @@ begin
       Result := False;
 end;
 
-function Get2TextureGraphics(_Lib: TLibraryManager; _TexName: U_String; _TG: TCoreClassListForObj): Boolean;
+function Get2TextureGraphics(_Lib: TObjectDataHashField; _TexName: U_String; _TG: TCoreClassListForObj): Boolean;
 var
-  _StreamListData: PHashStreamListData;
+  _StreamListData: PHashItemData;
   _GR: TMemoryRaster;
   _N, _T: U_String;
 begin
@@ -248,7 +248,7 @@ begin
   Result := _AsList.Count > 0;
 end;
 
-function GetFullClient2(_Lib: TLibraryManager; _TTPrefix: U_String): U_String;
+function GetFullClient2(_Lib: TObjectDataHashField; _TTPrefix: U_String): U_String;
 begin
   Result := _TTPrefix + Format(_Texture_AllFullClientFormat, [umlRandomRange(1, 18)]);
   if _Lib.PathItems[Result] = nil then
@@ -275,7 +275,7 @@ begin
       Result := umlMultipleMatch(True, _NewTTPrefix + _Texture_AllFullClient, _TexName);
 end;
 
-function ProcessTerrainTexture(_Lib: TLibraryManager; _TileInfo: U_String; _GR: TMemoryRaster; _X, _Y: Integer): Boolean;
+function ProcessTerrainTexture(_Lib: TObjectDataHashField; _TileInfo: U_String; _GR: TMemoryRaster; _X, _Y: Integer): Boolean;
 var
   _GRList: TCoreClassListForObj;
 begin
@@ -311,7 +311,7 @@ begin
     end;
 end;
 
-function UpdateBottomTextureName(_Lib: TLibraryManager; _NewTTPrefix: U_String; var TileData: TTileDataRec):
+function UpdateBottomTextureName(_Lib: TObjectDataHashField; _NewTTPrefix: U_String; var TileData: TTileDataRec):
   Boolean;
 begin
   Result := False;
@@ -398,7 +398,7 @@ begin
     end;
 end;
 
-function UpdateLeftBottomTextureName(_Lib: TLibraryManager; _NewTTPrefix: U_String; var TileData: TTileDataRec):
+function UpdateLeftBottomTextureName(_Lib: TObjectDataHashField; _NewTTPrefix: U_String; var TileData: TTileDataRec):
   Boolean;
 begin
   Result := False;
@@ -485,7 +485,7 @@ begin
     end;
 end;
 
-function UpdateLeftTextureName(_Lib: TLibraryManager; _NewTTPrefix: U_String; var TileData: TTileDataRec): Boolean;
+function UpdateLeftTextureName(_Lib: TObjectDataHashField; _NewTTPrefix: U_String; var TileData: TTileDataRec): Boolean;
 begin
   Result := False;
 
@@ -571,7 +571,7 @@ begin
     end;
 end;
 
-function UpdateLeftTopTextureName(_Lib: TLibraryManager; _NewTTPrefix: U_String; var TileData: TTileDataRec):
+function UpdateLeftTopTextureName(_Lib: TObjectDataHashField; _NewTTPrefix: U_String; var TileData: TTileDataRec):
   Boolean;
 begin
   Result := False;
@@ -658,7 +658,7 @@ begin
     end;
 end;
 
-function UpdateRightBottomTextureName(_Lib: TLibraryManager; _NewTTPrefix: U_String; var TileData: TTileDataRec):
+function UpdateRightBottomTextureName(_Lib: TObjectDataHashField; _NewTTPrefix: U_String; var TileData: TTileDataRec):
   Boolean;
 begin
   Result := False;
@@ -745,7 +745,7 @@ begin
     end;
 end;
 
-function UpdateRightTextureName(_Lib: TLibraryManager; _NewTTPrefix: U_String; var TileData: TTileDataRec):
+function UpdateRightTextureName(_Lib: TObjectDataHashField; _NewTTPrefix: U_String; var TileData: TTileDataRec):
   Boolean;
 begin
   Result := False;
@@ -832,7 +832,7 @@ begin
     end;
 end;
 
-function UpdateRightTopTextureName(_Lib: TLibraryManager; _NewTTPrefix: U_String; var TileData: TTileDataRec):
+function UpdateRightTopTextureName(_Lib: TObjectDataHashField; _NewTTPrefix: U_String; var TileData: TTileDataRec):
   Boolean;
 begin
   Result := False;
@@ -919,7 +919,7 @@ begin
     end;
 end;
 
-function UpdateTopTextureName(_Lib: TLibraryManager; _NewTTPrefix: U_String; var TileData: TTileDataRec): Boolean;
+function UpdateTopTextureName(_Lib: TObjectDataHashField; _NewTTPrefix: U_String; var TileData: TTileDataRec): Boolean;
 begin
   Result := False;
 
@@ -1005,7 +1005,7 @@ begin
     end;
 end;
 
-procedure Update2Texture(_Lib: TLibraryManager; _NewTTPrefix: U_String;
+procedure Update2Texture(_Lib: TObjectDataHashField; _NewTTPrefix: U_String;
   var LeftTop, RightTop, LeftBottom, RightBottom: TTileDataRec);
 begin
   UpdateLeftTopTextureName(_Lib, _NewTTPrefix, LeftTop);
@@ -1014,7 +1014,7 @@ begin
   UpdateRightBottomTextureName(_Lib, _NewTTPrefix, RightBottom);
 end;
 
-function Update2TerrainTexture(msPtr: PTileBuffers; _Lib: TLibraryManager; _NewTTPrefix: U_String;
+function Update2TerrainTexture(msPtr: PTileBuffers; _Lib: TObjectDataHashField; _NewTTPrefix: U_String;
   _Point: TPoint; _Width, _Height: Integer): Boolean;
 var
   Rep_Int_X, Rep_Int_Y: Integer;
@@ -1119,10 +1119,10 @@ begin
   SetLength(msPtr^, 0);
 end;
 
-procedure PrepareTileCache(_Lib: TLibraryManager; const LibName: SystemString);
+procedure PrepareTileCache(_Lib: TObjectDataHashField; const LibName: SystemString);
 var
   strlist: TCoreClassStringList;
-  hs: THashStreamList;
+  hs: TObjectDataHashItem;
   lst: TCoreClassListForObj;
   i: Integer;
 begin
@@ -1225,7 +1225,7 @@ procedure BuildTileMapAsBitmap(MapFile: SystemString; output: TMemoryRaster);
 var
   fs: TCoreClassFileStream;
 begin
-  fs := TCoreClassFileStream.Create(MapFile, fmOpenRead or fmShareDenyWrite);
+  fs := TCoreClassFileStream.Create(MapFile, fmOpenRead or fmShareDenyNone);
   BuildTileMapAsBitmap(fs, output);
   DisposeObject(fs);
 end;
@@ -1261,6 +1261,4 @@ TileTerrainDefaultBitmapClass := TMemoryRaster;
 
 finalization
 
-end. 
- 
- 
+end.

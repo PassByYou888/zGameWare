@@ -8,7 +8,7 @@ uses
   FMX.Controls.Presentation, FMX.Layouts, FMX.ListBox, FMX.Objects,
   System.IOUtils, System.Math,
 
-  LibraryManager, StreamList, zDrawEngine, MemoryRaster,
+  ObjectDataHashField, ObjectDataHashItem, zDrawEngine, MemoryRaster,
   zDrawEngineInterface_FMX, DataFrameEngine, UnicodeMixedLib, CoreClasses,
   ObjectDataManager, Geometry2DUnit, ListEngine, TileTerrainEngine,
   Geometry3DUnit, FMX.Effects;
@@ -98,8 +98,8 @@ type
     property OnSaveClick: TNotify read FOnSaveClick write FOnSaveClick;
   end;
 
-procedure BuildTileMapPreviewList2ListBox(FilePath: string; Lib: TLibraryManager; output: TListBox; Size: Integer; Click: TNotify);
-procedure BuildTileList2ListBox(Lib: TLibraryManager; LibFilter: string; output: TListBox; Size: Integer; Click: TNotify);
+procedure BuildTileMapPreviewList2ListBox(FilePath: string; Lib: TObjectDataHashField; output: TListBox; Size: Integer; Click: TNotify);
+procedure BuildTileList2ListBox(Lib: TObjectDataHashField; LibFilter: string; output: TListBox; Size: Integer; Click: TNotify);
 
 implementation
 
@@ -108,7 +108,7 @@ implementation
 
 uses MediaCenter;
 
-procedure BuildTileMapPreviewList2ListBox(FilePath: string; Lib: TLibraryManager; output: TListBox; Size: Integer; Click: TNotify);
+procedure BuildTileMapPreviewList2ListBox(FilePath: string; Lib: TObjectDataHashField; output: TListBox; Size: Integer; Click: TNotify);
   procedure AddToListBox(FileName: string);
   var
     L: TListBoxItem;
@@ -184,7 +184,7 @@ begin
       output.ListItems[0].OnClick(output.ListItems[0]);
 end;
 
-procedure BuildTileList2ListBox(Lib: TLibraryManager; LibFilter: string; output: TListBox; Size: Integer; Click: TNotify);
+procedure BuildTileList2ListBox(Lib: TObjectDataHashField; LibFilter: string; output: TListBox; Size: Integer; Click: TNotify);
   procedure AddToListBox(n: string; bmp: TDETexture);
   var
     L: TListBoxItem;
@@ -220,9 +220,9 @@ procedure BuildTileList2ListBox(Lib: TLibraryManager; LibFilter: string; output:
 
 var
   i, J: Integer;
-  hs: THashStreamList;
+  hs: TObjectDataHashItem;
   lst: TCoreClassList;
-  p: PHashStreamListData;
+  p: PHashItemData;
   bmp: TDETexture;
 begin
   output.Clear;
@@ -237,7 +237,7 @@ begin
 
           for J := 0 to lst.Count - 1 do
             begin
-              p := PHashStreamListData(lst[J]);
+              p := PHashItemData(lst[J]);
               bmp := DefaultTextureClass.Create;
               p^.stream.Position := 0;
               bmp.LoadFromStream(p^.stream);
@@ -402,7 +402,7 @@ end;
 
 procedure TTileDrawFrame.NearStyleRectangleClick(Sender: TObject);
 var
-  p: PHashStreamListData;
+  p: PHashItemData;
 begin
   if (FCurrentLibFilter = '') or (FCurrentLibFilter = '*') then
     begin
@@ -746,7 +746,7 @@ end;
 procedure TTileDrawFrame.InternalNewMap(X, Y: Integer; _DefaultTexturePrefix: U_String);
 var
   w, h: Integer;
-  p: PHashStreamListData;
+  p: PHashItemData;
 begin
   ResetMap;
 
