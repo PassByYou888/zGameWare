@@ -61,9 +61,9 @@ type
     function Last: TPolyManagerChildren;
     procedure AssignFrom(APoly: TPolyManager);
 
-    function PointOk(AExpandDist: TGeoFloat; pt: TVec2): Boolean;
-    function LineIntersect(AExpandDist: TGeoFloat; lb, le: TVec2): Boolean;
-    function GetNearLine(AExtandDistance: TGeoFloat; const pt: TVec2): TVec2;
+    function PointOk(ExpandDist_: TGeoFloat; pt: TVec2): Boolean;
+    function LineIntersect(ExpandDist_: TGeoFloat; lb, le: TVec2): Boolean;
+    function GetNearLine(ExtandDistance_: TGeoFloat; const pt: TVec2): TVec2;
     function Collision2Circle(cp: TVec2; r: TGeoFloat; OutputList: TDeflectionPolygonLines): Boolean;
 
     procedure Rebuild;
@@ -194,50 +194,50 @@ begin
   FScene.CopyPoly(APoly.Scene, False);
 end;
 
-function TPolyManager.PointOk(AExpandDist: TGeoFloat; pt: TVec2): Boolean;
+function TPolyManager.PointOk(ExpandDist_: TGeoFloat; pt: TVec2): Boolean;
 var
   i: Integer;
 begin
   Result := False;
-  if not FScene.InHere(AExpandDist, pt) then
+  if not FScene.InHere(ExpandDist_, pt) then
       Exit;
   for i := 0 to Count - 1 do
-    if GetPoly(i).InHere(AExpandDist, pt) then
+    if GetPoly(i).InHere(ExpandDist_, pt) then
         Exit;
   Result := True;
 end;
 
-function TPolyManager.LineIntersect(AExpandDist: TGeoFloat; lb, le: TVec2): Boolean;
+function TPolyManager.LineIntersect(ExpandDist_: TGeoFloat; lb, le: TVec2): Boolean;
 var
   i: Integer;
 begin
   Result := False;
   for i := 0 to Count - 1 do
     begin
-      if Poly[i].LineIntersect(AExpandDist, lb, le, True) then
+      if Poly[i].LineIntersect(ExpandDist_, lb, le, True) then
         begin
           Result := True;
           Exit;
         end;
     end;
 
-  if FScene.LineIntersect(AExpandDist, lb, le, True) then
+  if FScene.LineIntersect(ExpandDist_, lb, le, True) then
       Result := True;
 end;
 
-function TPolyManager.GetNearLine(AExtandDistance: TGeoFloat; const pt: TVec2): TVec2;
+function TPolyManager.GetNearLine(ExtandDistance_: TGeoFloat; const pt: TVec2): TVec2;
 var
   i: Integer;
   d, d2: TGeoFloat;
   lb, le: Integer;
   r: TVec2;
 begin
-  Result := FScene.GetNearLine(AExtandDistance, pt, True, lb, le);
+  Result := FScene.GetNearLine(ExtandDistance_, pt, True, lb, le);
   d := PointDistance(pt, Result);
 
   for i := 0 to Count - 1 do
     begin
-      r := Poly[i].GetNearLine(AExtandDistance, pt, True, lb, le);
+      r := Poly[i].GetNearLine(ExtandDistance_, pt, True, lb, le);
       d2 := PointDistance(pt, r);
       if (d2 < d) then
         begin

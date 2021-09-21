@@ -66,6 +66,8 @@ type
     function MorphExp_DrawToRaster(OpRunTime: TOpCustomRunTime; var Param: TOpParam): Variant;
     function MorphExp_LFBlendRaster(OpRunTime: TOpCustomRunTime; var Param: TOpParam): Variant;
     function MorphExp_RFBlendRaster(OpRunTime: TOpCustomRunTime; var Param: TOpParam): Variant;
+    function MorphExp_FlipHorz(OpRunTime: TOpCustomRunTime; var Param: TOpParam): Variant;
+    function MorphExp_FlipVert(OpRunTime: TOpCustomRunTime; var Param: TOpParam): Variant;
     function MorphExp_Rotate(OpRunTime: TOpCustomRunTime; var Param: TOpParam): Variant;
     function MorphExp_HoughRotate(OpRunTime: TOpCustomRunTime; var Param: TOpParam): Variant;
     function MorphExp_Raster(OpRunTime: TOpCustomRunTime; var Param: TOpParam): Variant;
@@ -292,6 +294,8 @@ end;
 
 procedure RemoveMorphExpExternalAPI(p: Pointer);
 begin
+  if p = nil then
+      exit;
   ExternalAPIDataList_.Remove(POnRegExternalAPIData(p));
   dispose(POnRegExternalAPIData(p));
 end;
@@ -325,6 +329,8 @@ begin
   Exp.RegObjectOpM('Draw', 'Draw(token,TMorphologyPixel): draw raster ', {$IFDEF FPC}@{$ENDIF FPC}MorphExp_DrawToRaster)^.Category := 'Morphology';
   Exp.RegObjectOpM('LFBlend', 'LFBlend(token..n): left to right blend raster ', {$IFDEF FPC}@{$ENDIF FPC}MorphExp_LFBlendRaster)^.Category := 'Morphology';
   Exp.RegObjectOpM('RFBlend', 'RFBlend(token..n): right to left blend raster ', {$IFDEF FPC}@{$ENDIF FPC}MorphExp_RFBlendRaster)^.Category := 'Morphology';
+  Exp.RegObjectOpM('FlipHorz', 'FlipHorz(): flip horz ', {$IFDEF FPC}@{$ENDIF FPC}MorphExp_FlipHorz)^.Category := 'Morphology';
+  Exp.RegObjectOpM('FlipVert', 'FlipVert(): flip vert ', {$IFDEF FPC}@{$ENDIF FPC}MorphExp_FlipVert)^.Category := 'Morphology';
   Exp.RegObjectOpM('Rotate', 'MorphExp_Rotate(angle): rotate ', {$IFDEF FPC}@{$ENDIF FPC}MorphExp_Rotate)^.Category := 'Morphology';
   Exp.RegObjectOpM('HoughRotate', 'HoughRotate(style): Calibrate Rotate, style = 0,1,2', {$IFDEF FPC}@{$ENDIF FPC}MorphExp_HoughRotate)^.Category := 'Morphology';
   Exp.RegObjectOpM('Raster', 'Raster(): build raster ', {$IFDEF FPC}@{$ENDIF FPC}MorphExp_Raster)^.Category := 'Morphology';
@@ -940,6 +946,52 @@ begin
   for i := High(Param) downto Low(Param) do
       FindStep(meRT, umlVarToStr(Param[i], False)).OutData.Raster.DrawTo(meRT.Step.OutData.Raster);
 
+  Result := OpRunTime.Trigger^.Name + '[ok]';
+end;
+
+function TExp_API.MorphExp_FlipHorz(OpRunTime: TOpCustomRunTime; var Param: TOpParam): Variant;
+var
+  meRT: TMorphExpRunTime;
+  Ang: TGeoFloat;
+begin
+  meRT := OpRunTime as TMorphExpRunTime;
+  if (meRT.Step.InData = nil) or (meRT.Step.InData.FoundData = 0) then
+    begin
+      Result := OpRunTime.Trigger^.Name + '[error: data is nil]';
+      exit;
+    end;
+
+  if (meRT.Step.InData.Raster = nil) then
+    begin
+      Result := OpRunTime.Trigger^.Name + '[error: must be raster input]';
+      exit;
+    end;
+
+  meRT.Step.OutData.Assign(meRT.Step.InData);
+  meRT.Step.OutData.Raster.FlipHorz();
+  Result := OpRunTime.Trigger^.Name + '[ok]';
+end;
+
+function TExp_API.MorphExp_FlipVert(OpRunTime: TOpCustomRunTime; var Param: TOpParam): Variant;
+var
+  meRT: TMorphExpRunTime;
+  Ang: TGeoFloat;
+begin
+  meRT := OpRunTime as TMorphExpRunTime;
+  if (meRT.Step.InData = nil) or (meRT.Step.InData.FoundData = 0) then
+    begin
+      Result := OpRunTime.Trigger^.Name + '[error: data is nil]';
+      exit;
+    end;
+
+  if (meRT.Step.InData.Raster = nil) then
+    begin
+      Result := OpRunTime.Trigger^.Name + '[error: must be raster input]';
+      exit;
+    end;
+
+  meRT.Step.OutData.Assign(meRT.Step.InData);
+  meRT.Step.OutData.Raster.FlipVert();
   Result := OpRunTime.Trigger^.Name + '[ok]';
 end;
 
@@ -3542,7 +3594,7 @@ begin
   Reset;
   InputRaster(Raster);
   pl := TPascalStringList.Create;
-  pl.Text := script;
+  pl.AsText := script;
   for i := 0 to pl.Count - 1 do
       AddExp(pl[i]);
   DisposeObject(pl);

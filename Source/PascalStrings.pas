@@ -104,6 +104,7 @@ type
     function Same(const t1, t2, t3, t4, t5, t6: TPascalString): Boolean; overload;
     function Same(const t1, t2, t3, t4, t5, t6, t7: TPascalString): Boolean; overload;
     function Same(const t1, t2, t3, t4, t5, t6, t7, t8: TPascalString): Boolean; overload;
+    function Same(const t1, t2, t3, t4, t5, t6, t7, t8, t9: TPascalString): Boolean; overload;
     function Same(const IgnoreCase: Boolean; const t: TPascalString): Boolean; overload;
     function ComparePos(const Offset: Integer; const p: PPascalString): Boolean; overload;
     function ComparePos(const Offset: Integer; const t: TPascalString): Boolean; overload;
@@ -173,6 +174,8 @@ type
 
   TP_String = TPascalString;
   PP_String = PPascalString;
+  TAtomSystemString = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<SystemString>;
+  TAtomPascalString = {$IFDEF FPC}specialize {$ENDIF FPC}TAtomVar<TPascalString>;
 
 function CharIn(c: SystemChar; const SomeChars: array of SystemChar): Boolean; overload;
 function CharIn(c: SystemChar; const SomeChar: SystemChar): Boolean; overload;
@@ -1728,6 +1731,11 @@ begin
   Result := Same(@t1) or Same(@t2) or Same(@t3) or Same(@t4) or Same(@t5) or Same(@t6) or Same(@t7) or Same(@t8);
 end;
 
+function TPascalString.Same(const t1, t2, t3, t4, t5, t6, t7, t8, t9: TPascalString): Boolean;
+begin
+  Result := Same(@t1) or Same(@t2) or Same(@t3) or Same(@t4) or Same(@t5) or Same(@t6) or Same(@t7) or Same(@t8) or Same(@t9);
+end;
+
 function TPascalString.Same(const IgnoreCase: Boolean; const t: TPascalString): Boolean;
 var
   i: Integer;
@@ -2095,7 +2103,8 @@ var
 begin
   swap_buff := PlatformBytes;
   buff_P := GetMemory(length(swap_buff) + 1);
-  CopyPtr(@swap_buff[0], buff_P, length(swap_buff));
+  if length(swap_buff) > 0 then
+      CopyPtr(@swap_buff[0], buff_P, length(swap_buff));
   buff_P^[length(swap_buff)] := 0;
   SetLength(swap_buff, 0);
   Result := buff_P;

@@ -3,12 +3,12 @@ program DPRCodeSort;
 uses
   System.StartUpCopy,
   FMX.Forms,
-  SortFrm in 'SortFrm.pas' {SortForm};
+  DPRCodeSortFrm in 'DPRCodeSortFrm.pas' {DPRCodeSortForm};
 
 {$R *.res}
 
 begin
   Application.Initialize;
-  Application.CreateForm(TSortForm, SortForm);
+  Application.CreateForm(TDPRCodeSortForm, DPRCodeSortForm);
   Application.Run;
 end.

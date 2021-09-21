@@ -11,8 +11,7 @@ uses
 
   CoreClasses, PascalStrings, UnicodeMixedLib,
   Geometry2DUnit,
-  zDrawEngine, MemoryRaster, zDrawEngineInterface_SlowFMX, FMX.Layouts,
-  FMX.StdCtrls, FMX.ListBox, FMX.Controls.Presentation;
+  zDrawEngine, MemoryRaster, zDrawEngineInterface_SlowFMX, FMX.Layouts, FMX.Controls.Presentation, FMX.StdCtrls, FMX.ListBox;
 
 type
   TProjectionForm = class(TForm)

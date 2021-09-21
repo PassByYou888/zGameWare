@@ -80,7 +80,6 @@ end;
 
 function TMT19937Core.GenRand_MT19937(): Integer;
 var
-  th: TCoreClassThread;
   Y, K: Integer;
 begin
   if InternalRndSeed <> InternalOldRndSeed then
@@ -169,6 +168,15 @@ var
   p: PMD19937Core;
 begin
   th := TCoreClassThread.CurrentThread;
+
+  if (th is TCompute) and (TCompute(th).FRndInstance <> nil) then
+    begin
+      p := TCompute(th).FRndInstance;
+      p^.LastActivtedTime := GetTimeTick;
+      Result := p;
+      exit;
+    end;
+
   Result := nil;
 
   MT19937InternalCritical.Acquire;

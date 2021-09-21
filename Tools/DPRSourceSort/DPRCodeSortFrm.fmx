@@ -1,0 +1,83 @@
+object DPRCodeSortForm: TDPRCodeSortForm
+  Left = 0
+  Top = 0
+  Caption = 'DPR Source Sort tool. create by.qq600585'
+  ClientHeight = 469
+  ClientWidth = 761
+  Position = DesktopCenter
+  StyleBook = StyleDataModule.GlobalStyleBook
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object Memo1: TMemo
+    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+    DataDetectorTypes = []
+    Lines.Strings = (
+      'program DPRCodeSort;'
+      ''
+      '{'
+      
+        'The implementation of sorting tool uses the lexical engine of st' +
+        'ring, which can highly correct errors'
+      
+        'When using, you only need to paste all the source code of DPR he' +
+        're and then click Sort'
+      
+        'Attached source code, but does not include lexical engine librar' +
+        'y'
+      '}'
+      ''
+      'uses'
+      '  System.StartUpCopy,'
+      '  FMX.Forms,'
+      '  SortFrm in '#39'SortFrm.pas'#39' {SortForm},'
+      '  CoreClasses in '#39'CoreClasses.pas'#39','
+      '  PascalStrings in '#39'PascalStrings.pas'#39','
+      '  UnicodeMixedLib in '#39'UnicodeMixedLib.pas'#39','
+      '  TextParsing in '#39'TextParsing.pas'#39';'
+      ''
+      '{$R *.res}'
+      ''
+      'begin'
+      '  Application.Initialize;'
+      '  Application.CreateForm(TSortForm, SortForm);'
+      '  Application.Run;'
+      'end.')
+    StyledSettings = [Size, Style, FontColor]
+    TextSettings.Font.Family = 'Consolas'
+    Align = Client
+    Size.Width = 761.000000000000000000
+    Size.Height = 420.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    Viewport.Width = 757.000000000000000000
+    Viewport.Height = 416.000000000000000000
+  end
+  object Layout1: TLayout
+    Align = Top
+    Padding.Left = 5.000000000000000000
+    Padding.Top = 5.000000000000000000
+    Padding.Right = 5.000000000000000000
+    Padding.Bottom = 5.000000000000000000
+    Size.Width = 761.000000000000000000
+    Size.Height = 49.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    object SortButton: TButton
+      Align = Left
+      Position.X = 5.000000000000000000
+      Position.Y = 5.000000000000000000
+      Size.Width = 89.000000000000000000
+      Size.Height = 39.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      Text = 'Execute Sort'
+      OnClick = SortButtonClick
+    end
+  end
+  object OpenDialog: TOpenDialog
+    Left = 232
+    Top = 56
+  end
+end

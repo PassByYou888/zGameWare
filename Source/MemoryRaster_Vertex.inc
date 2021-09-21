@@ -18,6 +18,7 @@
 { * https://github.com/PassByYou888/InfiniteIoT                                * }
 { * https://github.com/PassByYou888/FastMD5                                    * }
 { ****************************************************************************** }
+
 function EnsureCCWinding(var t: TTriangle): Boolean; inline;
 begin
   Result := (t[1, 0] - t[0, 0]) * (t[2, 1] - t[0, 1]) > (t[2, 0] - t[0, 0]) * (t[1, 1] - t[0, 1]);
@@ -439,6 +440,7 @@ begin
       F := TFragmentSampling.fsNearest;
 
   try
+    Sampler.ReadyBits();
     RasterizeTriangle(F, RColor(0, 0, 0), Sampler, nSamplerTri, nRenderTri);
     if TRasterVertex.DebugTriangle then
         Window.DrawTriangle(RenderTri, True, TRasterVertex.DebugTriangleColor, False);

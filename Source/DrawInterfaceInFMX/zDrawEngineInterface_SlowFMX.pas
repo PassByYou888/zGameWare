@@ -83,6 +83,7 @@ type
     destructor Destroy; override;
 
     procedure ReleaseGPUMemory; override;
+    procedure SyncTextureMemory;
 
     property Texture: TBitmap read GetTexture;
   end;
@@ -133,22 +134,22 @@ function DEColor(c: TAlphaColor): TDEColor; inline; overload;
 function PrepareColor(const SrcColor: TAlphaColor; const Opacity: TDEFloat): TAlphaColor; inline;
 procedure MakeMatrixRotation(angle, width, height, x, y, RotationCenter_X, RotationCenter_Y: TDEFloat; var OutputMatrix: TMatrix; var OutputRect: TRectf); inline;
 
-procedure MemoryBitmapToSurface(bmp: TMemoryRaster; Surface: TBitmapSurface); overload;
-procedure MemoryBitmapToSurface(bmp: TMemoryRaster; sourRect: TRect; Surface: TBitmapSurface); overload;
-procedure SurfaceToMemoryBitmap(Surface: TBitmapSurface; bmp: TMemoryRaster);
-procedure MemoryBitmapToBitmap(b: TMemoryRaster; bmp: TBitmap); overload;
-procedure MemoryBitmapToBitmap(b: TMemoryRaster; sourRect: TRect; bmp: TBitmap); overload;
-procedure BitmapToMemoryBitmap(bmp: TBitmap; b: TMemoryRaster);
+procedure MemoryBitmapToSurface(raster: TMemoryRaster; Surface: TBitmapSurface); overload;
+procedure MemoryBitmapToSurface(raster: TMemoryRaster; sourRect: TRect; Surface: TBitmapSurface); overload;
+procedure SurfaceToMemoryBitmap(Surface: TBitmapSurface; raster: TMemoryRaster);
+procedure MemoryBitmapToBitmap(raster: TMemoryRaster; bmp: TBitmap); overload;
+procedure MemoryBitmapToBitmap(raster: TMemoryRaster; sourRect: TRect; bmp: TBitmap); overload;
+procedure BitmapToMemoryBitmap(bmp: TBitmap; raster: TMemoryRaster);
 
 function CanLoadMemoryBitmap(f: SystemString): Boolean;
-procedure LoadMemoryBitmap(f: SystemString; b: TMemoryRaster); overload;
-procedure LoadMemoryBitmap(f: SystemString; b: TSequenceMemoryRaster); overload;
-procedure LoadMemoryBitmap(f: SystemString; b: TDETexture); overload;
-procedure LoadMemoryBitmap(stream: TCoreClassStream; b: TMemoryRaster); overload;
+procedure LoadMemoryBitmap(f: SystemString; raster: TMemoryRaster); overload;
+procedure LoadMemoryBitmap(f: SystemString; raster: TSequenceMemoryRaster); overload;
+procedure LoadMemoryBitmap(f: SystemString; raster: TDETexture); overload;
+procedure LoadMemoryBitmap(stream: TCoreClassStream; raster: TMemoryRaster); overload;
 
-procedure SaveMemoryBitmap(f: SystemString; b: TMemoryRaster); overload;
-procedure SaveMemoryBitmap(b: TMemoryRaster; fileExt: SystemString; DestStream: TCoreClassStream); overload;
-procedure SaveMemoryBitmap(b: TSequenceMemoryRaster; fileExt: SystemString; DestStream: TCoreClassStream); overload;
+procedure SaveMemoryBitmap(f: SystemString; raster: TMemoryRaster); overload;
+procedure SaveMemoryBitmap(raster: TMemoryRaster; fileExt: SystemString; DestStream: TCoreClassStream); overload;
+procedure SaveMemoryBitmap(raster: TSequenceMemoryRaster; fileExt: SystemString; DestStream: TCoreClassStream); overload;
 
 var
   // resource texture cache
@@ -256,94 +257,112 @@ begin
   OutputRect.BottomRight := Pointf(x + width, y + height);
 end;
 
-procedure MemoryBitmapToSurface(bmp: TMemoryRaster; Surface: TBitmapSurface);
+procedure MemoryBitmapToSurface(raster: TMemoryRaster; Surface: TBitmapSurface);
 var
   y, x: Integer;
   p1, p2: PCardinal;
   c: TRasterColorEntry;
 begin
+  try
 {$IF Defined(ANDROID) or Defined(IOS)}
-  Surface.SetSize(bmp.width, bmp.height, TPixelFormat.RGBA);
+    Surface.SetSize(raster.width, raster.height, TPixelFormat.RGBA);
 {$ELSE}
-  Surface.SetSize(bmp.width, bmp.height, TPixelFormat.BGRA);
+    Surface.SetSize(raster.width, raster.height, TPixelFormat.BGRA);
 {$ENDIF}
-  for y := 0 to Surface.height - 1 do
-    begin
-      p1 := PCardinal(bmp.ScanLine[y]);
-      p2 := PCardinal(Surface.ScanLine[y]);
-      for x := 0 to bmp.width - 1 do
-        begin
+    raster.ReadyBits;
+    for y := 0 to Surface.height - 1 do
+      begin
+        p1 := PCardinal(raster.ScanLine[y]);
+        p2 := PCardinal(Surface.ScanLine[y]);
+        for x := 0 to raster.width - 1 do
+          begin
 {$IF Defined(ANDROID) or Defined(IOS) or Defined(OSX)}
-          c.BGRA := RGBA2BGRA(TRasterColor(p1^));
+            c.BGRA := RGBA2BGRA(TRasterColor(p1^));
 {$ELSE}
-          c.BGRA := TRasterColor(p1^);
+            c.BGRA := TRasterColor(p1^);
 {$IFEND}
-          with TAlphaColorRec(p2^) do
-            begin
-              r := c.r;
-              g := c.g;
-              b := c.b;
-              a := c.a;
-            end;
-          inc(p1);
-          inc(p2);
-        end;
-    end;
+            with TAlphaColorRec(p2^) do
+              begin
+                r := c.r;
+                g := c.g;
+                b := c.b;
+                a := c.a;
+              end;
+            inc(p1);
+            inc(p2);
+          end;
+      end;
+  except
+  end;
 end;
 
-procedure MemoryBitmapToSurface(bmp: TMemoryRaster; sourRect: TRect; Surface: TBitmapSurface);
+procedure MemoryBitmapToSurface(raster: TMemoryRaster; sourRect: TRect; Surface: TBitmapSurface);
 var
   nb: TMemoryRaster;
 begin
   nb := TMemoryRaster.Create;
   nb.DrawMode := dmBlend;
   nb.SetSize(sourRect.width, sourRect.height, RasterColor(0, 0, 0, 0));
-  bmp.DrawTo(nb, 0, 0, sourRect);
+  raster.ReadyBits;
+  raster.DrawTo(nb, 0, 0, sourRect);
   MemoryBitmapToSurface(nb, Surface);
   DisposeObject(nb);
 end;
 
-procedure SurfaceToMemoryBitmap(Surface: TBitmapSurface; bmp: TMemoryRaster);
+procedure SurfaceToMemoryBitmap(Surface: TBitmapSurface; raster: TMemoryRaster);
 var
   y, x: Integer;
 begin
-  bmp.SetSize(Surface.width, Surface.height);
-  for y := 0 to Surface.height - 1 do
+  try
+    raster.SetSize(Surface.width, Surface.height);
+    for y := 0 to Surface.height - 1 do
+      begin
+        for x := 0 to Surface.width - 1 do
+          with TAlphaColorRec(Surface.pixels[x, y]) do
+              raster.Pixel[x, y] := RasterColor(r, g, b, a)
+      end;
+  except
+  end;
+end;
+
+procedure MemoryBitmapToBitmap(raster: TMemoryRaster; bmp: TBitmap);
+var
+  Surface: TBitmapSurface;
+begin
+  Surface := TBitmapSurface.Create;
+  MemoryBitmapToSurface(raster, Surface);
+  bmp.Assign(Surface);
+  DisposeObject(Surface);
+end;
+
+procedure MemoryBitmapToBitmap(raster: TMemoryRaster; sourRect: TRect; bmp: TBitmap);
+var
+  Surface: TBitmapSurface;
+begin
+  Surface := TBitmapSurface.Create;
+  MemoryBitmapToSurface(raster, sourRect, Surface);
+  bmp.Assign(Surface);
+  DisposeObject(Surface);
+end;
+
+procedure BitmapToMemoryBitmap(bmp: TBitmap; raster: TMemoryRaster);
+var
+  Surface: TBitmapSurface;
+  BitmapData: TBitmapData;
+  i: Integer;
+begin
+  if bmp.BytesPerPixel = 4 then
     begin
-      for x := 0 to Surface.width - 1 do
-        with TAlphaColorRec(Surface.pixels[x, y]) do
-            bmp.Pixel[x, y] := RasterColor(r, g, b, a)
+      raster.SetSize(bmp.width, bmp.height);
+
+      if bmp.Map(TMapAccess.Read, BitmapData) then
+        for i := 0 to bmp.height - 1 do
+            CopyPtr(BitmapData.GetScanline(i), raster.ScanLine[i], BitmapData.BytesPerLine);
+      bmp.Unmap(BitmapData);
+
+      if bmp.PixelFormat = TPixelFormat.RGBA then
+          raster.FormatBGRA;
     end;
-end;
-
-procedure MemoryBitmapToBitmap(b: TMemoryRaster; bmp: TBitmap);
-var
-  Surface: TBitmapSurface;
-begin
-  Surface := TBitmapSurface.Create;
-  MemoryBitmapToSurface(b, Surface);
-  bmp.Assign(Surface);
-  DisposeObject(Surface);
-end;
-
-procedure MemoryBitmapToBitmap(b: TMemoryRaster; sourRect: TRect; bmp: TBitmap);
-var
-  Surface: TBitmapSurface;
-begin
-  Surface := TBitmapSurface.Create;
-  MemoryBitmapToSurface(b, sourRect, Surface);
-  bmp.Assign(Surface);
-  DisposeObject(Surface);
-end;
-
-procedure BitmapToMemoryBitmap(bmp: TBitmap; b: TMemoryRaster);
-var
-  Surface: TBitmapSurface;
-begin
-  Surface := TBitmapSurface.Create;
-  Surface.Assign(bmp);
-  SurfaceToMemoryBitmap(Surface, b);
-  DisposeObject(Surface);
 end;
 
 function CanLoadMemoryBitmap(f: SystemString): Boolean;
@@ -355,75 +374,75 @@ begin
   end;
 end;
 
-procedure LoadMemoryBitmap(f: SystemString; b: TMemoryRaster);
+procedure LoadMemoryBitmap(f: SystemString; raster: TMemoryRaster);
 var
   Surf: TBitmapSurface;
 begin
-  if b.CanLoadFile(f) then
+  if raster.CanLoadFile(f) then
     begin
-      b.LoadFromFile(f);
+      raster.LoadFromFile(f);
     end
   else
     begin
       Surf := TBitmapSurface.Create;
       try
         if TBitmapCodecManager.LoadFromFile(f, Surf, TCanvasManager.DefaultCanvas.GetAttribute(TCanvasAttribute.MaxBitmapSize)) then
-            SurfaceToMemoryBitmap(Surf, b);
+            SurfaceToMemoryBitmap(Surf, raster);
       finally
           DisposeObject(Surf);
       end;
     end;
 end;
 
-procedure LoadMemoryBitmap(stream: TCoreClassStream; b: TMemoryRaster);
+procedure LoadMemoryBitmap(stream: TCoreClassStream; raster: TMemoryRaster);
 var
   Surf: TBitmapSurface;
 begin
-  if b.CanLoadStream(stream) then
+  if raster.CanLoadStream(stream) then
     begin
-      b.LoadFromStream(stream);
+      raster.LoadFromStream(stream);
     end
   else
     begin
       Surf := TBitmapSurface.Create;
       try
         if TBitmapCodecManager.LoadFromStream(stream, Surf, TCanvasManager.DefaultCanvas.GetAttribute(TCanvasAttribute.MaxBitmapSize)) then
-            SurfaceToMemoryBitmap(Surf, b);
+            SurfaceToMemoryBitmap(Surf, raster);
       finally
           DisposeObject(Surf);
       end;
     end;
 end;
 
-procedure LoadMemoryBitmap(f: SystemString; b: TSequenceMemoryRaster);
+procedure LoadMemoryBitmap(f: SystemString; raster: TSequenceMemoryRaster);
 begin
-  if b.CanLoadFile(f) then
-      b.LoadFromFile(f)
+  if raster.CanLoadFile(f) then
+      raster.LoadFromFile(f)
   else
-      LoadMemoryBitmap(f, TMemoryRaster(b));
+      LoadMemoryBitmap(f, TMemoryRaster(raster));
 end;
 
-procedure LoadMemoryBitmap(f: SystemString; b: TDETexture);
+procedure LoadMemoryBitmap(f: SystemString; raster: TDETexture);
 begin
-  LoadMemoryBitmap(f, TSequenceMemoryRaster(b));
-  b.ReleaseGPUMemory;
+  LoadMemoryBitmap(f, TSequenceMemoryRaster(raster));
+  raster.ReleaseGPUMemory;
 end;
 
-procedure SaveMemoryBitmap(f: SystemString; b: TMemoryRaster);
+procedure SaveMemoryBitmap(f: SystemString; raster: TMemoryRaster);
 var
   Surf: TBitmapSurface;
 begin
   if umlMultipleMatch(['*.bmp'], f) then
-      b.SaveToFile(f)
+      raster.SaveToFile(f)
   else if umlMultipleMatch(['*.jpg', '*.jpeg'], f) then
-      b.SaveToJpegYCbCrFile(f, 90)
+      raster.SaveToJpegYCbCrFile(f, 90)
   else if umlMultipleMatch(['*.seq'], f) then
-      b.SaveToZLibCompressFile(f)
+      raster.SaveToZLibCompressFile(f)
   else
     begin
       Surf := TBitmapSurface.Create;
       try
-        MemoryBitmapToSurface(b, Surf);
+        MemoryBitmapToSurface(raster, Surf);
         TBitmapCodecManager.SaveToFile(f, Surf, nil);
       finally
           DisposeObject(Surf);
@@ -431,17 +450,17 @@ begin
     end;
 end;
 
-procedure SaveMemoryBitmap(b: TMemoryRaster; fileExt: SystemString; DestStream: TCoreClassStream);
+procedure SaveMemoryBitmap(raster: TMemoryRaster; fileExt: SystemString; DestStream: TCoreClassStream);
 var
   Surf: TBitmapSurface;
 begin
   if umlMultipleMatch(['.bmp'], fileExt) then
-      b.SaveToBmp32Stream(DestStream)
+      raster.SaveToBmp32Stream(DestStream)
   else
     begin
       Surf := TBitmapSurface.Create;
       try
-        MemoryBitmapToSurface(b, Surf);
+        MemoryBitmapToSurface(raster, Surf);
         TBitmapCodecManager.SaveToStream(DestStream, Surf, fileExt);
       finally
           DisposeObject(Surf);
@@ -449,19 +468,19 @@ begin
     end;
 end;
 
-procedure SaveMemoryBitmap(b: TSequenceMemoryRaster; fileExt: SystemString; DestStream: TCoreClassStream);
+procedure SaveMemoryBitmap(raster: TSequenceMemoryRaster; fileExt: SystemString; DestStream: TCoreClassStream);
 var
   Surf: TBitmapSurface;
 begin
   if umlMultipleMatch(['.bmp'], fileExt) then
-      b.SaveToBmp32Stream(DestStream)
+      raster.SaveToBmp32Stream(DestStream)
   else if umlMultipleMatch(['.seq'], fileExt) then
-      b.SaveToStream(DestStream)
+      raster.SaveToStream(DestStream)
   else
     begin
       Surf := TBitmapSurface.Create;
       try
-        MemoryBitmapToSurface(b, Surf);
+        MemoryBitmapToSurface(raster, Surf);
         TBitmapCodecManager.SaveToStream(DestStream, Surf, fileExt);
       finally
           DisposeObject(Surf);
@@ -801,6 +820,11 @@ begin
   if FTexture <> nil then
       DisposeObject(FTexture);
   FTexture := nil;
+end;
+
+procedure TDETexture_FMX.SyncTextureMemory;
+begin
+  GetTexture();
 end;
 
 constructor TResourceTexture.Create;

@@ -17,7 +17,7 @@ uses
   CoreClasses, ListEngine,
   ObjectData, ObjectDataManager, ItemStream, zExpression,
   MemoryStream64, MemoryRaster, Geometry2DUnit, DoStatusIO, PascalStrings,
-  UnicodeMixedLib, zDrawEngine, zDrawEngineInterface_SlowFMX;
+  UnicodeMixedLib, zDrawEngine, zDrawEngineInterface_SlowFMX, zAI_Common;
 
 type
   TFMX_FontBuildForm = class(TForm)
@@ -217,6 +217,7 @@ end;
 
 constructor TFMX_FontBuildForm.Create(AOwner: TComponent);
 begin
+  ReadAIConfig;
   dIntf := TDrawEngineInterface_FMX.Create();
   dEng := TDrawEngine.Create;
   dEng.ViewOptions := [voEdge];
@@ -230,7 +231,7 @@ begin
   RefreshFont(FilterEdit.Text);
   bkTex := NewRaster();
   bkTex.SetSize(128, 128);
-  FillBlackGrayBackgroundTexture(bkTex, 16, RColorF(0.55,0.55,0.55), RColorF(0.5,0.5,0.5), RColorF(0.45,0.45,0.45));
+  FillBlackGrayBackgroundTexture(bkTex, 64);
 
   previewText := 'abcdefg'#13#10 +
     'hijklmn'#13#10 +
@@ -275,17 +276,15 @@ end;
 
 procedure TFMX_FontBuildForm.Action_BuildFontExecute(Sender: TObject);
 var
-  n:U_String;
   i: Integer;
   FMX_FONTConsoleBuild: U_String;
   Cmd_: TPascalString;
   p: PPascalString;
 begin
-  n:=umlCombineFileName(TPath.GetLibraryPath, 'FMX_FONTConsoleBuild.EXE');
-  if not umlFileExists(n) then
+  if not FileExistsFromConfigure('FMX_FONTConsoleBuild.EXE') then
       exit;
 
-  FMX_FONTConsoleBuild := n;
+  FMX_FONTConsoleBuild := WhereFileFromConfigure('FMX_FONTConsoleBuild.EXE');
   for i := 0 to fontListBox.Count - 1 do
     if fontListBox.ListItems[i].IsChecked then
       begin
@@ -293,7 +292,7 @@ begin
           [FMX_FONTConsoleBuild.Text,
           fontListBox.ListItems[i].Text,
           sizeEdit.Text,
-          umlGetFilePath(FMX_FONTConsoleBuild).Text,
+          AI_Work_Path.Text,
           umlBoolToStr(CheckBox_AA.IsChecked).Text,
           umlBoolToStr(CheckBox_Bold.IsChecked).Text,
           umlBoolToStr(CheckBox_ASCII.IsChecked).Text,
@@ -304,7 +303,7 @@ begin
         p^ := Cmd_;
         TCompute.RunP(p, nil, procedure(thSender: TCompute)
           begin
-            WaitShellExecute(PPascalString(thSender.UserData)^, umlGetFilePath(FMX_FONTConsoleBuild), True);
+            WaitShellExecute(PPascalString(thSender.UserData)^, AI_Work_Path, True);
             Dispose(PPascalString(thSender.UserData));
           end);
       end;

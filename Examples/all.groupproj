@@ -99,6 +99,12 @@
         <Projects Include="44 RectRotationProjection\RectRotationProjection.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="45 BulletText\BulletText.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="46 LayoutRender\LayourRender.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -395,14 +401,32 @@
     <Target Name="RectRotationProjection:Make">
         <MSBuild Projects="44 RectRotationProjection\RectRotationProjection.dproj" Targets="Make"/>
     </Target>
+    <Target Name="BulletText">
+        <MSBuild Projects="45 BulletText\BulletText.dproj"/>
+    </Target>
+    <Target Name="BulletText:Clean">
+        <MSBuild Projects="45 BulletText\BulletText.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="BulletText:Make">
+        <MSBuild Projects="45 BulletText\BulletText.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="LayourRender">
+        <MSBuild Projects="46 LayoutRender\LayourRender.dproj"/>
+    </Target>
+    <Target Name="LayourRender:Clean">
+        <MSBuild Projects="46 LayoutRender\LayourRender.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="LayourRender:Make">
+        <MSBuild Projects="46 LayoutRender\LayourRender.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="FFMPEG_ReaderDemo;findpath;movementdebug;ParticleTest;memoryRasterProjection;PropsTest;RasterizationFormatDemo;TextureAtlas;yuv2Video;SoftRenderer;Render2Video;zDrawEngine_HelloWorld;TextDraw;PolygonScaleAndExtract;DrawEngine4FMXBitmap;FillColor;GeometryIntersect;HoughRotationDetectAndCalibrate;MatrixAndVectorExpression;MemoryMapping;MemoryRasterMoreFont;NumTrans;ParallelCompressor;PascalCodeDependencyAnslysis;TriangleOptimization;zExpressionSupport;zSoundWithBASS;zSoundWithFMX;RotationDemo;ParallelProjection;ParallelDemo;RectRotationProjection"/>
+        <CallTarget Targets="FFMPEG_ReaderDemo;findpath;movementdebug;ParticleTest;memoryRasterProjection;PropsTest;RasterizationFormatDemo;TextureAtlas;yuv2Video;SoftRenderer;Render2Video;zDrawEngine_HelloWorld;TextDraw;PolygonScaleAndExtract;DrawEngine4FMXBitmap;FillColor;GeometryIntersect;HoughRotationDetectAndCalibrate;MatrixAndVectorExpression;MemoryMapping;MemoryRasterMoreFont;NumTrans;ParallelCompressor;PascalCodeDependencyAnslysis;TriangleOptimization;zExpressionSupport;zSoundWithBASS;zSoundWithFMX;RotationDemo;ParallelProjection;ParallelDemo;RectRotationProjection;BulletText;LayourRender"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="FFMPEG_ReaderDemo:Clean;findpath:Clean;movementdebug:Clean;ParticleTest:Clean;memoryRasterProjection:Clean;PropsTest:Clean;RasterizationFormatDemo:Clean;TextureAtlas:Clean;yuv2Video:Clean;SoftRenderer:Clean;Render2Video:Clean;zDrawEngine_HelloWorld:Clean;TextDraw:Clean;PolygonScaleAndExtract:Clean;DrawEngine4FMXBitmap:Clean;FillColor:Clean;GeometryIntersect:Clean;HoughRotationDetectAndCalibrate:Clean;MatrixAndVectorExpression:Clean;MemoryMapping:Clean;MemoryRasterMoreFont:Clean;NumTrans:Clean;ParallelCompressor:Clean;PascalCodeDependencyAnslysis:Clean;TriangleOptimization:Clean;zExpressionSupport:Clean;zSoundWithBASS:Clean;zSoundWithFMX:Clean;RotationDemo:Clean;ParallelProjection:Clean;ParallelDemo:Clean;RectRotationProjection:Clean"/>
+        <CallTarget Targets="FFMPEG_ReaderDemo:Clean;findpath:Clean;movementdebug:Clean;ParticleTest:Clean;memoryRasterProjection:Clean;PropsTest:Clean;RasterizationFormatDemo:Clean;TextureAtlas:Clean;yuv2Video:Clean;SoftRenderer:Clean;Render2Video:Clean;zDrawEngine_HelloWorld:Clean;TextDraw:Clean;PolygonScaleAndExtract:Clean;DrawEngine4FMXBitmap:Clean;FillColor:Clean;GeometryIntersect:Clean;HoughRotationDetectAndCalibrate:Clean;MatrixAndVectorExpression:Clean;MemoryMapping:Clean;MemoryRasterMoreFont:Clean;NumTrans:Clean;ParallelCompressor:Clean;PascalCodeDependencyAnslysis:Clean;TriangleOptimization:Clean;zExpressionSupport:Clean;zSoundWithBASS:Clean;zSoundWithFMX:Clean;RotationDemo:Clean;ParallelProjection:Clean;ParallelDemo:Clean;RectRotationProjection:Clean;BulletText:Clean;LayourRender:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="FFMPEG_ReaderDemo:Make;findpath:Make;movementdebug:Make;ParticleTest:Make;memoryRasterProjection:Make;PropsTest:Make;RasterizationFormatDemo:Make;TextureAtlas:Make;yuv2Video:Make;SoftRenderer:Make;Render2Video:Make;zDrawEngine_HelloWorld:Make;TextDraw:Make;PolygonScaleAndExtract:Make;DrawEngine4FMXBitmap:Make;FillColor:Make;GeometryIntersect:Make;HoughRotationDetectAndCalibrate:Make;MatrixAndVectorExpression:Make;MemoryMapping:Make;MemoryRasterMoreFont:Make;NumTrans:Make;ParallelCompressor:Make;PascalCodeDependencyAnslysis:Make;TriangleOptimization:Make;zExpressionSupport:Make;zSoundWithBASS:Make;zSoundWithFMX:Make;RotationDemo:Make;ParallelProjection:Make;ParallelDemo:Make;RectRotationProjection:Make"/>
+        <CallTarget Targets="FFMPEG_ReaderDemo:Make;findpath:Make;movementdebug:Make;ParticleTest:Make;memoryRasterProjection:Make;PropsTest:Make;RasterizationFormatDemo:Make;TextureAtlas:Make;yuv2Video:Make;SoftRenderer:Make;Render2Video:Make;zDrawEngine_HelloWorld:Make;TextDraw:Make;PolygonScaleAndExtract:Make;DrawEngine4FMXBitmap:Make;FillColor:Make;GeometryIntersect:Make;HoughRotationDetectAndCalibrate:Make;MatrixAndVectorExpression:Make;MemoryMapping:Make;MemoryRasterMoreFont:Make;NumTrans:Make;ParallelCompressor:Make;PascalCodeDependencyAnslysis:Make;TriangleOptimization:Make;zExpressionSupport:Make;zSoundWithBASS:Make;zSoundWithFMX:Make;RotationDemo:Make;ParallelProjection:Make;ParallelDemo:Make;RectRotationProjection:Make;BulletText:Make;LayourRender:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

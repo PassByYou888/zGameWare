@@ -44,13 +44,13 @@ implementation
 
 procedure TParticleTestForm.CadencerProgress(Sender: TObject; const deltaTime, newTime: Double);
 begin
-  FParticles.GenerateRange := DERect(-Width * 0.5, -20, Width * 0.5, 20);
+  FParticles.FireSource := DERect(-width * 0.5, -20, width * 0.5, 20);
 
   if deltaTime > 0.1 then
       FDrawEngine.Progress(0.1)
   else
       FDrawEngine.Progress(deltaTime);
-  PaintBox.Repaint;
+  PaintBox.RepaInt;
 end;
 
 constructor TParticleTestForm.Create(AOwner: TComponent);
@@ -67,22 +67,25 @@ begin
 
   PaintBox.Canvas.Font.Style := [TFontStyle.fsBold];
 
-  s := TResourceStream.Create(hInstance, 'leaf', RT_RCDATA);
+  s := TResourceStream.Create(HInstance, 'leaf', RT_RCDATA);
   FSeqAni.LoadFromStream(s);
 
   FParticles := FDrawEngine.CreateParticles;
   FParticles.SequenceTexture := FSeqAni;
   FParticles.SequenceTextureCompleteTime := 1.0;
-  FParticles.MinAlpha := 0.5;
-  FParticles.MaxAlpha := 1.0;
-  FParticles.MaxParticle := 1500;
-  FParticles.ParticleSize := 16;
-  FParticles.GenSpeedOfPerSecond := 150;
-  FParticles.LifeTime := 10.0;
+  FParticles.MinAlpha := 0.2;
+  FParticles.MaxAlpha := 0.7;
+  FParticles.MaxParticle := 1000;
+  FParticles.ParticleSize := 24;
+  FParticles.GenSpeedOfPerSecond := 100;
+  FParticles.LifeTime := 7.0;
   FParticles.Enabled := True;
   FParticles.Visible := True;
-  FParticles.Dispersion := Make2DPoint(0, 32);
-  FParticles.DispersionAcceleration := 0.5;
+
+  FParticles.MinSpeed := 50;
+  FParticles.MaxSpeed := 100;
+  FParticles.FireDirection := RectV2(-15, 48, 15, 96);
+  FParticles.Acceleration := 0.5;
   FParticles.RotationOfSecond := -40;
 end;
 
@@ -109,7 +112,7 @@ end;
 procedure TParticleTestForm.PaintBoxPaint(Sender: TObject; Canvas: TCanvas);
 begin
   FDrawEngineInterface.Canvas := Canvas;
-  FDrawEngine.SetSize(PaintBox.Width, PaintBox.Height);
+  FDrawEngine.SetSize(PaintBox.width, PaintBox.height);
 
   FDrawEngine.ScreenFrameColor := DEColor(0, 0, 0, 0.5);
   FDrawEngine.FPSFontColor := DEColor(0, 0, 0, 1.0);
@@ -117,7 +120,7 @@ begin
   FDrawEngine.FillBox(FDrawEngine.ScreenRect, DEColor(1, 1, 1, 1));
 
   FDrawEngine.BeginCaptureShadow(DEVec(5, 5), 0.1);
-  FDrawEngine.DrawParticle(FParticles, DEVec(Width * 0.5, 0));
+  FDrawEngine.DrawParticle(FParticles, DEVec(width * 0.5, 0));
   FDrawEngine.EndCaptureShadow;
 
   FDrawEngine.Flush;

@@ -158,7 +158,7 @@ begin
       plc.LineColor[3] := d.alpha;
       plc.PointColor[3] := d.alpha;
 
-      DrawEng.DrawPLInScene(d.bio.MovementPath, False, plc);
+//      DrawEng.DrawPLInScene(d.bio.MovementPath, False, plc);
 
       DrawEng.DrawCommand.SetLineWidth(5);
       DrawEng.DrawCommand.DrawLine(d.bio.Position, PointRotation(d.bio.Position, d.bio.Radius * 1.5, FinalAngle4FMX(d.bio.RollAngle)), vec4(1, 0.3, 0.3, d.alpha));

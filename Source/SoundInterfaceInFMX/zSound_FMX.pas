@@ -134,7 +134,7 @@ type
 
     function MediaIsPlaying(M: TSEBase): Boolean;
   public
-    constructor Create(ATempPath: SystemString); override;
+    constructor Create(TempPath_: SystemString); override;
     destructor Destroy; override;
 
     procedure Progress(deltaTime: Double); override;
@@ -520,11 +520,11 @@ begin
   Result := M.Playing;
 end;
 
-constructor TSoundEngine_FMX.Create(ATempPath: SystemString);
+constructor TSoundEngine_FMX.Create(TempPath_: SystemString);
 var
   i: Integer;
 begin
-  inherited Create(ATempPath);
+  inherited Create(TempPath_);
   FMediaMusic := TSEMediaPlayer.Create;
   FMediaAmbient := TSEMediaPlayer.Create;
 

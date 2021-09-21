@@ -57,7 +57,7 @@ type
     // ICadencerProgressInterface
     procedure CadencerProgress(const deltaTime, newTime: Double); virtual;
   public
-    constructor Create(ATempPath: SystemString); virtual;
+    constructor Create(TempPath_: SystemString); virtual;
     destructor Destroy; override;
 
     procedure PrepareMusic(FileName: SystemString);
@@ -105,13 +105,13 @@ begin
   Progress(deltaTime);
 end;
 
-constructor TzSound.Create(ATempPath: SystemString);
+constructor TzSound.Create(TempPath_: SystemString);
 begin
   inherited Create;
   FCadEng := TCadencer.Create;
   FCadEng.ProgressInterface := Self;
   FSearchDB := nil;
-  FTempPath := ATempPath;
+  FTempPath := TempPath_;
   FCacheFileList := THashVariantList.Create;
   FLastPlaySoundFilename := '';
 end;

@@ -1,0 +1,52 @@
+object LayourRenderForm: TLayourRenderForm
+  Left = 0
+  Top = 0
+  Caption = 'Layout Render. create by.qq600585'
+  ClientHeight = 511
+  ClientWidth = 960
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnResize = FormResize
+  OnPaint = FormPaint
+  DesignerMasterStyle = 0
+  object Layout1: TLayout
+    ClipChildren = True
+    ClipParent = True
+    Position.X = 16.000000000000000000
+    Position.Y = 16.000000000000000000
+    Size.Width = 337.000000000000000000
+    Size.Height = 193.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    OnPainting = Layout1Painting
+    object Layout2: TLayout
+      ClipChildren = True
+      ClipParent = True
+      Position.X = 16.000000000000000000
+      Position.Y = 16.000000000000000000
+      Size.Width = 97.000000000000000000
+      Size.Height = 41.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      OnPainting = Layout2Painting
+    end
+    object Layout3: TLayout
+      ClipChildren = True
+      ClipParent = True
+      Position.X = 224.000000000000000000
+      Position.Y = 136.000000000000000000
+      Size.Width = 97.000000000000000000
+      Size.Height = 41.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      OnPainting = Layout2Painting
+    end
+  end
+  object fpsTimer: TTimer
+    Interval = 10
+    OnTimer = fpsTimerTimer
+    Left = 400
+    Top = 216
+  end
+end

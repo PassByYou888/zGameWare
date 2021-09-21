@@ -362,7 +362,7 @@ end;
 
 procedure TJpegImage.SetICCProfile(const Value: TJpegICCProfile);
 begin
-  FreeAndNil(FICCProfile);
+  DisposeObjectAndNil(FICCProfile);
   FMarkers.RemoveMarkers([mkApp2]);
   if Assigned(Value) then
       Value.WriteToMarkerList(FMarkers);
@@ -1643,7 +1643,7 @@ begin
     BitmapIter.CellStride := BitmapIter.BitCount div 8;
 
     // We create the baseline coder
-    FreeAndNil(FCoder);
+    DisposeObjectAndNil(FCoder);
     FCoder := TJpegBaselineCoder.Create(Self, FJpegInfo);
     BaselineCoder := TJpegBaselineCoder(FCoder);
 

@@ -51,7 +51,7 @@ type
     function SaveSoundAsLocalFile(FileName: SystemString): SystemString; override;
     function SoundReadyOk(FileName: SystemString): Boolean; override;
   public
-    constructor Create(ATempPath: SystemString); override;
+    constructor Create(TempPath_: SystemString); override;
     destructor Destroy; override;
 
     procedure Progress(deltaTime: Double); override;
@@ -383,9 +383,9 @@ begin
   Result := True;
 end;
 
-constructor TSoundEngine_Bass.Create(ATempPath: SystemString);
+constructor TSoundEngine_Bass.Create(TempPath_: SystemString);
 begin
-  inherited Create(ATempPath);
+  inherited Create(TempPath_);
   SoundList := THashObjectList.CustomCreate(True, 2048);
   SoundEngine_Bass := Self;
   FLastPlayChannel := 0;
@@ -409,13 +409,13 @@ initialization
 if not Bass_Available then
     exit;
 try
-{$IFDEF MSWINDOWS}
+  {$IFDEF MSWINDOWS}
   if not BASS_Init(-1, 44100, 0, 0, nil) then
       RaiseInfo('bass init failed (%d)', [BASS_ErrorGetCode]);
-{$ELSE}
+  {$ELSE}
   if not BASS_Init(-1, 44100, 0, nil, nil) then
       RaiseInfo('bass init failed (%d)', [BASS_ErrorGetCode]);
-{$ENDIF}
+  {$ENDIF}
   BASS_SetConfig(BASS_CONFIG_NET_PLAYLIST, 1); // enable playlist processing
   BASS_SetConfig(BASS_CONFIG_NET_READTIMEOUT, 2000);
   BASS_SetConfig(BASS_CONFIG_IOS_SPEAKER, 1);

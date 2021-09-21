@@ -441,11 +441,14 @@ const
 {$ENDIF}
 
 
-procedure InitSystemFont_Thread_Run(Sender: TCompute);
+var
+  FontFileRootPath: U_String;
+  FontInited: Boolean;
+
+procedure InitSystemFont();
 var
   stream: TCoreClassStream;
   fr: TFontRaster;
-  ph: U_String;
 begin
 {$IF Defined(LARGE_RASTER_FONT_Build_In) or Defined(SMALL_RASTER_FONT_Build_In)}
   stream := TCoreClassResourceStream.Create(HInstance, 'MemoryRasterFont', RT_RCDATA);
@@ -455,23 +458,18 @@ begin
 {$ELSE}
   stream := TMemoryStream64.Create;
 
-{$IFDEF FPC}
-  ph := umlCurrentPath;
-{$ELSE FPC}
-  ph := TPath.GetLibraryPath;
-{$ENDIF FPC}
-  if umlFileExists(umlCombineFileName(ph, 'MemoryRasterLargeFont.zFont')) then
+  if umlFileExists(umlCombineFileName(FontFileRootPath, 'MemoryRasterLargeFont.zFont')) then
     begin
-      TMemoryStream64(stream).LoadFromFile(umlCombineFileName(ph, 'MemoryRasterLargeFont.zFont'));
+      TMemoryStream64(stream).LoadFromFile(umlCombineFileName(FontFileRootPath, 'MemoryRasterLargeFont.zFont'));
 {$IFDEF initializationStatus}
-      DoStatus('Load font file %s', [umlCombineFileName(ph, 'MemoryRasterLargeFont.zFont').Text]);
+      DoStatus('Load font file %s', [umlCombineFileName(FontFileRootPath, 'MemoryRasterLargeFont.zFont').Text]);
 {$ENDIF initializationStatus}
     end
-  else if umlFileExists(umlCombineFileName(ph, 'MemoryRasterFont.zFont')) then
+  else if umlFileExists(umlCombineFileName(FontFileRootPath, 'MemoryRasterFont.zFont')) then
     begin
-      TMemoryStream64(stream).LoadFromFile(umlCombineFileName(ph, 'MemoryRasterFont.zFont'));
+      TMemoryStream64(stream).LoadFromFile(umlCombineFileName(FontFileRootPath, 'MemoryRasterFont.zFont'));
 {$IFDEF initializationStatus}
-      DoStatus('Load font file %s', [umlCombineFileName(ph, 'MemoryRasterFont.zFont').Text]);
+      DoStatus('Load font file %s', [umlCombineFileName(FontFileRootPath, 'MemoryRasterFont.zFont').Text]);
 {$ENDIF initializationStatus}
     end
   else
@@ -494,20 +492,35 @@ end;
 procedure Init_DefaultFont;
 begin
   SystemFont := TAtomFontRaster.Create(nil);
-  TCompute.RunC(nil, nil, {$IFDEF FPC}@{$ENDIF FPC}InitSystemFont_Thread_Run);
+{$IFDEF FPC}
+  FontFileRootPath := umlCurrentPath;
+{$ELSE FPC}
+  FontFileRootPath := TPath.GetLibraryPath;
+{$ENDIF FPC}
+  FontInited := False;
 end;
 
 procedure Free_DefaultFont;
 begin
-  Wait_SystemFont_Init;
-  DisposeObject(SystemFont.V);
+  if FontInited then
+    begin
+      while SystemFont.V = nil do
+          CheckThreadSynchronize(1);
+      DisposeObject(SystemFont.V);
+    end;
+
   DisposeObjectAndNil(SystemFont);
 end;
 
 function Wait_SystemFont_Init: TFontRaster;
 begin
+  if not FontInited then
+    begin
+      FontInited := True;
+      InitSystemFont();
+    end;
   while SystemFont.V = nil do
-      CheckThreadSynchronize(10);
+      CheckThreadSynchronize(1);
   Result := SystemFont.V;
 end;
 
@@ -1372,7 +1385,7 @@ begin
   w := Round(RectWidth(r2));
   h := Round(RectHeight(r2));
   Result := NewRaster();
-  Result.SetSize(w, h, RColorF(0, 0, 0, 0));
+  Result.SetSize(w, h, 0);
   DrawText(Text, Result, X, Y, RotateVec, Angle, alpha, siz, TextColor);
   ComputeDrawCoordinate(Text, X, Y, RotateVec, Angle, siz, DrawCoordinate, BoundBoxCoordinate);
 end;
@@ -1390,9 +1403,32 @@ begin
   w := Round(RectWidth(r2)) + Edge * 2;
   h := Round(RectHeight(r2)) + Edge * 2;
   Result := NewRaster();
-  Result.SetSize(w, h, RColorF(0, 0, 0, 0));
+  Result.SetSize(w, h, 0);
   DrawText(Text, Result, X, Y, RotateVec, Angle, alpha, siz, TextColor);
   ComputeDrawCoordinate(Text, X, Y, RotateVec, Angle, siz, DrawCoordinate, BoundBoxCoordinate);
+end;
+
+function TFontRaster.BuildEffectText(Edge: Integer; Text: TFontRasterString; RotateVec: TVec2; Angle, alpha, siz: TGeoFloat; TextColor: TRColor): TMemoryRaster;
+var
+  s: TVec2;
+  r2: TRectV2;
+  X, Y, w, h: Integer;
+begin
+  s := TextSize(Text);
+  r2 := TV2R4.Init(RectV2(0, 0, s), Vec2Mul(s, RotateVec), Angle).Mul(siz / FontSize).BoundRect();
+  X := Round(abs(r2[0, 0])) + Edge;
+  Y := Round(abs(r2[0, 1])) + Edge;
+  w := Round(RectWidth(r2)) + Edge * 2;
+  h := Round(RectHeight(r2)) + Edge * 2;
+  Result := NewRaster();
+  Result.SetSize(w, h, 0);
+  DrawText(Text, Result, X, Y, RotateVec, Angle, alpha, siz, TextColor);
+end;
+
+function TFontRaster.BuildEffectText_Edge(Text: TFontRasterString; RotateVec: TVec2; Angle, alpha, siz: TGeoFloat; TextColor, EdgeColor: TRColor): TMemoryRaster;
+begin
+  Result := BuildEffectText(Round(siz * 0.15), Text, RotateVec, Angle, alpha, siz, TextColor);
+  Result.FillNoneBGColorAlphaBorder(0, EdgeColor, Round(siz * 0.1));
 end;
 
 class function TFontRaster.BuildTextRaster(Random_: TRandom; PhysicsBox_: Boolean; X_Spacing_, Y_Spacing_: Integer; Margin_: TGeoFloat;

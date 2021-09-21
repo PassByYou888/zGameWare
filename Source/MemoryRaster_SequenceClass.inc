@@ -67,7 +67,7 @@ class function TSequenceMemoryRaster.CanLoadStream(stream: TCoreClassStream): Bo
 var
   FP: Int64;
   hflag: Word;
-  ATotal, aColumn: Integer;
+  Total_, Column_: Integer;
 begin
   Result := False;
   FP := stream.Position;
@@ -76,9 +76,9 @@ begin
   try
     if hflag = $8888 then
       begin
-        if stream.read(ATotal, 4) <> 4 then
+        if stream.read(Total_, 4) <> 4 then
             Exit;
-        if stream.read(aColumn, 4) <> 4 then
+        if stream.read(Column_, 4) <> 4 then
             Exit;
         Result := inherited CanLoadStream(stream);
         stream.Position := FP;
@@ -96,7 +96,7 @@ procedure TSequenceMemoryRaster.LoadFromStream(stream: TCoreClassStream);
 var
   FP: Int64;
   hflag: Word;
-  ATotal, aColumn: Integer;
+  Total_, Column_: Integer;
   deStream: TMemoryStream64;
 begin
   Reset;
@@ -105,13 +105,13 @@ begin
       Exit;
   if hflag = $8888 then
     begin
-      if stream.read(ATotal, 4) <> 4 then
+      if stream.read(Total_, 4) <> 4 then
           Exit;
-      if stream.read(aColumn, 4) <> 4 then
+      if stream.read(Column_, 4) <> 4 then
           Exit;
       inherited LoadFromStream(stream);
-      FTotal := ATotal;
-      FColumn := aColumn;
+      FTotal := Total_;
+      FColumn := Column_;
     end
   else
     begin
@@ -123,6 +123,11 @@ begin
 end;
 
 procedure TSequenceMemoryRaster.SaveToStream(stream: TCoreClassStream);
+begin
+  SaveToSequenceStream(stream);
+end;
+
+procedure TSequenceMemoryRaster.SaveToSequenceStream(stream: TCoreClassStream);
 var
   hflag: Word;
   cStream: TMemoryStream64;

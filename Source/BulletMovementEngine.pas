@@ -1,5 +1,5 @@
 { ****************************************************************************** }
-{ * bullet movement engine create by qq600585                                  * }
+{ * bullet movement create by qq600585                                         * }
 { * written by QQ 600585@qq.com                                                * }
 { * https://zpascal.net                                                        * }
 { * https://github.com/PassByYou888/zAI                                        * }
@@ -23,157 +23,121 @@ unit BulletMovementEngine;
 
 interface
 
-uses SysUtils, Geometry2DUnit, CoreClasses, Math;
+uses
+{$IFDEF FPC}
+  FPCGenericStructlist,
+{$ENDIF FPC}
+  CoreClasses,
+  Geometry2DUnit, Geometry3DUnit;
 
 type
-  TBulletMovementStep = record
+  TBulletMovementStepData = record
     Position: TVec2;
-    angle: TGeoFloat;
-    index: Integer;
+    Angle: TGeoFloat;
+    Index: Integer;
   end;
 
-  IBulletMovementEngineIntf = interface
-    function GetPosition: TVec2;
-    procedure SetPosition(const Value: TVec2);
-
-    function GetRollAngle: TGeoFloat;
-    procedure SetRollAngle(const Value: TGeoFloat);
-
-    procedure DoStartBulletMovement;
-    procedure DoBulletMovementDone;
-
-    procedure DoRollBulletMovementStart;
-    procedure DoRollBulletMovementOver;
-
-    procedure DoStop;
-    procedure DoPause;
-    procedure DoContinue;
-
-    procedure DoBulletMovementStepChange(OldStep, NewStep: TBulletMovementStep);
-    procedure doProgress(deltaTime: Double);
+  IBulletMovementInterface = interface
+    function GetBulletPosition: TVec2;
+    procedure SetBulletPosition(const Value: TVec2);
+    function GetBulletRollAngle: TGeoFloat;
+    procedure SetBulletRollAngle(const Value: TGeoFloat);
+    procedure StartBulletMovement;
+    procedure DoneBulletMovement;
+    procedure StartBulletRoll;
+    procedure DoneBulletRoll;
+    procedure StopBullet;
+    procedure PauseBullet;
+    procedure ContinueBullet;
+    procedure BulletStep(OldStep, NewStep: TBulletMovementStepData);
+    procedure BulletProgress(deltaTime: Double);
   end;
 
-  TBulletMovementOperationMode = (momBulletMovementPath, momStopRollAngle);
+  TBulletMovementMode = (bmmBulletMovementPath, bmmStopRollAngle);
+
+  TStepHistoryData = record
+    Position: TVec2;
+    Angle: TGeoFloat;
+  end;
+
+  TBulletMovementStepHistory = {$IFDEF FPC}specialize {$ENDIF FPC} TOrderStruct<TStepHistoryData>;
 
   TBulletMovementEngine = class(TCoreClassObject)
   private
-    FIntf: IBulletMovementEngineIntf;
-
-    FSteps: array of TBulletMovementStep;
-
+    FOnInterface: IBulletMovementInterface;
+    FSteps: array of TBulletMovementStepData;
     FActive: Boolean;
     FPause: Boolean;
     FMoveSpeed: TGeoFloat;
     FRollSpeed: TGeoFloat;
-    // BulletMovement operation mode
-    FOperationMode: TBulletMovementOperationMode;
-
+    FOperationMode: TBulletMovementMode;
+    FMaxStepHistoryNum: Integer;
+    FStepHistory: TBulletMovementStepHistory;
     FStopRollAngle: TGeoFloat;
-
     FLastProgressDeltaTime: Double;
-
     FCurrentPathStepTo: Integer;
-
     FFromPosition: TVec2;
     FToPosition: TVec2;
     FBulletMovementDone, FRollDone: Boolean;
-
-    FUserObject: TCoreClassObject;
   protected
     function GetPosition: TVec2;
     procedure SetPosition(const Value: TVec2);
-
     function GetRollAngle: TGeoFloat;
     procedure SetRollAngle(const Value: TGeoFloat);
-
-    function FirstStep: TBulletMovementStep;
-    function LastStep: TBulletMovementStep;
+    function FirstStep: TBulletMovementStepData;
+    function LastStep: TBulletMovementStepData;
   public
     constructor Create;
     destructor Destroy; override;
 
-    procedure Start(ATo: TVec2); overload;
-    procedure Start(APaths: TVec2List); overload;
+    procedure Start(To_: TVec2); overload;
+    procedure Start(Paths_: TVec2List); overload;
     procedure Start; overload;
     procedure stop;
     procedure Pause;
-
     procedure Progress(const deltaTime: Double);
-
-    property Intf: IBulletMovementEngineIntf read FIntf write FIntf;
-
+    property OnInterface: IBulletMovementInterface read FOnInterface write FOnInterface;
     property Position: TVec2 read GetPosition write SetPosition;
     property RollAngle: TGeoFloat read GetRollAngle write SetRollAngle;
-
-    // pause
     property IsPause: Boolean read FPause;
-
-    // BulletMovementing
     property Active: Boolean read FActive;
-
-    // speed
     property MoveSpeed: TGeoFloat read FMoveSpeed write FMoveSpeed;
-
-    // roll speed
     property RollSpeed: TGeoFloat read FRollSpeed write FRollSpeed;
-
-    // BulletMovement operation mode
-    property OperationMode: TBulletMovementOperationMode read FOperationMode write FOperationMode;
-
+    property OperationMode: TBulletMovementMode read FOperationMode write FOperationMode;
     property FromPosition: TVec2 read FFromPosition;
     property ToPosition: TVec2 read FToPosition;
-    property UserObject: TCoreClassObject read FUserObject write FUserObject;
-  end;
-
-  TBulletMovementManager = class(TCoreClassObject)
-  private
-    FList: TCoreClassListForObj;
-  public
-    constructor Create;
-    destructor Destroy; override;
-
-    procedure Add(BE: TBulletMovementEngine);
-    procedure Remove(BE: TBulletMovementEngine);
-    function Count: Integer;
-    procedure Clear;
-    function Exists(BE: TBulletMovementEngine): Boolean;
-
-    function GetItems(index: Integer): TBulletMovementEngine;
-    property Items[index: Integer]: TBulletMovementEngine read GetItems; default;
-
-    procedure Progress(const deltaTime: Double);
+    property MaxStepHistoryNum: Integer read FMaxStepHistoryNum write FMaxStepHistoryNum;
+    property StepHistory: TBulletMovementStepHistory read FStepHistory;
   end;
 
 implementation
 
-uses MovementEngine, Geometry3DUnit;
-
 function TBulletMovementEngine.GetPosition: TVec2;
 begin
-  Result := FIntf.GetPosition;
+  Result := FOnInterface.GetBulletPosition;
 end;
 
 procedure TBulletMovementEngine.SetPosition(const Value: TVec2);
 begin
-  FIntf.SetPosition(Value);
+  FOnInterface.SetBulletPosition(Value);
 end;
 
 function TBulletMovementEngine.GetRollAngle: TGeoFloat;
 begin
-  Result := FIntf.GetRollAngle;
+  Result := FOnInterface.GetBulletRollAngle;
 end;
 
 procedure TBulletMovementEngine.SetRollAngle(const Value: TGeoFloat);
 begin
-  FIntf.SetRollAngle(Value);
+  FOnInterface.SetBulletRollAngle(Value);
 end;
 
-function TBulletMovementEngine.FirstStep: TBulletMovementStep;
+function TBulletMovementEngine.FirstStep: TBulletMovementStepData;
 begin
   Result := FSteps[0];
 end;
 
-function TBulletMovementEngine.LastStep: TBulletMovementStep;
+function TBulletMovementEngine.LastStep: TBulletMovementStepData;
 begin
   Result := FSteps[length(FSteps) - 1];
 end;
@@ -182,54 +146,50 @@ constructor TBulletMovementEngine.Create;
 begin
   inherited Create;
   SetLength(FSteps, 0);
-  FIntf := nil;
-
+  FOnInterface := nil;
   FActive := False;
   FPause := False;
   FMoveSpeed := 300;
   FRollSpeed := 360;
-  FOperationMode := momBulletMovementPath;
-
+  FOperationMode := bmmBulletMovementPath;
+  FMaxStepHistoryNum := 0;
+  FStepHistory := TBulletMovementStepHistory.Create;
   FStopRollAngle := 0;
-
   FLastProgressDeltaTime := 0;
-
   FCurrentPathStepTo := -1;
-
   FFromPosition := NULLPoint;
   FToPosition := NULLPoint;
-
   FBulletMovementDone := False;
   FRollDone := False;
-  FUserObject := nil;
 end;
 
 destructor TBulletMovementEngine.Destroy;
 begin
+  DisposeObject(FStepHistory);
   SetLength(FSteps, 0);
-  FIntf := nil;
+  FOnInterface := nil;
   inherited Destroy;
 end;
 
-procedure TBulletMovementEngine.Start(ATo: TVec2);
+procedure TBulletMovementEngine.Start(To_: TVec2);
 begin
   if not FActive then
     begin
       SetLength(FSteps, 0);
-      FStopRollAngle := CalcAngle(Position, ATo);
-      FOperationMode := momStopRollAngle;
+      FStopRollAngle := CalcAngle(Position, To_);
+      FOperationMode := bmmStopRollAngle;
       FActive := True;
       FPause := False;
-      FToPosition := ATo;
-      Intf.DoStartBulletMovement;
+      FToPosition := To_;
+      FOnInterface.StartBulletMovement;
     end;
 end;
 
-procedure TBulletMovementEngine.Start(APaths: TVec2List);
+procedure TBulletMovementEngine.Start(Paths_: TVec2List);
 var
   i: Integer;
 begin
-  APaths.RemoveSame;
+  Paths_.RemoveSame;
 
   if not FActive then
     begin
@@ -237,30 +197,27 @@ begin
       FFromPosition := NULLPoint;
       FBulletMovementDone := False;
       FRollDone := False;
-      FOperationMode := momBulletMovementPath;
+      FOperationMode := bmmBulletMovementPath;
 
-      FActive := (APaths <> nil) and (APaths.Count > 0) and (FIntf <> nil);
+      FActive := (Paths_ <> nil) and (Paths_.Count > 0) and (FOnInterface <> nil);
       if FActive then
         begin
-          SetLength(FSteps, APaths.Count);
-          for i := 0 to APaths.Count - 1 do
+          SetLength(FSteps, Paths_.Count);
+          for i := 0 to Paths_.Count - 1 do
             with FSteps[i] do
               begin
-                Position := APaths[i]^;
+                Position := Paths_[i]^;
                 if i > 0 then
-                    angle := CalcAngle(APaths[i - 1]^, APaths[i]^)
+                    Angle := CalcAngle(Paths_[i - 1]^, Paths_[i]^)
                 else
-                    angle := CalcAngle(Position, APaths[i]^);
-                index := i;
+                    Angle := CalcAngle(Position, Paths_[i]^);
+                Index := i;
               end;
-
           FPause := False;
           FFromPosition := Position;
-
           FStopRollAngle := 0;
-
-          FToPosition := APaths.Last^;
-          Intf.DoStartBulletMovement;
+          FToPosition := Paths_.Last^;
+          FOnInterface.StartBulletMovement;
         end;
     end;
 end;
@@ -270,7 +227,7 @@ begin
   if (FActive) and (FPause) then
     begin
       FPause := False;
-      Intf.DoContinue;
+      FOnInterface.ContinueBullet;
     end;
 end;
 
@@ -285,8 +242,8 @@ begin
       FRollDone := True;
       FPause := False;
       FActive := False;
-      FOperationMode := momBulletMovementPath;
-      Intf.DoStop;
+      FOperationMode := bmmBulletMovementPath;
+      FOnInterface.StopBullet;
     end;
 end;
 
@@ -296,35 +253,35 @@ begin
     begin
       FPause := True;
       if FActive then
-          Intf.DoPause;
+          FOnInterface.PauseBullet;
     end;
 end;
 
 procedure TBulletMovementEngine.Progress(const deltaTime: Double);
 var
   CurrentDeltaTime: Double;
-  toStep: TBulletMovementStep;
+  toStep: TBulletMovementStepData;
   FromV, ToV, v: TVec2;
   dt, RT: Double;
   d: TGeoFloat;
+  Order_: TStepHistoryData;
 begin
   FLastProgressDeltaTime := deltaTime;
   if FActive then
     begin
       CurrentDeltaTime := deltaTime;
-      FActive := (length(FSteps) > 0) or (FOperationMode = momStopRollAngle);
+      FActive := (length(FSteps) > 0) or (FOperationMode = bmmStopRollAngle);
       if (not FPause) and (FActive) then
         begin
-
-          FIntf.doProgress(CurrentDeltaTime);
+          FOnInterface.BulletProgress(CurrentDeltaTime);
 
           case FOperationMode of
-            momStopRollAngle:
+            bmmStopRollAngle:
               begin
                 RollAngle := SmoothAngle(RollAngle, FStopRollAngle, deltaTime * FRollSpeed);
                 FActive := not AngleEqual(RollAngle, FStopRollAngle);
               end;
-            momBulletMovementPath:
+            bmmBulletMovementPath:
               begin
                 FromV := Position;
 
@@ -338,8 +295,8 @@ begin
 
                     if FBulletMovementDone and not FRollDone then
                       begin
-                        RollAngle := SmoothAngle(RollAngle, LastStep.angle, deltaTime * FRollSpeed);
-                        FRollDone := not AngleEqual(RollAngle, LastStep.angle);
+                        RollAngle := SmoothAngle(RollAngle, LastStep.Angle, deltaTime * FRollSpeed);
+                        FRollDone := not AngleEqual(RollAngle, LastStep.Angle);
                         Break;
                       end;
 
@@ -347,10 +304,10 @@ begin
                       begin
                         v := LastStep.Position;
                         Position := v;
-                        if not AngleEqual(RollAngle, LastStep.angle) then
+                        if not AngleEqual(RollAngle, LastStep.Angle) then
                           begin
-                            FOperationMode := momStopRollAngle;
-                            FStopRollAngle := LastStep.angle;
+                            FOperationMode := bmmStopRollAngle;
+                            FStopRollAngle := LastStep.Angle;
                           end
                         else
                             FActive := False;
@@ -361,22 +318,20 @@ begin
                     ToV := toStep.Position;
                     FBulletMovementDone := FCurrentPathStepTo >= length(FSteps);
 
-                    if (FRollDone) and (not AngleEqual(RollAngle, toStep.angle)) then
-                        FIntf.DoRollBulletMovementStart;
+                    if (FRollDone) and (not AngleEqual(RollAngle, toStep.Angle)) then
+                        FOnInterface.StartBulletRoll;
 
-                    if (not FRollDone) and (AngleEqual(RollAngle, toStep.angle)) then
-                        FIntf.DoRollBulletMovementOver;
+                    if (not FRollDone) and (AngleEqual(RollAngle, toStep.Angle)) then
+                        FOnInterface.DoneBulletRoll;
 
-                    FRollDone := AngleEqual(RollAngle, toStep.angle);
+                    FRollDone := AngleEqual(RollAngle, toStep.Angle);
 
                     if FRollDone then
                       begin
-                        // uses direct BulletMovement
-
                         dt := MovementDistanceDeltaTime(FromV, ToV, FMoveSpeed);
                         if dt > CurrentDeltaTime then
                           begin
-                            // direct calc BulletMovement
+                            // direct compute
                             v := MovementDistance(FromV, ToV, CurrentDeltaTime * FMoveSpeed);
                             Position := v;
                             Break;
@@ -387,67 +342,67 @@ begin
                             FromV := ToV;
                             inc(FCurrentPathStepTo);
 
-                            // trigger execute event
+                            // trigger event
                             if (FCurrentPathStepTo < length(FSteps)) then
-                                FIntf.DoBulletMovementStepChange(toStep, FSteps[FCurrentPathStepTo]);
+                                FOnInterface.BulletStep(toStep, FSteps[FCurrentPathStepTo]);
                           end;
                       end
                     else
                       begin
-                        // uses roll attenuation BulletMovement
-                        RT := AngleRollDistanceDeltaTime(RollAngle, toStep.angle, FRollSpeed);
+                        // uses roll attenuation
+                        RT := AngleRollDistanceDeltaTime(RollAngle, toStep.Angle, FRollSpeed);
                         d := Distance(FromV, ToV);
 
                         if RT >= CurrentDeltaTime then
                           begin
                             if d > CurrentDeltaTime * FMoveSpeed then
                               begin
-                                // position vector dont cross endge for ToV
+                                // position vector dont cross endge
                                 v := MovementDistance(FromV, ToV, CurrentDeltaTime * FMoveSpeed);
                                 Position := v;
-                                RollAngle := SmoothAngle(RollAngle, toStep.angle, CurrentDeltaTime * FRollSpeed);
+                                RollAngle := SmoothAngle(RollAngle, toStep.Angle, CurrentDeltaTime * FRollSpeed);
                                 Break;
                               end
                             else
                               begin
-                                // position vector cross endge for ToV
+                                // position vector cross endge
                                 dt := MovementDistanceDeltaTime(FromV, ToV, FMoveSpeed);
                                 v := ToV;
                                 Position := v;
-                                RollAngle := SmoothAngle(RollAngle, toStep.angle, dt * FRollSpeed);
+                                RollAngle := SmoothAngle(RollAngle, toStep.Angle, dt * FRollSpeed);
                                 CurrentDeltaTime := CurrentDeltaTime - dt;
                                 FromV := ToV;
                                 inc(FCurrentPathStepTo);
 
-                                // trigger execute event
+                                // trigger event
                                 if (FCurrentPathStepTo < length(FSteps)) then
-                                    FIntf.DoBulletMovementStepChange(toStep, FSteps[FCurrentPathStepTo]);
+                                    FOnInterface.BulletStep(toStep, FSteps[FCurrentPathStepTo]);
                               end;
                           end
                         else
                           begin
-                            // preprocess roll BulletMovement speed attenuation
+                            // preprocess roll speed attenuation
                             if RT * FMoveSpeed > d then
                               begin
-                                // position vector cross endge for ToV
+                                // position vector cross endge
                                 dt := MovementDistanceDeltaTime(FromV, ToV, FMoveSpeed);
                                 v := ToV;
                                 Position := v;
-                                RollAngle := SmoothAngle(RollAngle, toStep.angle, dt * FRollSpeed);
+                                RollAngle := SmoothAngle(RollAngle, toStep.Angle, dt * FRollSpeed);
                                 CurrentDeltaTime := CurrentDeltaTime - dt;
                                 FromV := ToV;
                                 inc(FCurrentPathStepTo);
 
-                                // trigger execute event
+                                // trigger event
                                 if (FCurrentPathStepTo < length(FSteps)) then
-                                    FIntf.DoBulletMovementStepChange(toStep, FSteps[FCurrentPathStepTo]);
+                                    FOnInterface.BulletStep(toStep, FSteps[FCurrentPathStepTo]);
                               end
                             else
                               begin
-                                // position vector dont cross endge for ToV
+                                // position vector dont cross endge
                                 v := MovementDistance(FromV, ToV, RT * FMoveSpeed);
                                 Position := v;
-                                RollAngle := toStep.angle;
+                                RollAngle := toStep.Angle;
                                 CurrentDeltaTime := CurrentDeltaTime - RT;
                               end;
                           end;
@@ -462,87 +417,20 @@ begin
               FFromPosition := NULLPoint;
               FBulletMovementDone := False;
               FRollDone := False;
-              FOperationMode := momBulletMovementPath;
-              FIntf.DoBulletMovementDone;
+              FOperationMode := bmmBulletMovementPath;
+              FOnInterface.DoneBulletMovement;
+              FStepHistory.Clear;
+            end
+          else if FMaxStepHistoryNum > 0 then
+            begin
+              Order_.Position := Position;
+              Order_.Angle := RollAngle;
+              FStepHistory.Push(Order_);
+              while FStepHistory.Num > FMaxStepHistoryNum do
+                  FStepHistory.Next;
             end;
         end;
     end;
 end;
 
-constructor TBulletMovementManager.Create;
-begin
-  inherited Create;
-  FList := TCoreClassListForObj.Create;
-end;
-
-destructor TBulletMovementManager.Destroy;
-begin
-  Clear;
-  DisposeObject(FList);
-  inherited Destroy;
-end;
-
-procedure TBulletMovementManager.Add(BE: TBulletMovementEngine);
-begin
-  if not Exists(BE) then
-      FList.Add(BE);
-end;
-
-procedure TBulletMovementManager.Remove(BE: TBulletMovementEngine);
-var
-  i: Integer;
-begin
-  i := 0;
-  while i < FList.Count do
-    if FList[i] = BE then
-        FList.Delete(i)
-    else
-        inc(i);
-end;
-
-function TBulletMovementManager.Count: Integer;
-begin
-  Result := FList.Count;
-end;
-
-procedure TBulletMovementManager.Clear;
-begin
-  FList.Clear;
-end;
-
-function TBulletMovementManager.Exists(BE: TBulletMovementEngine): Boolean;
-var
-  i: Integer;
-begin
-  Result := True;
-  for i := 0 to FList.Count - 1 do
-    if BE = FList[i] then
-        Exit;
-
-  Result := False;
-end;
-
-function TBulletMovementManager.GetItems(index: Integer): TBulletMovementEngine;
-begin
-  Result := FList[index] as TBulletMovementEngine;
-end;
-
-procedure TBulletMovementManager.Progress(const deltaTime: Double);
-var
-  i: Integer;
-  BE: TBulletMovementEngine;
-begin
-  i := 0;
-  while i < FList.Count do
-    begin
-      BE := TBulletMovementEngine(FList[i]);
-      BE.Progress(deltaTime);
-      if BE = FList[i] then
-          inc(i);
-    end;
-end;
-
-end. 
- 
- 
- 
+end.

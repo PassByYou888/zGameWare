@@ -65,18 +65,18 @@ type
     (*
       w: frame FWidth
       h: frame FHeight
-      psf: per second frame
+      PSF: per second frame
       filename: output filename
     *)
-    constructor CreateOnFile(const w, h, psf: uint16_t; const FileName: TPascalString);
+    constructor CreateOnFile(const w, h, PSF: uint16_t; const FileName: TPascalString);
 
     (*
       w: frame FWidth
       h: frame FHeight
-      psf: per second frame
+      PSF: per second frame
       stream: output stream
     *)
-    constructor CreateOnStream(const w, h, psf: uint16_t; const stream: TCoreClassStream);
+    constructor CreateOnStream(const w, h, PSF: uint16_t; const stream: TCoreClassStream);
 
     destructor Destroy; override;
 
@@ -219,13 +219,13 @@ begin
   Result := FImage;
 end;
 
-constructor TY4MWriter.CreateOnFile(const w, h, psf: uint16_t; const FileName: TPascalString);
+constructor TY4MWriter.CreateOnFile(const w, h, PSF: uint16_t; const FileName: TPascalString);
 var
   s: TPascalString;
   b: TBytes;
 begin
   inherited Create;
-  s := PFormat('YUV4MPEG2 W%d H%d F%d:1 Ip A0:0' + #10, [w, h, psf]);
+  s := PFormat('YUV4MPEG2 W%d H%d F%d:1 Ip A0:0' + #10, [w, h, PSF]);
   s.FastGetBytes(b);
 
   umlFileCreate(FileName, ioHandle);
@@ -234,18 +234,18 @@ begin
   SetLength(b, 0);
   s := '';
 
-  FPerSecondFrame := psf;
+  FPerSecondFrame := PSF;
   FFrameCount := 0;
   FImage := TPlanarImage.Create(w, h);
 end;
 
-constructor TY4MWriter.CreateOnStream(const w, h, psf: uint16_t; const stream: TCoreClassStream);
+constructor TY4MWriter.CreateOnStream(const w, h, PSF: uint16_t; const stream: TCoreClassStream);
 var
   s: TPascalString;
   b: TBytes;
 begin
   inherited Create;
-  s := PFormat('YUV4MPEG2 W%d H%d F%d:1 Ip A0:0' + #10, [w, h, psf]);
+  s := PFormat('YUV4MPEG2 W%d H%d F%d:1 Ip A0:0' + #10, [w, h, PSF]);
   s.FastGetBytes(b);
 
   umlFileCreateAsStream('stream', stream, ioHandle);
@@ -254,7 +254,7 @@ begin
   SetLength(b, 0);
   s := '';
 
-  FPerSecondFrame := psf;
+  FPerSecondFrame := PSF;
   FFrameCount := 0;
   FImage := TPlanarImage.Create(w, h);
 end;

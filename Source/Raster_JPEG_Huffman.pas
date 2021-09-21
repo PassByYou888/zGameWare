@@ -27,25 +27,6 @@ interface
 uses CoreClasses, MemoryStream64, Raster_JPEG_type, Raster_JPEG_BitStream;
 
 type
-  // Huffman table values + codes specified in DHT marker
-  THuffmanTable = class(TCoreClassPersistent)
-  private
-    FItems: array of THuffmanCode;
-    function GetItems(Index: Integer): PHuffmanCode;
-    function GetCount: Integer;
-    procedure SetCount(const Value: Integer);
-  public
-    property Items[Index: Integer]: PHuffmanCode read GetItems; default;
-    property Count: Integer read GetCount write SetCount;
-  end;
-
-  THuffmanTableList = class(TCoreClassObjectList)
-  private
-    function GetItems(Index: Integer): THuffmanTable;
-  public
-    property Items[Index: Integer]: THuffmanTable read GetItems; default;
-  end;
-
   TEntropyCoder = class(TJPEG_Persistent)
   public
     constructor Create; virtual;
@@ -165,33 +146,6 @@ type
   end;
 
 implementation
-
-function THuffmanTable.GetCount: Integer;
-begin
-  Result := length(FItems);
-end;
-
-function THuffmanTable.GetItems(Index: Integer): PHuffmanCode;
-begin
-  Result := @FItems[Index];
-end;
-
-procedure THuffmanTable.SetCount(const Value: Integer);
-begin
-  SetLength(FItems, Value);
-end;
-
-function THuffmanTableList.GetItems(Index: Integer): THuffmanTable;
-begin
-  if Index >= Count then
-      Count := Index + 1;
-  Result := THuffmanTable(inherited Items[Index]);
-  if not assigned(Result) then
-    begin
-      Result := THuffmanTable.Create;
-      inherited Items[Index] := Result;
-    end;
-end;
 
 constructor TEntropyCoder.Create;
 begin

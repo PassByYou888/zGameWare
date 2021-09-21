@@ -81,20 +81,26 @@ type
 var
   FileIO: TFileIO = nil;
 
-  // resource: sound.ox or sound
+  // resource: sound.ox or "sound"
   SoundLibrary: TObjectDataHashField = nil;
-  // resource: art.ox or art
+  // resource: art.ox or "art"
   ArtLibrary: TObjectDataHashField = nil;
-  // resource: tile.ox or tile
+  // resource: tile.ox or "tile"
   TileLibrary: TObjectDataHashField = nil;
-  // resource: brush.ox or brush
+  // resource: brush.ox or "brush"
   BrushLibrary: TObjectDataHashField = nil;
-  // resource: user.ox or user
-  UserLibrary: TObjectDataHashField = nil;
-  // resource: ai.ox or ai
+  // resource: fonts.ox or "fonts"
+  FontsLibrary: TObjectDataHashField = nil;
+  // resource: ai.ox or "ai"
   AILibrary: TObjectDataHashField = nil;
-  // resource: model.ox or model
+  // resource: model.ox or "model"
   ModelLibrary: TObjectDataHashField = nil;
+  // resource: geometry.ox or "geometry"
+  GeometryLibrary: TObjectDataHashField = nil;
+  // resource: dict.ox or "dict"
+  DictLibrary: TObjectDataHashField = nil;
+  // resource: user.ox or "user"
+  UserLibrary: TObjectDataHashField = nil;
 
   // sound engine
   SoundEngine: TzSound = nil;
@@ -105,11 +111,11 @@ function FileIOExists(const FileName: SystemString): Boolean;
 function GetResourceStream(const FileName: SystemString): TStream;
 
 type
-  TGlobalMediaType = (gmtSound, gmtArt, gmtTile, gmtBrush, gmtAI, gmtModel, gmtUser);
+  TGlobalMediaType = (gmtSound, gmtArt, gmtTile, gmtBrush, gmtFonts, gmtAI, gmtModel, gmtGeometry, gmtDict, gmtUser);
   TGlobalMediaTypes = set of TGlobalMediaType;
 
 const
-  AllGlobalMediaTypes: TGlobalMediaTypes = ([gmtSound, gmtArt, gmtTile, gmtBrush, gmtAI, gmtModel, gmtUser]);
+  AllGlobalMediaTypes: TGlobalMediaTypes = ([gmtSound, gmtArt, gmtTile, gmtBrush, gmtFonts, gmtAI, gmtModel, gmtGeometry, gmtDict, gmtUser]);
 
 procedure InitGlobalMedia(t: TGlobalMediaTypes);
 procedure FreeGlobalMedia;
@@ -794,6 +800,14 @@ begin
       FileIO.AddSearchObj(True, BrushLibrary, '/');
     end;
 
+  if gmtFonts in t then
+    begin
+      db := TObjectDataManagerOfCache.CreateAsStream(GetResourceStream('fonts.ox'), 'fonts.ox', ObjectDataMarshal.ID, True, False, True);
+      FontsLibrary := TObjectDataHashField.Create(db, '/');
+      FontsLibrary.AutoFreeDataEngine := True;
+      FileIO.AddSearchObj(True, FontsLibrary, '/');
+    end;
+
   if gmtAI in t then
     begin
       db := TObjectDataManagerOfCache.CreateAsStream(GetResourceStream('ai.ox'), 'ai.ox', ObjectDataMarshal.ID, True, False, True);
@@ -808,6 +822,22 @@ begin
       ModelLibrary := TObjectDataHashField.Create(db, '/');
       ModelLibrary.AutoFreeDataEngine := True;
       FileIO.AddSearchObj(True, ModelLibrary, '/');
+    end;
+
+  if gmtGeometry in t then
+    begin
+      db := TObjectDataManagerOfCache.CreateAsStream(GetResourceStream('geometry.ox'), 'geometry.ox', ObjectDataMarshal.ID, True, False, True);
+      GeometryLibrary := TObjectDataHashField.Create(db, '/');
+      GeometryLibrary.AutoFreeDataEngine := True;
+      FileIO.AddSearchObj(True, GeometryLibrary, '/');
+    end;
+
+  if gmtDict in t then
+    begin
+      db := TObjectDataManagerOfCache.CreateAsStream(GetResourceStream('dict.ox'), 'dict.ox', ObjectDataMarshal.ID, True, False, True);
+      DictLibrary := TObjectDataHashField.Create(db, '/');
+      DictLibrary.AutoFreeDataEngine := True;
+      FileIO.AddSearchObj(True, DictLibrary, '/');
     end;
 
   if gmtUser in t then
@@ -857,6 +887,13 @@ begin
       BrushLibrary := nil;
     end;
 
+  if FontsLibrary <> nil then
+    begin
+      FileIO.DeleteSearchObj(FontsLibrary);
+      DisposeObject(FontsLibrary);
+      FontsLibrary := nil;
+    end;
+
   if UserLibrary <> nil then
     begin
       FileIO.DeleteSearchObj(UserLibrary);
@@ -883,6 +920,20 @@ begin
       DisposeObject(ModelLibrary);
       ModelLibrary := nil;
     end;
+
+  if GeometryLibrary <> nil then
+    begin
+      FileIO.DeleteSearchObj(GeometryLibrary);
+      DisposeObject(GeometryLibrary);
+      GeometryLibrary := nil;
+    end;
+
+  if DictLibrary <> nil then
+    begin
+      FileIO.DeleteSearchObj(DictLibrary);
+      DisposeObject(DictLibrary);
+      DictLibrary := nil;
+    end;
 end;
 
 initialization
@@ -893,9 +944,12 @@ SoundLibrary := nil;
 ArtLibrary := nil;
 TileLibrary := nil;
 BrushLibrary := nil;
+FontsLibrary := nil;
 UserLibrary := nil;
 AILibrary := nil;
 ModelLibrary := nil;
+GeometryLibrary := nil;
+DictLibrary := nil;
 SoundEngine := nil;
 
 finalization

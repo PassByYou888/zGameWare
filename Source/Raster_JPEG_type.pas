@@ -288,12 +288,31 @@ type
     property Items[Index: Integer]: TJpegTile read GetItems; default;
   end;
 
+  // Huffman table values + codes specified in DHT marker
+  THuffmanTable = class(TCoreClassPersistent)
+  private
+    FItems: array of THuffmanCode;
+    function GetItems(Index: Integer): PHuffmanCode;
+    function GetCount: Integer;
+    procedure SetCount(const Value: Integer);
+  public
+    property Items[Index: Integer]: PHuffmanCode read GetItems; default;
+    property Count: Integer read GetCount write SetCount;
+  end;
+
+  THuffmanTableList = class(TCoreClassObjectList)
+  private
+    function GetItems(Index: Integer): THuffmanTable;
+  public
+    property Items[Index: Integer]: THuffmanTable read GetItems; default;
+  end;
+
   // Collected component data from markers
   TJpegInfo = class(TCoreClassPersistent)
   public
     // Repository of tables, are updated after DQT or DHT markers
-    FDCHuffmanTables: TCoreClassObjectList { THuffmanTableList };
-    FACHuffmanTables: TCoreClassObjectList { THuffmanTableList };
+    FDCHuffmanTables: THuffmanTableList;
+    FACHuffmanTables: THuffmanTableList;
     FQuantizationTables: TQuantizationTableList;
     // List of frames
     FFrames: TFrameComponentList;
@@ -1263,7 +1282,32 @@ begin
   Result := Min;
 end;
 
-{ TJpegInfo }
+function THuffmanTable.GetCount: Integer;
+begin
+  Result := length(FItems);
+end;
+
+function THuffmanTable.GetItems(Index: Integer): PHuffmanCode;
+begin
+  Result := @FItems[Index];
+end;
+
+procedure THuffmanTable.SetCount(const Value: Integer);
+begin
+  SetLength(FItems, Value);
+end;
+
+function THuffmanTableList.GetItems(Index: Integer): THuffmanTable;
+begin
+  if Index >= Count then
+      Count := Index + 1;
+  Result := THuffmanTable(inherited Items[Index]);
+  if not assigned(Result) then
+    begin
+      Result := THuffmanTable.Create;
+      inherited Items[Index] := Result;
+    end;
+end;
 
 procedure TJpegInfo.Clear;
 begin
@@ -1293,8 +1337,8 @@ end;
 constructor TJpegInfo.Create;
 begin
   inherited Create;
-  FDCHuffmanTables := TCoreClassObjectList.Create;
-  FACHuffmanTables := TCoreClassObjectList.Create;
+  FDCHuffmanTables := THuffmanTableList.Create;
+  FACHuffmanTables := THuffmanTableList.Create;
   FQuantizationTables := TQuantizationTableList.Create;
   FFrames := TFrameComponentList.Create;
   FScans := TScanComponentList.Create;
@@ -1302,11 +1346,11 @@ end;
 
 destructor TJpegInfo.Destroy;
 begin
-  FreeAndNil(FDCHuffmanTables);
-  FreeAndNil(FACHuffmanTables);
-  FreeAndNil(FQuantizationTables);
-  FreeAndNil(FFrames);
-  FreeAndNil(FScans);
+  DisposeObjectAndNil(FDCHuffmanTables);
+  DisposeObjectAndNil(FACHuffmanTables);
+  DisposeObjectAndNil(FQuantizationTables);
+  DisposeObjectAndNil(FFrames);
+  DisposeObjectAndNil(FScans);
   inherited;
 end;
 
@@ -1346,7 +1390,7 @@ end;
 
 destructor TJpegMarker.Destroy;
 begin
-  FreeAndNil(FStream);
+  DisposeObjectAndNil(FStream);
   inherited;
 end;
 
@@ -2215,7 +2259,6 @@ procedure TCustomSortedList.Sort;
           dec(Hi);
       if Lo <= Hi then
         begin
-          // Swap pointers;
           Exchange(Lo, Hi);
           if Mid = Lo then
               Mid := Hi

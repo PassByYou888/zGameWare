@@ -453,7 +453,6 @@ begin
       if (State <> AStateID) and (passed <> BC) and (Enabled(FIgnoreDynamicPoly)) then
         begin
           d := PointDistance(EP, passed.GetPosition);
-
           if (BD = 0) or (d < BD) then
             begin
               Bi := i;

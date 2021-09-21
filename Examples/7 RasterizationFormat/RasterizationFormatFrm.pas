@@ -8,9 +8,9 @@ uses
 
   System.IOUtils,
 
-  CoreClasses, PascalStrings, UnicodeMixedLib, DoStatusIO, DataFrameEngine,
+  CoreClasses, PascalStrings, UnicodeMixedLib, DoStatusIO, DataFrameEngine, PhysicsIO,
   TextDataEngine, ListEngine, zDrawEngine, MemoryRaster, MemoryStream64, Geometry2DUnit,
-  zDrawEngineInterface_SlowFMX, Raster_JPEG_type;
+  zAI_Common, zDrawEngineInterface_SlowFMX, Raster_JPEG_type;
 
 type
   TRasterizationFormatForm = class(TForm)
@@ -175,7 +175,7 @@ begin
     var
       oriMR: TMemoryRaster;
     begin
-      oriMR := NewRasterFromFile(umlCombineFileName(TPath.GetLibraryPath, 'lena.bmp'));
+      oriMR := NewRasterFromFile(WhereFileFromConfigure('lena.bmp'));
 
       BuildFormat(oriMR.SaveToBmp24Stream, Image1.Bitmap, 'RGB24');
       BuildFormat(oriMR.SaveToFastYV12Stream, Image2.Bitmap, 'YV12-Loss');

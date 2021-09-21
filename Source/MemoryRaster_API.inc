@@ -242,15 +242,48 @@ begin
   CopyPtr(@Source, @dest, Count shl 2);
 end;
 
-function RandomRasterColor(const A: Byte = $FF): TRasterColor;
-var
-  Buff: array [0 .. 2] of Integer;
+function RandomRasterColor(rand: TRandom; const A_, min_, max_: Byte): TRColor;
 begin
-  MT19937Rand32($FF, @Buff[0], 3);
-  Result := RasterColor(Buff[0], Buff[1], Buff[2], A);
+  Result := RColor(
+    ClampByte(umlRandomRange(rand, min_, max_)),
+    ClampByte(umlRandomRange(rand, min_, max_)),
+    ClampByte(umlRandomRange(rand, min_, max_)),
+    A_);
 end;
 
-function RandomRasterColor(rand: TRandom; minR, maxR, minG, maxG, minB, maxB, minA, maxA: TGeoFloat): TRColor;
+function RandomRasterColor(const A_, min_, max_: Byte): TRColor;
+begin
+  Result := RColor(
+    ClampByte(umlRandomRange(min_, max_)),
+    ClampByte(umlRandomRange(min_, max_)),
+    ClampByte(umlRandomRange(min_, max_)),
+    A_);
+end;
+
+function RandomRasterColor(const A: Byte): TRColor;
+begin
+  Result := RColor(
+    ClampByte(umlRandomRange(0, $FF)),
+    ClampByte(umlRandomRange(0, $FF)),
+    ClampByte(umlRandomRange(0, $FF)),
+    A);
+end;
+
+function RandomRasterColor(): TRColor;
+begin
+  Result := RandomRasterColor($FF);
+end;
+
+function RandomRasterColorF(const minR, maxR, minG, maxG, minB, maxB, minA, maxA: TGeoFloat): TRColor;
+begin
+  Result := RColorF(
+    umlRandomRangeS(minR, maxR),
+    umlRandomRangeS(minG, maxG),
+    umlRandomRangeS(minB, maxB),
+    umlRandomRangeS(minA, maxA));
+end;
+
+function RandomRasterColorF(rand: TRandom; minR, maxR, minG, maxG, minB, maxB, minA, maxA: TGeoFloat): TRColor;
 begin
   Result := RColorF(
     umlRandomRangeS(rand, minR, maxR),
@@ -401,12 +434,36 @@ begin
   CopyPtr(@Source, @dest, Count shl 2);
 end;
 
-function RandomRColor(const A: Byte = $FF): TRColor;
-var
-  Buff: array [0 .. 2] of Integer;
+function RandomRColor(rand: TRandom; const A_, min_, max_: Byte): TRColor;
 begin
-  MT19937Rand32($FF, @Buff[0], 3);
-  Result := RColor(Buff[0], Buff[1], Buff[2], A);
+  Result := RColor(
+    ClampByte(umlRandomRange(rand, min_, max_)),
+    ClampByte(umlRandomRange(rand, min_, max_)),
+    ClampByte(umlRandomRange(rand, min_, max_)),
+    A_);
+end;
+
+function RandomRColor(const A_, min_, max_: Byte): TRColor;
+begin
+  Result := RColor(
+    ClampByte(umlRandomRange(min_, max_)),
+    ClampByte(umlRandomRange(min_, max_)),
+    ClampByte(umlRandomRange(min_, max_)),
+    A_);
+end;
+
+function RandomRColor(const A: Byte): TRColor;
+begin
+  Result := RColor(
+    ClampByte(umlRandomRange(0, $FF)),
+    ClampByte(umlRandomRange(0, $FF)),
+    ClampByte(umlRandomRange(0, $FF)),
+    A);
+end;
+
+function RandomRColor(): TRColor;
+begin
+  Result := RandomRColor($FF);
 end;
 
 function RandomRColorF(const minR, maxR, minG, maxG, minB, maxB, minA, maxA: TGeoFloat): TRColor;
@@ -932,10 +989,11 @@ begin
   FillPtr(@dest^[0], DestCount * SizeOf(TRColor), 0);
 
   for i := 0 to MaxCount_ - 1 do
-      dest^[i] :=
-      RColor(((i shr Max(0, GBits + BBits - 1)) and (1 shl RBits - 1)) * $FF div (1 shl RBits - 1),
+      dest^[i] := RColor(
+      ((i shr Max(0, GBits + BBits - 1)) and (1 shl RBits - 1)) * $FF div (1 shl RBits - 1),
       ((i shr Max(0, BBits - 1)) and (1 shl GBits - 1)) * $FF div (1 shl GBits - 1),
-      ((i shr 0) and (1 shl BBits - 1)) * $FF div (1 shl BBits - 1));
+      ((i shr 0) and (1 shl BBits - 1)) * $FF div (1 shl BBits - 1)
+      );
 end;
 {$IFDEF OverflowCheck}{$Q+}{$ENDIF}
 {$IFDEF RangeCheck}{$R+}{$ENDIF}
@@ -1007,15 +1065,15 @@ end;
 
 function ComputeSize(const MAX_Width, MAX_Height: Integer; var width, height: Integer): TGeoFloat;
 var
-  fw, fh: TGeoFloat;
+  FW, FH: TGeoFloat;
 begin
-  fw := MAX_Width / width;
-  fh := MAX_Height / height;
+  FW := MAX_Width / width;
+  FH := MAX_Height / height;
 
-  if fw < fh then
-      Result := fw
+  if FW < FH then
+      Result := FW
   else
-      Result := fh;
+      Result := FH;
 
   width := Trunc(width * Result);
   height := Trunc(height * Result);
@@ -1593,10 +1651,10 @@ begin
           b2 := p2^[X] and $FF;
 
           // composition
-          A := (A0 + a2 + A1Prev + A1Next) div 4;
-          R := (r0 + r2 + R1Prev + R1Next) div 4;
-          G := (G0 + g2 + G1Prev + G1Next) div 4;
-          B := (b0 + b2 + B1Prev + B1Next) div 4;
+          A := (A0 + a2 + A1Prev + A1Next) shr 2;
+          R := (r0 + r2 + R1Prev + R1Next) shr 2;
+          G := (G0 + g2 + G1Prev + G1Next) shr 2;
+          B := (b0 + b2 + B1Prev + B1Next) shr 2;
 
           p1^[X] := (A shl 24) or (R shl 16) or (G shl 8) or B;
         end;
@@ -2293,7 +2351,7 @@ end;
 
 procedure FillBlackGrayBackgroundTexture(bk: TMemoryRaster; block_size: Integer);
 begin
-  FillBlackGrayBackgroundTexture(bk, block_size, RColor(0, 0, 0), RColorF(0.1, 0.1, 0.1, 1), RColorF(0.2, 0.2, 0.2, 1));
+  FillBlackGrayBackgroundTexture(bk, block_size, RColorF(0.15, 0.15, 0.15), RColorF(0.25, 0.25, 0.25), RColorF(0.2, 0.2, 0.2));
 end;
 
 procedure ColorToTransparent(SrcColor: TRColor; Src, Dst: TMemoryRaster);
@@ -2317,41 +2375,41 @@ function BuildSequenceFrame(bmp32List: TCoreClassListForObj; Column: Integer; Tr
 var
   C: TRColor;
   bmp: TMemoryRaster;
-  AMaxWidth, AMaxHeight: Integer;
+  MaxWidth_, MaxHeight_: Integer;
   i: Integer;
   idx, X, Y: Integer;
   newbmp: TMemoryRaster;
-  rowcnt: Integer;
+  rowNum: Integer;
 begin
   if Column > bmp32List.Count then
       Column := bmp32List.Count;
 
-  AMaxWidth := 0;
-  AMaxHeight := 0;
+  MaxWidth_ := 0;
+  MaxHeight_ := 0;
   for i := 0 to bmp32List.Count - 1 do
     begin
       bmp := bmp32List[i] as TMemoryRaster;
       if Transparent then
           bmp.ColorTransparent(bmp[0, 0]);
 
-      if bmp.width > AMaxWidth then
-          AMaxWidth := bmp.width;
-      if bmp.height > AMaxHeight then
-          AMaxHeight := bmp.height;
+      if bmp.width > MaxWidth_ then
+          MaxWidth_ := bmp.width;
+      if bmp.height > MaxHeight_ then
+          MaxHeight_ := bmp.height;
     end;
 
   Result := TSequenceMemoryRaster.Create;
 
-  rowcnt := bmp32List.Count div Column;
+  rowNum := bmp32List.Count div Column;
   if bmp32List.Count mod Column > 0 then
-      inc(rowcnt);
+      inc(rowNum);
 
   if Transparent then
       C := RColor(0, 0, 0, 0)
   else
       C := RColor(0, 0, 0, $FF);
 
-  Result.SetSize(AMaxWidth * Column, AMaxHeight * rowcnt, C);
+  Result.SetSize(MaxWidth_ * Column, MaxHeight_ * rowNum, C);
 
   idx := 0;
   X := 0;
@@ -2360,10 +2418,10 @@ begin
   for i := 0 to bmp32List.Count - 1 do
     begin
       bmp := bmp32List[i] as TMemoryRaster;
-      if (bmp.width <> AMaxWidth) or (bmp.height <> AMaxHeight) then
+      if (bmp.width <> MaxWidth_) or (bmp.height <> MaxHeight_) then
         begin
           newbmp := TMemoryRaster.Create;
-          newbmp.ZoomFrom(bmp, AMaxWidth, AMaxHeight);
+          newbmp.ZoomFrom(bmp, MaxWidth_, MaxHeight_);
           BlockTransfer(Result, X, Y, Result.BoundsRect, newbmp, newbmp.BoundsRect, dmOpaque);
           DisposeObject(newbmp);
         end
@@ -2376,12 +2434,12 @@ begin
         begin
           idx := 0;
           X := 0;
-          Y := Y + AMaxHeight;
+          Y := Y + MaxHeight_;
         end
       else
         begin
           inc(idx);
-          X := X + AMaxWidth;
+          X := X + MaxWidth_;
         end;
     end;
 
@@ -2393,7 +2451,7 @@ function GetSequenceFrameRect(bmp: TMemoryRaster; Total, Column, index: Integer)
 var
   rowIdx, colIdx: Integer;
   Row: Integer;
-  AWidth, AHeight: Integer;
+  Width_, Height_: Integer;
 begin
   if Total <= 1 then
       Exit(bmp.BoundsRect);
@@ -2411,10 +2469,10 @@ begin
   if Total mod Column > 0 then
       inc(Row);
 
-  AWidth := bmp.width div Column;
-  AHeight := bmp.height div Row;
+  Width_ := bmp.width div Column;
+  Height_ := bmp.height div Row;
 
-  Result := Rect(colIdx * AWidth, rowIdx * AHeight, (colIdx + 1) * AWidth, (rowIdx + 1) * AHeight);
+  Result := Rect(colIdx * Width_, rowIdx * Height_, (colIdx + 1) * Width_, (rowIdx + 1) * Height_);
 end;
 
 procedure GetSequenceFrameOutput(bmp: TMemoryRaster; Total, Column, index: Integer; output: TMemoryRaster);
@@ -2670,7 +2728,7 @@ end;
 function MergeReg(f, B: TRColor): TRColor;
 var
   FA, BA, WA: TRColor;
-  fw, BW: PByteArray;
+  FW, BW: PByteArray;
   FX: TRColorEntry absolute f;
   BX: TRColorEntry absolute B;
   RX: TRColorEntry absolute Result;
@@ -2687,11 +2745,11 @@ begin
     begin
       RX.A := DivTable[FA xor $FF, BA xor $FF] xor $FF;
       WA := RcTable[RX.A, FA];
-      fw := @DivTable[WA];
+      FW := @DivTable[WA];
       BW := @DivTable[WA xor $FF];
-      RX.R := fw^[FX.R] + BW^[BX.R];
-      RX.G := fw^[FX.G] + BW^[BX.G];
-      RX.B := fw^[FX.B] + BW^[BX.B];
+      RX.R := FW^[FX.R] + BW^[BX.R];
+      RX.G := FW^[FX.G] + BW^[BX.G];
+      RX.B := FW^[FX.B] + BW^[BX.B];
     end;
 end;
 
@@ -3223,7 +3281,7 @@ begin
     end
   else
     begin
-      memsiz := head.width * head.height + (head.width * head.height) div 2;
+      memsiz := head.width * head.height + (head.width * head.height) shr 1;
       luma_ptr := GetMemory(memsiz);
       sour.read(luma_ptr^, memsiz);
       needFree := True;
@@ -3232,9 +3290,9 @@ begin
   u_ptr := luma_ptr;
   inc(u_ptr, head.width * head.height);
   v_ptr := u_ptr;
-  inc(v_ptr, (head.width * head.height) div 4);
+  inc(v_ptr, (head.width * head.height) shr 2);
   stride := head.width;
-  stride_c := head.width div 2;
+  stride_c := head.width shr 1;
   YV12ToRaster(luma_ptr, u_ptr, v_ptr, head.width, head.height, stride, stride_c, dest, False, False);
 
   if needFree then
@@ -3256,12 +3314,12 @@ begin
   head.width := (sour.width shr 1) * 2;
   head.height := (sour.height shr 1) * 2;
 
-  memsiz := head.width * head.height + (head.width * head.height) div 2;
+  memsiz := head.width * head.height + (head.width * head.height) shr 1;
   luma_ptr := GetMemory(memsiz);
   u_ptr := luma_ptr;
   inc(u_ptr, head.width * head.height);
   v_ptr := u_ptr;
-  inc(v_ptr, (head.width * head.height) div 4);
+  inc(v_ptr, (head.width * head.height) shr 2);
   RasterToYV12(sour, luma_ptr, u_ptr, v_ptr, head.width, head.height);
 
   dest.write(head, SizeOf(head));

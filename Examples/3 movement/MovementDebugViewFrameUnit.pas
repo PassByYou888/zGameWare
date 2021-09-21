@@ -10,7 +10,7 @@ uses
   MovementEngine, FMX.ScrollBox, FMX.Memo;
 
 type
-  TMovementEngineInstance = class(TCoreClassInterfacedObject, IMovementEngineIntf)
+  TMovementEngineInstance = class(TCoreClassInterfacedObject, IMovementEngineInterface)
   private
     FPosition: TVec2;
     FRollAngle: TGeoFloat;
@@ -36,13 +36,12 @@ type
     procedure DoPause;
     procedure DoContinue;
 
-    procedure DoMovementStepChange(OldStep, NewStep: TMovementStep);
+    procedure DoMovementStepChange(OldStep, NewStep: TMovementStepData);
   public
     property Position: TVec2 read FPosition write FPosition;
     property RollAngle: TGeoFloat read FRollAngle write FRollAngle;
     property Status: string read FStatus;
   end;
-
 
   TDrawState = record
     Scale: Double;
@@ -102,6 +101,7 @@ type
 implementation
 
 {$R *.fmx}
+
 
 uses Geometry3DUnit;
 
@@ -170,11 +170,10 @@ begin
   ChangeStatus('continue');
 end;
 
-procedure TMovementEngineInstance.DoMovementStepChange(OldStep, NewStep: TMovementStep);
+procedure TMovementEngineInstance.DoMovementStepChange(OldStep, NewStep: TMovementStepData);
 begin
   ChangeStatus(Format('movement step change %d-%d', [OldStep.Index, NewStep.Index]));
 end;
-
 
 procedure TMovementDebugViewFrame.PaintBoxMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Single);
 begin
@@ -214,10 +213,10 @@ begin
 
   FPathPoints := T2DPointList.Create;
   FMovement := TMovementEngine.Create;
-  FMovement.Intf:=TMovementEngineInstance.Create;
+  FMovement.OnInterface := TMovementEngineInstance.Create;
 
   MoveSpeedTrackBar.Value := FMovement.MoveSpeed;
-  RollMoveRatioTrackBar.Value := FMovement.RollMoveRatio;
+  RollMoveRatioTrackBar.Value := FMovement.RollMoveThreshold;
 end;
 
 destructor TMovementDebugViewFrame.Destroy;
@@ -252,7 +251,7 @@ begin
 
   FMovement.Position := FPathPoints.First^;
   FMovement.Looped := False;
-  FMovement.RollMoveRatio := 0.3;
+  FMovement.RollMoveThreshold := 0.3;
   FMovement.Start(FPathPoints);
 
   DrawPathCheckBox.IsChecked := False;
@@ -409,10 +408,9 @@ begin
   PaintBox.Repaint;
 end;
 
-procedure TMovementDebugViewFrame.RollMoveRatioTrackBarChange(
-  Sender: TObject);
+procedure TMovementDebugViewFrame.RollMoveRatioTrackBarChange(Sender: TObject);
 begin
-  FMovement.RollMoveRatio := RollMoveRatioTrackBar.Value;
+  FMovement.RollMoveThreshold := RollMoveRatioTrackBar.Value;
 end;
 
 end.

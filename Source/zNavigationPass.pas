@@ -41,7 +41,7 @@ type
 
   PPassState = ^TPassState;
 
-  TBasePass = class(TCoreClassPersistent)
+  TBasePass = class(TCoreClassObject)
   private
     FDataList: TCoreClassList;
     FOwner: TPolyPassManager;
@@ -55,16 +55,16 @@ type
 
     procedure ClearPass;
 
-    procedure Add(APass: TBasePass);
+    procedure Add(Pass_: TBasePass);
     procedure Delete; overload;
     procedure Delete(idx: Integer); overload;
-    procedure Delete(APass: TBasePass); overload;
+    procedure Delete(Pass_: TBasePass); overload;
     function Count: Integer;
-    function Exists(APass: TBasePass): Boolean;
-    function IndexOf(APass: TBasePass): Integer;
+    function Exists(Pass_: TBasePass): Boolean;
+    function IndexOf(Pass_: TBasePass): Integer;
 
     procedure BuildPass(AExpandDist: TGeoFloat); virtual; abstract;
-    function pass(APass: TBasePass): Boolean; virtual; abstract;
+    function pass(Pass_: TBasePass): Boolean; virtual; abstract;
     function GetPosition: TVec2; virtual; abstract;
     property Position: TVec2 read GetPosition;
 
@@ -81,7 +81,7 @@ type
   public
     constructor Create(AOwner: TPolyPassManager; APoint: TVec2);
     procedure BuildPass(AExpandDist: TGeoFloat); override;
-    function pass(APass: TBasePass): Boolean; override;
+    function pass(Pass_: TBasePass): Boolean; override;
     function GetPosition: TVec2; override;
   end;
 
@@ -92,9 +92,9 @@ type
     FExtandDistance: TGeoFloat;
     FCachePoint: TVec2;
   public
-    constructor Create(AOwner: TPolyPassManager; APoly: TPolyManagerChildren; APolyIndex: Integer; AExpandDist: TGeoFloat);
+    constructor Create(AOwner: TPolyPassManager; Poly_: TPolyManagerChildren; APolyIndex: Integer; AExpandDist: TGeoFloat);
     procedure BuildPass(AExpandDist: TGeoFloat); override;
-    function pass(APass: TBasePass): Boolean; override;
+    function pass(Pass_: TBasePass): Boolean; override;
     function GetPosition: TVec2; override;
   end;
 
@@ -110,13 +110,13 @@ type
       ANavBio: TNavBio; ANavBioIndex: Integer; AExpandDist: TGeoFloat; AFastEdgePass: Boolean);
     destructor Destroy; override;
     procedure BuildPass(AExpandDist: TGeoFloat); override;
-    function pass(APass: TBasePass): Boolean; override;
+    function pass(Pass_: TBasePass): Boolean; override;
     function GetPosition: TVec2; override;
   end;
 
-  TPolyPassManager = class(TCoreClassPersistent)
+  TPolyPassManager = class(TCoreClassObject)
   private type
-    TCacheState = (csUnCalc, csYes, csNo);
+    TCacheState = (csNoCompute, csYes, csNo);
     TIntersectCache = array of array of array of array of TCacheState;
     TPointInCache = array of array of TCacheState;
   private
@@ -210,7 +210,7 @@ type
     procedure DoMovementProcess(deltaTime: Double);
   end;
 
-  TNavBio = class(TCoreClassInterfacedObject, IMovementEngineIntf)
+  TNavBio = class(TCoreClassInterfacedObject, IMovementEngineInterface)
   private
     FOwner: TNavBioManager;
     FPassManager: TPolyPassManager;
@@ -233,23 +233,17 @@ type
     // MovementEngine interface
     function GetPosition: TVec2;
     procedure SetPosition(const Value: TVec2);
-
     function GetRollAngle: TGeoFloat;
     procedure SetRollAngle(const Value: TGeoFloat);
-
     procedure DoStartMovement;
     procedure DoMovementDone;
-
     procedure DoRollMovementStart;
     procedure DoRollMovementOver;
-
     procedure DoLoop;
-
     procedure DoStop;
     procedure DoPause;
     procedure DoContinue;
-
-    procedure DoMovementStepChange(OldStep, NewStep: TMovementStep);
+    procedure DoMovementStepChange(OldStep, NewStep: TMovementStepData);
   protected
     // return True so now execute smooth lerpto
     function SmoothBouncePosition(const OldPos: TVec2; var NewPos, NewLerpPos: TVec2): Boolean;
@@ -425,22 +419,22 @@ begin
       Delete(FDataList.Count - 1);
 end;
 
-procedure TBasePass.Add(APass: TBasePass);
+procedure TBasePass.Add(Pass_: TBasePass);
 var
   p1, p2: PPassState;
 begin
   // add to self list
   new(p1);
   p1^.Owner := Self;
-  p1^.passed := APass;
+  p1^.passed := Pass_;
   p1^.State := 0;
   FDataList.Add(p1);
   // add to dest conect list
   new(p2);
-  p2^.Owner := APass;
+  p2^.Owner := Pass_;
   p2^.passed := Self;
   p2^.State := 0;
-  APass.FDataList.Add(p2);
+  Pass_.FDataList.Add(p2);
 end;
 
 procedure TBasePass.Delete;
@@ -472,13 +466,13 @@ begin
   FDataList.Delete(idx);
 end;
 
-procedure TBasePass.Delete(APass: TBasePass);
+procedure TBasePass.Delete(Pass_: TBasePass);
 var
   i: Integer;
 begin
   i := 0;
   while i < FDataList.Count do
-    if PPassState(FDataList[i])^.passed = APass then
+    if PPassState(FDataList[i])^.passed = Pass_ then
         Delete(i)
     else
         inc(i);
@@ -489,24 +483,24 @@ begin
   Result := FDataList.Count;
 end;
 
-function TBasePass.Exists(APass: TBasePass): Boolean;
+function TBasePass.Exists(Pass_: TBasePass): Boolean;
 var
   i: Integer;
 begin
   Result := True;
   for i := Count - 1 downto 0 do
-    if (Data[i]^.passed = APass) then
+    if (Data[i]^.passed = Pass_) then
         Exit;
   Result := False;
 end;
 
-function TBasePass.IndexOf(APass: TBasePass): Integer;
+function TBasePass.IndexOf(Pass_: TBasePass): Integer;
 var
   i: Integer;
 begin
   Result := -1;
   for i := Count - 1 downto 0 do
-    if (Data[i]^.passed = APass) then
+    if (Data[i]^.passed = Pass_) then
       begin
         Result := i;
         Break;
@@ -535,7 +529,7 @@ begin
     end;
 end;
 
-function TPointPass.pass(APass: TBasePass): Boolean;
+function TPointPass.pass(Pass_: TBasePass): Boolean;
 begin
   Result := True;
 end;
@@ -545,10 +539,10 @@ begin
   Result := FPoint;
 end;
 
-constructor TPolyPass.Create(AOwner: TPolyPassManager; APoly: TPolyManagerChildren; APolyIndex: Integer; AExpandDist: TGeoFloat);
+constructor TPolyPass.Create(AOwner: TPolyPassManager; Poly_: TPolyManagerChildren; APolyIndex: Integer; AExpandDist: TGeoFloat);
 begin
   inherited Create(AOwner);
-  FPoly := APoly;
+  FPoly := Poly_;
   FPolyIndex := APolyIndex;
   FExtandDistance := AExpandDist;
   FCachePoint := FPoly.Expands[FPolyIndex, FExtandDistance];
@@ -581,7 +575,7 @@ begin
     end;
 end;
 
-function TPolyPass.pass(APass: TBasePass): Boolean;
+function TPolyPass.pass(Pass_: TBasePass): Boolean;
 begin
   Result := True;
 end;
@@ -654,7 +648,7 @@ begin
   FNeedUpdate := False;
 end;
 
-function TNavigationBioPass.pass(APass: TBasePass): Boolean;
+function TNavigationBioPass.pass(Pass_: TBasePass): Boolean;
 begin
   Result := True;
 end;
@@ -715,7 +709,7 @@ end;
 
 function TPolyPassManager.PointOkCache(AExpandDist: TGeoFloat; poly1: TPolyManagerChildren; idx1: Integer): Boolean;
 begin
-  if FPointInCache[poly1.index][idx1] = csUnCalc then
+  if FPointInCache[poly1.index][idx1] = csNoCompute then
     begin
       Result := PointOk(AExpandDist - 1, poly1.Expands[idx1, AExpandDist + 1]);
 
@@ -733,7 +727,7 @@ end;
 function TPolyPassManager.LineIntersectCache(AExpandDist: TGeoFloat;
   poly1: TPolyManagerChildren; idx1: Integer; poly2: TPolyManagerChildren; idx2: Integer): Boolean;
 begin
-  if FIntersectCache[poly1.index][idx1][poly2.index][idx2] = csUnCalc then
+  if FIntersectCache[poly1.index][idx1][poly2.index][idx2] = csNoCompute then
     begin
       Result := LineIntersect(AExpandDist, poly1.Expands[idx1, AExpandDist + 1], poly2.Expands[idx2, AExpandDist + 1]);
 
@@ -847,21 +841,21 @@ procedure TPolyPassManager.BuildPass;
     TCache = array of array of TCacheState;
     PCache = ^TCache;
 
-    procedure Build(const ACache: PCache);
+    procedure Build(const Cache_: PCache);
     var
       i, j: Integer;
     begin
-      SetLength(ACache^, FPolyManager.Count + 1);
+      SetLength(Cache_^, FPolyManager.Count + 1);
 
-      SetLength(ACache^[0], FPolyManager.Scene.Count);
+      SetLength(Cache_^[0], FPolyManager.Scene.Count);
       for i := 0 to FPolyManager.Scene.Count - 1 do
-          ACache^[0][i] := csUnCalc;
+          Cache_^[0][i] := csNoCompute;
 
       for i := 0 to FPolyManager.Count - 1 do
         begin
-          SetLength(ACache^[1 + i], FPolyManager[i].Count);
+          SetLength(Cache_^[1 + i], FPolyManager[i].Count);
           for j := 0 to FPolyManager[i].Count - 1 do
-              ACache^[1 + i][j] := csUnCalc;
+              Cache_^[1 + i][j] := csNoCompute;
         end;
     end;
 
@@ -913,25 +907,25 @@ procedure TPolyPassManager.BuildPass;
 
     SetLength(FPointInCache[0], FPolyManager.Scene.Count);
     for i := 0 to FPolyManager.Scene.Count - 1 do
-        FPointInCache[0][i] := csUnCalc;
+        FPointInCache[0][i] := csNoCompute;
 
     for i := 0 to FPolyManager.Count - 1 do
       begin
         SetLength(FPointInCache[1 + i], FPolyManager[i].Count);
         for j := 0 to FPolyManager[i].Count - 1 do
-            FPointInCache[1 + i][j] := csUnCalc;
+            FPointInCache[1 + i][j] := csNoCompute;
       end;
   end;
 
-  procedure ProcessPoly(APoly: TPolyManagerChildren);
+  procedure ProcessPoly(Poly_: TPolyManagerChildren);
   var
     i: Integer;
     b: TPolyPass;
   begin
-    for i := 0 to APoly.Count - 1 do
-      if PointOkCache(FExtandDistance, APoly, i) then
+    for i := 0 to Poly_.Count - 1 do
+      if PointOkCache(FExtandDistance, Poly_, i) then
         begin
-          b := TPolyPass.Create(Self, APoly, i, FExtandDistance + 1);
+          b := TPolyPass.Create(Self, Poly_, i, FExtandDistance + 1);
           b.BuildPass(FExtandDistance - 1);
           FPassList.Add(b);
         end;
@@ -1077,7 +1071,7 @@ begin
       if SmoothBouncePosition(oldpt, newpt, FInternalStates.LerpTo) then
         begin
           FInternalStates.LastState := lsDirectLerpTo;
-          FInternalStates.LerpSpeed := FMovement.RollMoveRatio * FMovement.MoveSpeed;
+          FInternalStates.LerpSpeed := FMovement.RollMoveThreshold * FMovement.MoveSpeed;
         end
       else
         begin
@@ -1158,7 +1152,7 @@ begin
       FNotifyIntf.DoMovementStart(Self, FMovement.ToPosition);
 end;
 
-procedure TNavBio.DoMovementStepChange(OldStep, NewStep: TMovementStep);
+procedure TNavBio.DoMovementStepChange(OldStep, NewStep: TMovementStepData);
 begin
 
 end;
@@ -1372,7 +1366,7 @@ begin
   FPosition := Make2DPoint(0, 0);
   FRadius := FPassManager.ExtandDistance;
   FMovement := TMovementEngine.Create;
-  FMovement.Intf := Self;
+  FMovement.OnInterface := Self;
   FNotifyIntf := nil;
 
   FState := nsStop;
@@ -1628,7 +1622,7 @@ begin
             begin
               p1.FInternalStates.LastState := lsDirectLerpTo;
               p1.FInternalStates.LerpTo := pt;
-              p1.FInternalStates.LerpSpeed := p1.FMovement.RollMoveRatio * p1.FMovement.MoveSpeed;
+              p1.FInternalStates.LerpSpeed := p1.FMovement.RollMoveThreshold * p1.FMovement.MoveSpeed;
 
               if p1.FNotifyIntf <> nil then
                   p1.FNotifyIntf.DoMovementStart(p1, pt);
@@ -1728,7 +1722,7 @@ begin
                           begin
                             FInternalStates.LastState := lsDirectLerpTo;
                             FInternalStates.LerpTo := FPassManager.PolyManager.GetNearLine(radius + 1, DirectPosition);
-                            FInternalStates.LerpSpeed := FMovement.RollMoveRatio * FMovement.MoveSpeed;
+                            FInternalStates.LerpSpeed := FMovement.RollMoveThreshold * FMovement.MoveSpeed;
                           end
                         else
                           begin

@@ -20,9 +20,76 @@ unit BioDataModule;
 
 interface
 
-uses CoreClasses, Geometry2DUnit, NumberBase, BioBase, PascalStrings;
+uses
+{$IFDEF FPC}
+  FPCGenericStructlist,
+{$ENDIF FPC}
+  CoreClasses, Geometry2DUnit, NumberBase, BioBase, PascalStrings;
 
 type
+  TNMAutomatedManager = class;
+
+  TNumberProcessStyle = (npsInc, npsDec, npsIncMul, npsDecMul);
+
+  TNumberProcessingData = record
+    token: TCoreClassObject;
+    opValue: Variant;
+    Style: TNumberProcessStyle;
+    CancelDelayTime: Double;
+    Overlap: Boolean;
+    TypeID: Integer;
+    Priority: Cardinal;
+    Processed: Boolean;
+  end;
+
+  PDMProcessingData = ^TNumberProcessingData;
+
+  TNMAutomated = class(TCoreClassPersistent)
+  private
+    FOwner: TNMAutomatedManager;
+    FDMSource: TNumberModule;
+    FCurrentValueHookIntf: TNumberModuleHookPool;
+    FCurrentValueCalcList: TCoreClassList;
+  protected
+    procedure DMCurrentValueHook(Sender: TNumberModuleHookPool; OLD_: Variant; var New_: Variant);
+  private
+    function GetCurrentValueCalcData(token: TCoreClassObject): PDMProcessingData;
+  public
+    constructor Create(Owner_: TNMAutomatedManager; DMSource_: TNumberModule);
+    destructor Destroy; override;
+    property Owner: TNMAutomatedManager read FOwner write FOwner;
+    procedure Progress(deltaTime: Double);
+    procedure ChangeProcessStyle(token: TCoreClassObject;
+      opValue: Variant; Style: TNumberProcessStyle; CancelDelayTime: Double; Overlap: Boolean; TypeID: Integer; Priority: Cardinal);
+    procedure Cancel(token: TCoreClassObject);
+    procedure Clear;
+  end;
+
+  TNMAutomatedList_Decl = {$IFDEF FPC}specialize {$ENDIF FPC} TGenericsList<TNMAutomated>;
+
+  TNMAutomatedManager = class(TCoreClassPersistent)
+  private
+    FList: TNMAutomatedList_Decl;
+    function GetOrCreate(DMSource_: TNumberModule): TNMAutomated;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    procedure Progress(deltaTime: Double);
+    procedure Clear;
+
+    procedure PostAutomatedProcess(Style: TNumberProcessStyle;
+      DMSource_: TNumberModule; token: TCoreClassPersistent;
+      opValue: Variant; Overlap: Boolean; TypeID: Integer; Priority: Cardinal);
+
+    procedure PostAutomatedDelayCancelProcess(Style: TNumberProcessStyle;
+      DMSource_: TNumberModule; token: TCoreClassPersistent;
+      opValue: Variant; Overlap: Boolean; TypeID: Integer; Priority: Cardinal; CancelDelayTime: Double);
+
+    procedure Delete(DMSource_: TNumberModule; token: TCoreClassObject); overload;
+    procedure Delete(token: TCoreClassObject); overload;
+  end;
+
   TBioBaseData = class;
 
   TDataItem = class(TCoreClassObject)
@@ -49,9 +116,9 @@ type
     FLastFinalValue: Variant;
     FNeedRecalcFinalValue: Boolean;
 
-    procedure ChangeEvent(Sender: TNumberModuleEventInterface; NewValue: Variant);
+    procedure ChangeEvent(Sender: TNumberModuleEventPool; New_: Variant);
   public
-    constructor Create(AOwner: TBioBaseData; AName: SystemString);
+    constructor Create(Owner_: TBioBaseData; Name_: SystemString);
     destructor Destroy; override;
 
     property Owner: TBioBaseData read FOwner;
@@ -125,7 +192,7 @@ type
   private
     FOwner: TBioBase;
     FDataItemList: TCoreClassListForObj;
-    FNMList: TNumberModuleList;
+    FNMList: TNumberModulePool;
     FNMAutomatedManager: TNMAutomatedManager;
     FPrimaryAttribute: TPrimaryAttribute;
     FUpdateCounter: Integer;
@@ -174,7 +241,7 @@ type
 
     procedure NumberItemChange(Sender: TDataItem);
   public
-    constructor Create(AOwner: TBioBase); overload;
+    constructor Create(Owner_: TBioBase); overload;
     destructor Destroy; override;
 
     procedure InitData;
@@ -245,19 +312,258 @@ type
 
 implementation
 
-procedure TDataItem.ChangeEvent(Sender: TNumberModuleEventInterface; NewValue: Variant);
+procedure TNMAutomated.DMCurrentValueHook(Sender: TNumberModuleHookPool; OLD_: Variant; var New_: Variant);
+
+  function IsMaxPriorityOverlap(ignore: PDMProcessingData): Boolean;
+  var
+    i: Integer;
+    p: PDMProcessingData;
+  begin
+    Result := True;
+
+    for i := 0 to FCurrentValueCalcList.Count - 1 do
+      begin
+        p := FCurrentValueCalcList[i];
+        if (p <> ignore) and (p^.Processed) then
+          if (p^.TypeID = ignore^.TypeID) and (p^.Priority >= ignore^.Priority) then
+            begin
+              Result := False;
+              Exit;
+            end;
+      end;
+  end;
+
+  procedure ImpStyleValue(p: PDMProcessingData);
+  begin
+    case p^.Style of
+      npsInc: New_ := New_ + p^.opValue;
+      npsDec: New_ := New_ - p^.opValue;
+      npsIncMul: New_ := New_ + FDMSource.OriginValue * p^.opValue;
+      npsDecMul: New_ := New_ - FDMSource.OriginValue * p^.opValue;
+      else
+        Assert(False);
+    end;
+    p^.Processed := True;
+  end;
+
+var
+  i: Integer;
+  p: PDMProcessingData;
+  b: Boolean;
+begin
+  for i := 0 to FCurrentValueCalcList.Count - 1 do
+      PDMProcessingData(FCurrentValueCalcList[i])^.Processed := False;
+
+  for i := 0 to FCurrentValueCalcList.Count - 1 do
+    begin
+      p := FCurrentValueCalcList[i];
+      b := p^.Overlap;
+      if not b then
+          b := IsMaxPriorityOverlap(p);
+      if b then
+          ImpStyleValue(p);
+    end;
+end;
+
+function TNMAutomated.GetCurrentValueCalcData(token: TCoreClassObject): PDMProcessingData;
+var
+  i: Integer;
+begin
+  for i := 0 to FCurrentValueCalcList.Count - 1 do
+    if PDMProcessingData(FCurrentValueCalcList[i])^.token = token then
+      begin
+        Result := FCurrentValueCalcList[i];
+        Exit;
+      end;
+  Result := nil;
+end;
+
+constructor TNMAutomated.Create(Owner_: TNMAutomatedManager; DMSource_: TNumberModule);
+begin
+  inherited Create;
+  FOwner := Owner_;
+  FDMSource := DMSource_;
+
+  FCurrentValueHookIntf := FDMSource.RegisterCurrentValueHook;
+
+  FCurrentValueHookIntf.OnCurrentDMHook := {$IFDEF FPC}@{$ENDIF FPC}DMCurrentValueHook;
+  FCurrentValueCalcList := TCoreClassList.Create;
+end;
+
+destructor TNMAutomated.Destroy;
+begin
+  Clear;
+  DisposeObject(FCurrentValueCalcList);
+  DisposeObject(FCurrentValueHookIntf);
+  inherited Destroy;
+end;
+
+procedure TNMAutomated.Progress(deltaTime: Double);
+var
+  i: Integer;
+  p: PDMProcessingData;
+begin
+  i := 0;
+  while i < FCurrentValueCalcList.Count do
+    begin
+      p := FCurrentValueCalcList[i];
+      if p^.CancelDelayTime > 0 then
+        begin
+          if p^.CancelDelayTime - deltaTime <= 0 then
+            begin
+              Dispose(p);
+              FCurrentValueCalcList.Delete(i);
+            end
+          else
+            begin
+              p^.CancelDelayTime := p^.CancelDelayTime - deltaTime;
+              inc(i);
+            end;
+        end
+      else
+          inc(i);
+    end;
+end;
+
+procedure TNMAutomated.ChangeProcessStyle(token: TCoreClassObject;
+  opValue: Variant; Style: TNumberProcessStyle; CancelDelayTime: Double; Overlap: Boolean; TypeID: Integer; Priority: Cardinal);
+var
+  p: PDMProcessingData;
+begin
+  p := GetCurrentValueCalcData(token);
+  if p = nil then
+    begin
+      new(p);
+      FCurrentValueCalcList.Add(p);
+    end;
+  p^.token := token;
+  p^.opValue := opValue;
+  p^.Style := Style;
+  p^.CancelDelayTime := CancelDelayTime;
+  p^.Overlap := Overlap;
+  p^.TypeID := TypeID;
+  p^.Priority := Priority;
+  p^.Processed := False;
+  FDMSource.DoChange;
+end;
+
+procedure TNMAutomated.Cancel(token: TCoreClassObject);
+var
+  i: Integer;
+  p: PDMProcessingData;
+  NeedUpdate_: Boolean;
+begin
+  i := 0;
+  NeedUpdate_ := False;
+  while i < FCurrentValueCalcList.Count do
+    begin
+      p := FCurrentValueCalcList[i];
+      if p^.token = token then
+        begin
+          Dispose(p);
+          FCurrentValueCalcList.Delete(i);
+          NeedUpdate_ := True;
+        end
+      else
+          inc(i);
+    end;
+  if NeedUpdate_ then
+      FDMSource.DoChange;
+end;
+
+procedure TNMAutomated.Clear;
+var
+  i: Integer;
+begin
+  for i := 0 to FCurrentValueCalcList.Count - 1 do
+      Dispose(PDMProcessingData(FCurrentValueCalcList[i]));
+  FCurrentValueCalcList.Clear;
+end;
+
+function TNMAutomatedManager.GetOrCreate(DMSource_: TNumberModule): TNMAutomated;
+var
+  i: Integer;
+begin
+  for i := 0 to FList.Count - 1 do
+    begin
+      Result := FList[i];
+      if Result.FDMSource = DMSource_ then
+          Exit;
+    end;
+  Result := TNMAutomated.Create(Self, DMSource_);
+  FList.Add(Result);
+end;
+
+constructor TNMAutomatedManager.Create;
+begin
+  inherited Create;
+  FList := TNMAutomatedList_Decl.Create;
+end;
+
+destructor TNMAutomatedManager.Destroy;
+begin
+  Clear;
+  DisposeObject(FList);
+  inherited Destroy;
+end;
+
+procedure TNMAutomatedManager.Progress(deltaTime: Double);
+var
+  i: Integer;
+begin
+  for i := 0 to FList.Count - 1 do
+      FList[i].Progress(deltaTime);
+end;
+
+procedure TNMAutomatedManager.Clear;
+var
+  i: Integer;
+begin
+  for i := 0 to FList.Count - 1 do
+      DisposeObject(FList[i]);
+  FList.Clear;
+end;
+
+procedure TNMAutomatedManager.PostAutomatedProcess(Style: TNumberProcessStyle;
+  DMSource_: TNumberModule; token: TCoreClassPersistent;
+  opValue: Variant; Overlap: Boolean; TypeID: Integer; Priority: Cardinal);
+begin
+  GetOrCreate(DMSource_).ChangeProcessStyle(token, opValue, Style, 0, Overlap, TypeID, Priority);
+end;
+
+procedure TNMAutomatedManager.PostAutomatedDelayCancelProcess(Style: TNumberProcessStyle;
+  DMSource_: TNumberModule; token: TCoreClassPersistent;
+  opValue: Variant; Overlap: Boolean; TypeID: Integer; Priority: Cardinal; CancelDelayTime: Double);
+begin
+  GetOrCreate(DMSource_).ChangeProcessStyle(token, opValue, Style, CancelDelayTime, Overlap, TypeID, Priority);
+end;
+
+procedure TNMAutomatedManager.Delete(DMSource_: TNumberModule; token: TCoreClassObject);
+begin
+  GetOrCreate(DMSource_).Cancel(token);
+end;
+
+procedure TNMAutomatedManager.Delete(token: TCoreClassObject);
+var
+  i: Integer;
+begin
+  for i := 0 to FList.Count - 1 do
+      FList[i].Cancel(token);
+end;
+
+procedure TDataItem.ChangeEvent(Sender: TNumberModuleEventPool; New_: Variant);
 begin
   FNeedRecalcFinalValue := True;
   FOwner.NumberItemChange(Self);
 end;
 
-constructor TDataItem.Create(AOwner: TBioBaseData; AName: SystemString);
+constructor TDataItem.Create(Owner_: TBioBaseData; Name_: SystemString);
 begin
-  Assert(not AOwner.FNMList.Exists(AName));
+  Assert(not Owner_.FNMList.Exists(Name_));
   inherited Create;
-  FOwner := AOwner;
+  FOwner := Owner_;
   FOwner.FDataItemList.Add(Self);
-  FName := AName;
+  FName := Name_;
   FValue := FOwner.FNMList[FName];
 
   FIncreaseFromSpell := FOwner.FNMList[FName + '.IncreaseFromSpell'];
@@ -362,12 +668,12 @@ begin
   RebuildAssociate;
 end;
 
-constructor TBioBaseData.Create(AOwner: TBioBase);
+constructor TBioBaseData.Create(Owner_: TBioBase);
 begin
   inherited Create;
-  FOwner := AOwner;
+  FOwner := Owner_;
   FDataItemList := TCoreClassListForObj.Create;
-  FNMList := TNumberModuleList.Create;
+  FNMList := TNumberModulePool.Create;
   FNMAutomatedManager := TNMAutomatedManager.Create;
   FPrimaryAttribute := paNone;
   FUpdateCounter := 0;

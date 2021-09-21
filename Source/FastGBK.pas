@@ -101,7 +101,7 @@ begin
       n := GBKCache[ID]
   else
       n := '';
-  Result := n.Len > 0;
+  Result := n.L > 0;
 end;
 
 function FastGBKChar(const c: Cardinal): Boolean; overload;
@@ -116,7 +116,7 @@ begin
       n := GBKCache[ID]
   else
       n := '';
-  Result := n.Len > 0;
+  Result := n.L > 0;
 end;
 
 function FastGBKString(const s: TUPascalString): Boolean;
@@ -124,9 +124,9 @@ var
   i: Integer;
 begin
   Result := False;
-  if s.Len = 0 then
+  if s.L = 0 then
       exit;
-  for i := 1 to s.Len do
+  for i := 1 to s.L do
     if not FastGBKChar(s[i]) then
         exit;
   Result := True;
@@ -151,7 +151,7 @@ begin
       else
           n := '';
 
-      if n.Len > 0 then
+      if n.L > 0 then
         begin
           if n.Exists(',') then
             begin
@@ -161,7 +161,7 @@ begin
                   n := umlGetFirstStr(n.Text, ',');
             end;
 
-          if (Result.Len > 0) then
+          if (Result.L > 0) then
             begin
               if LastGBK then
                   Result.Append(#32);
@@ -201,7 +201,7 @@ begin
       else
           n := '';
 
-      if n.Len > 0 then
+      if n.L > 0 then
         begin
           if n.Exists(',') then
               n := umlGetFirstStr(n.Text, ',');
@@ -252,8 +252,8 @@ procedure FastPYSort(const inverse: Boolean; const inBuff: PArrayPascalString; v
     Result := cv(WasWide(t1), WasWide(t2));
     if Result = 0 then
       begin
-        Result := cv(t1^.Len, t2^.Len);
-        if (Result = 0) and (t1^.Len > 0) then
+        Result := cv(t1^.L, t2^.L);
+        if (Result = 0) and (t1^.L > 0) then
             Result := CompareText(FastPY(t1^, False).Text, FastPY(t2^, False).Text);
       end;
   end;

@@ -30,7 +30,7 @@ interface
 
 uses SysUtils, Classes,
   ListEngine, PascalStrings, UnicodeMixedLib, TextDataEngine,
-{$IFNDEF FPC} ZS_JsonDataObjects, {$ENDIF}
+  ZJson,
   CoreClasses, MemoryStream64, ObjectData, ObjectDataManager,
   DataFrameEngine, ItemStream;
 
@@ -100,10 +100,8 @@ type
     property Eng: TDBStore read dbEng;
   end;
 
-{$IFNDEF FPC}
-
   // Base Data Struct
-  TDBEngineJson = class(TJsonObject)
+  TDBEngineJson = class(TZ_JsonObject)
   protected
     FDBStorePos: Int64;
     dbEng: TDBStore;
@@ -116,7 +114,6 @@ type
     property StorePos: Int64 read FDBStorePos;
     property Eng: TDBStore read dbEng;
   end;
-{$ENDIF}
 
   // Base Data Struct
   TDBEnginePascalString = class(TCoreClassObject)
@@ -247,8 +244,6 @@ type
     property HashListBuff: TCoreClassListForObj read FHashListBuff;
   end;
 
-{$IFNDEF FPC}
-
   // Base DataBase Struct
   TDBListJson = class(TCoreClassObject)
   protected
@@ -273,7 +268,6 @@ type
 
     property HashListBuff: TCoreClassListForObj read FHashListBuff;
   end;
-{$ENDIF}
 
   // Base DataBase Struct
   TDBListPascalString = class(TCoreClassObject)
@@ -470,7 +464,7 @@ type
     FResultVL: TDBEngineVL;
     FResultVT: TDBEngineVT;
     FResultTE: TDBEngineTE;
-{$IFNDEF FPC} FResultJson: TDBEngineJson; {$ENDIF}
+    FResultJson: TDBEngineJson;
     FResultPascalString: TDBEnginePascalString;
     // user define
     FUserPointer: Pointer;
@@ -514,6 +508,7 @@ type
     property Count: Int64 read FCount;
 
     // cache states
+    procedure ResetCachePool(const siz_: Integer);
     property Cache: TInt64HashObjectList read FCache;
     procedure Recache;
     function AllowedCache: Boolean; virtual;
@@ -563,6 +558,8 @@ type
     function GetCacheStream(const StorePos: Int64): TDBCacheStream64; overload;
     // backcall
     property NotifyIntf: IDBStoreBaseNotify read FNotifyIntf write FNotifyIntf;
+    property NotifyInterface: IDBStoreBaseNotify read FNotifyIntf write FNotifyIntf;
+    property OnNotify: IDBStoreBaseNotify read FNotifyIntf write FNotifyIntf;
 
     // baseapi
     function QueryFirst(var qState: TQueryState): Boolean;
@@ -659,16 +656,15 @@ type
     property TE[const StorePos: Int64]: TDBEngineTE read GetTE;
 
     // json operation
-{$IFNDEF FPC}
-    function InsertData(const InsertPos: Int64; Buff: TJsonObject): Int64; overload;
-    function AddData(Buff: TJsonObject): Int64; overload;
+    function InsertData(const InsertPos: Int64; Buff: TZ_JsonObject): Int64; overload;
+    function AddData(Buff: TZ_JsonObject): Int64; overload;
     function GetJson(const StorePos: Int64): TDBEngineJson; overload;
     function GetJson(var qState: TQueryState): TDBEngineJson; overload;
     function BuildJson(const StorePos: Int64): TDBEngineJson; overload;
     function BuildJson(var qState: TQueryState): TDBEngineJson; overload;
     property Json[const StorePos: Int64]: TDBEngineJson read GetJson;
-{$ENDIF}
-    //
+    class function GetJsonFromStream(Stream_: TStream): TZ_JsonObject;
+
     // string operation
     function InsertData(const InsertPos: Int64; Buff: TDBEnginePascalString): Int64; overload;
     function InsertData(const InsertPos: Int64; Buff: TPascalString): Int64; overload;
@@ -686,7 +682,7 @@ type
     property PascalString[const StorePos: Int64]: TPascalString read GetString write SetString;
   end;
 
-procedure zDBthSync(t: TCoreClassThread; Sync: Boolean; proc: TThreadMethod);
+procedure ZDB_ThSync(t: TCoreClassThread; Sync: Boolean; proc: TThreadMethod);
 
 const
   c_DF: Cardinal = $FFFFFFF0;
@@ -710,7 +706,7 @@ implementation
 
 uses MH_ZDB, CoreCipher, DoStatusIO;
 
-procedure zDBthSync(t: TCoreClassThread; Sync: Boolean; proc: TThreadMethod);
+procedure ZDB_ThSync(t: TCoreClassThread; Sync: Boolean; proc: TThreadMethod);
 begin
   try
     if Sync then
@@ -813,9 +809,6 @@ begin
   DisposeObject(M);
 end;
 
-{$IFNDEF FPC}
-
-
 constructor TDBEngineJson.Create;
 begin
   inherited Create;
@@ -834,12 +827,10 @@ begin
       Exit;
 
   M := TMemoryStream64.Create;
-  SaveToStream(M, True, TEncoding.UTF8, True);
+  SaveToStream(M, False);
   dbEng.SetData(FDBStorePos, M);
   DisposeObject(M);
 end;
-{$ENDIF}
-
 
 constructor TDBEnginePascalString.Create;
 begin
@@ -1511,9 +1502,6 @@ begin
       dbEng.AddData(GetItems(i));
 end;
 
-{$IFNDEF FPC}
-
-
 procedure TDBListJson.do_ImportCSV(const sour: TPascalString; const king, Data: TArrayPascalString);
 var
   js: TDBEngineJson;
@@ -1617,8 +1605,6 @@ begin
   for i := 0 to Count - 1 do
       dbEng.AddData(GetItems(i));
 end;
-{$ENDIF}
-
 
 constructor TDBListPascalString.Create;
 begin
@@ -1802,19 +1788,12 @@ end;
 procedure TQueryTask.DoTriggerQuery;
 begin
   try
-{$IFDEF FPC}
-    if Assigned(FOnQueryCall) then
-        FOnQueryCall(FState);
-    if Assigned(FOnQueryMethod) then
-        FOnQueryMethod(FState);
-{$ELSE}
     if Assigned(FOnQueryCall) then
         FOnQueryCall(FState);
     if Assigned(FOnQueryMethod) then
         FOnQueryMethod(FState);
     if Assigned(FOnQueryProc) then
         FOnQueryProc(FState);
-{$ENDIF}
   except
   end;
 end;
@@ -1822,19 +1801,12 @@ end;
 procedure TQueryTask.DoQueryDone;
 begin
   try
-{$IFDEF FPC}
-    if Assigned(FOnQueryDoneCall) then
-        FOnQueryDoneCall();
-    if Assigned(FOnQueryDoneMethod) then
-        FOnQueryDoneMethod();
-{$ELSE}
     if Assigned(FOnQueryDoneCall) then
         FOnQueryDoneCall();
     if Assigned(FOnQueryDoneMethod) then
         FOnQueryDoneMethod();
     if Assigned(FOnQueryDoneProc) then
         FOnQueryDoneProc();
-{$ENDIF}
   except
   end;
 end;
@@ -1861,19 +1833,12 @@ begin
   FProcessQueryDone := False;
   FSyncTrigger := True;
 
-{$IFDEF FPC}
-  FOnQueryCall := nil;
-  FOnQueryMethod := nil;
-  FOnQueryDoneCall := nil;
-  FOnQueryDoneMethod := nil;
-{$ELSE}
   FOnQueryCall := nil;
   FOnQueryMethod := nil;
   FOnQueryProc := nil;
   FOnQueryDoneCall := nil;
   FOnQueryDoneMethod := nil;
   FOnQueryDoneProc := nil;
-{$ENDIF}
 end;
 
 procedure TQueryTask.stop;
@@ -1898,7 +1863,7 @@ begin
   Result := False;
   if FStoped or FProcessQueryDone then
     begin
-      zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
+      ZDB_ThSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
       Exit;
     end;
 
@@ -1918,14 +1883,14 @@ begin
         begin
           if not FDBEng.QueryPrev(FState) then
             begin
-              zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
+              ZDB_ThSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
               Exit;
             end;
           dec(FState.index);
-          zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoTriggerQuery);
+          ZDB_ThSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoTriggerQuery);
           if FState.Aborted then
             begin
-              zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
+              ZDB_ThSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
               Exit;
             end;
           Result := True;
@@ -1934,14 +1899,14 @@ begin
         begin
           if not FDBEng.QueryNext(FState) then
             begin
-              zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
+              ZDB_ThSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
               Exit;
             end;
           inc(FState.index);
-          zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoTriggerQuery);
+          ZDB_ThSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoTriggerQuery);
           if FState.Aborted then
             begin
-              zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
+              ZDB_ThSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
               Exit;
             end;
           Result := True;
@@ -1958,14 +1923,14 @@ begin
         begin
           if not FDBEng.QueryLast(FState) then
             begin
-              zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
+              ZDB_ThSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
               Exit;
             end;
           FState.index := FDBEng.Count - 1;
-          zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoTriggerQuery);
+          ZDB_ThSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoTriggerQuery);
           if FState.Aborted then
             begin
-              zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
+              ZDB_ThSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
               Exit;
             end;
           Result := True;
@@ -1974,14 +1939,14 @@ begin
         begin
           if not FDBEng.QueryFirst(FState) then
             begin
-              zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
+              ZDB_ThSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
               Exit;
             end;
           FState.index := 0;
-          zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoTriggerQuery);
+          ZDB_ThSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoTriggerQuery);
           if FState.Aborted then
             begin
-              zDBthSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
+              ZDB_ThSync(FDBEng.FQueryThread, FSyncTrigger, {$IFDEF FPC}@{$ENDIF FPC}DoQueryDone);
               Exit;
             end;
           Result := True;
@@ -2020,7 +1985,7 @@ begin
   if StoreEngine = nil then
       Exit;
 
-  zDBthSync(Self, True, {$IFDEF FPC}@{$ENDIF FPC}PickQueryQueue);
+  ZDB_ThSync(Self, True, {$IFDEF FPC}@{$ENDIF FPC}PickQueryQueue);
 
   i := 0;
   for i := 0 to PickedQueryQueue.Count - 1 do
@@ -2029,14 +1994,14 @@ begin
       QT.FProcessQueryDone := not QT.ProcessQuery;
     end;
 
-  zDBthSync(Self, True, {$IFDEF FPC}@{$ENDIF FPC}SyncQueryDone);
+  ZDB_ThSync(Self, True, {$IFDEF FPC}@{$ENDIF FPC}SyncQueryDone);
 
   Paused := (StoreEngine.FQueryQueue.Count = 0) and (RemoveQueue.Count = 0);
 
   if Paused then
     begin
       StoreEngine.FQueryThreadLastActivtedTime := Now;
-      zDBthSync(Self, True, {$IFDEF FPC}@{$ENDIF FPC}SyncUpdateCacheState);
+      ZDB_ThSync(Self, True, {$IFDEF FPC}@{$ENDIF FPC}SyncUpdateCacheState);
     end;
 end;
 
@@ -2094,10 +2059,8 @@ begin
                     triggerPtr^.OnRemoveCall(p^.i64, removed);
                 if Assigned(triggerPtr^.OnRemoveMethod) then
                     triggerPtr^.OnRemoveMethod(p^.i64, removed);
-{$IFNDEF FPC}
                 if Assigned(triggerPtr^.OnRemoveProc) then
                     triggerPtr^.OnRemoveProc(p^.i64, removed);
-{$ENDIF FPC}
               except
               end;
             end;
@@ -2168,14 +2131,14 @@ begin
           Sleep(10);
           PausedIdleTime := PausedIdleTime + 0.01;
 
-          zDBthSync(Self, True, {$IFDEF FPC}@{$ENDIF FPC}SyncCheckCache);
+          ZDB_ThSync(Self, True, {$IFDEF FPC}@{$ENDIF FPC}SyncCheckCache);
         end;
 
       AsyncQuery();
       if (cloop = 0) or (cloop > 1000) then
         begin
           cloop := 0;
-          zDBthSync(Self, True, {$IFDEF FPC}@{$ENDIF FPC}SyncUpdateCacheState);
+          ZDB_ThSync(Self, True, {$IFDEF FPC}@{$ENDIF FPC}SyncUpdateCacheState);
         end;
 
       inc(cloop);
@@ -2332,9 +2295,7 @@ begin
   FResultVL := TDBEngineVL.Create;
   FResultVT := TDBEngineVT.Create;
   FResultTE := TDBEngineTE.Create;
-{$IFNDEF FPC}
   FResultJson := TDBEngineJson.Create;
-{$ENDIF}
   FResultPascalString := TDBEnginePascalString.Create;
 
   FQueryThread.OnTerminate := {$IFDEF FPC}@{$ENDIF FPC}ThreadFreeEvent;
@@ -2355,10 +2316,8 @@ begin
       dec(FUsedInstanceCacheMemory, TDBEngineVT(Obj).MemoryUsed)
   else if Obj is TDBEngineTE then
       dec(FUsedInstanceCacheMemory, TDBEngineTE(Obj).MemoryUsed)
-{$IFNDEF FPC}
   else if Obj is TDBEngineJson then
       dec(FUsedInstanceCacheMemory, TDBEngineJson(Obj).MemoryUsed)
-{$ENDIF}
   else if Obj is TDBEnginePascalString then
       dec(FUsedInstanceCacheMemory, TDBEnginePascalString(Obj).MemoryUsed)
   else
@@ -2475,9 +2434,7 @@ begin
       DisposeObject(FQueryQueue[i]);
   DisposeObject([FDBEngine, FQueryQueue, FCache, FStreamCache]);
   DisposeObject([FResultDF, FResultVL, FResultVT, FResultTE, FResultPascalString]);
-{$IFNDEF FPC}
   DisposeObject(FResultJson);
-{$ENDIF}
   inherited Destroy;
 end;
 
@@ -2644,6 +2601,11 @@ begin
   ReadHeaderInfo;
 end;
 
+procedure TDBStore.ResetCachePool(const siz_: Integer);
+begin
+  FDBEngine.ResetCachePool(siz_);
+end;
+
 procedure TDBStore.Recache;
 begin
   FCache.Clear;
@@ -2654,9 +2616,7 @@ begin
   FResultVL.Clear;
   FResultVT.Clear;
   FResultTE.Clear;
-{$IFNDEF FPC}
   FResultJson.Clear;
-{$ENDIF}
   FResultPascalString.Clear;
 
   FQueryThread.SyncUpdateCacheState;
@@ -3206,7 +3166,7 @@ var
 begin
   M := TMemoryStream64.Create;
 
-  Buff.EncodeTo(M, False);
+  Buff.FastEncodeTo(M);
 
   Result := InsertData(InsertPos, M, c_DF);
   DisposeObject(M);
@@ -3218,7 +3178,7 @@ var
 begin
   M := TMemoryStream64.Create;
 
-  Buff.EncodeTo(M, False);
+  Buff.FastEncodeTo(M);
 
   Result := AddData(M, c_DF);
   DisposeObject(M);
@@ -3617,25 +3577,22 @@ begin
   Result := BuildTE(qState.StorePos);
 end;
 
-{$IFNDEF FPC}
-
-
-function TDBStore.InsertData(const InsertPos: Int64; Buff: TJsonObject): Int64;
+function TDBStore.InsertData(const InsertPos: Int64; Buff: TZ_JsonObject): Int64;
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
-  Buff.SaveToStream(M, True, TEncoding.UTF8, True);
+  Buff.SaveToStream(M, False);
   Result := InsertData(InsertPos, M, c_Json);
   DisposeObject(M);
 end;
 
-function TDBStore.AddData(Buff: TJsonObject): Int64;
+function TDBStore.AddData(Buff: TZ_JsonObject): Int64;
 var
   M: TMemoryStream64;
 begin
   M := TMemoryStream64.Create;
-  Buff.SaveToStream(M, True, TEncoding.UTF8, True);
+  Buff.SaveToStream(M, False);
   Result := AddData(M, c_Json);
   DisposeObject(M);
 end;
@@ -3670,7 +3627,7 @@ begin
             Result := FResultJson;
 
         try
-            Result.LoadFromStream(M, TEncoding.UTF8, False);
+            Result.LoadFromStream(M);
         except
         end;
         Result.FDBStorePos := StorePos;
@@ -3704,7 +3661,7 @@ begin
       try
         Result := TDBEngineJson.Create;
         try
-            Result.LoadFromStream(M, TEncoding.UTF8, False);
+            Result.LoadFromStream(M);
         except
         end;
         Result.FDBStorePos := StorePos;
@@ -3722,8 +3679,13 @@ function TDBStore.BuildJson(var qState: TQueryState): TDBEngineJson;
 begin
   Result := BuildJson(qState.StorePos);
 end;
-{$ENDIF}
 
+class function TDBStore.GetJsonFromStream(Stream_: TStream): TZ_JsonObject;
+begin
+  Result := TZ_JsonObject.Create;
+  Stream_.Position := 0;
+  Result.LoadFromStream(Stream_);
+end;
 
 function TDBStore.InsertData(const InsertPos: Int64; Buff: TDBEnginePascalString): Int64;
 var
@@ -3957,15 +3919,15 @@ DefaultCacheAnnealingTime := 15.0;
 DefaultMinimizeCacheOfFileSize := 16 * 1024 * 1024; // 16M
 
 {$IFDEF CPU64}
-DefaultCacheBufferLength := 10000 * 40;
-DefaultIndexCacheBufferLength := 10000 * 40;
-DefaultMinimizeInstanceCacheSize := 512 * 1024 * 1024; // 512M
-DefaultMaximumInstanceCacheSize := 1024 * 1024 * 1024; // 1GB
-DefaultMinimizeStreamCacheSize := 96 * 1024 * 1024;    // 96M
-DefaultMaximumStreamCacheSize := 128 * 1024 * 1024;    // 128M
+DefaultCacheBufferLength := 10000 * 100;              // 1000000
+DefaultIndexCacheBufferLength := 10000 * 100;         // 1000000
+DefaultMinimizeInstanceCacheSize := 64 * 1024 * 1024; // 64M
+DefaultMaximumInstanceCacheSize := 256 * 1024 * 1024; // 256M
+DefaultMinimizeStreamCacheSize := 96 * 1024 * 1024;   // 96M
+DefaultMaximumStreamCacheSize := 128 * 1024 * 1024;   // 128M
 {$ELSE}
-DefaultCacheBufferLength := 10000 * 10;
-DefaultIndexCacheBufferLength := 10000 * 10;
+DefaultCacheBufferLength := 10000 * 10;               // 100000
+DefaultIndexCacheBufferLength := 10000 * 10;          // 100000
 DefaultMinimizeInstanceCacheSize := 32 * 1024 * 1024; // 32M
 DefaultMaximumInstanceCacheSize := 128 * 1024 * 1024; // 128M
 DefaultMinimizeStreamCacheSize := 24 * 1024 * 1024;   // 24M

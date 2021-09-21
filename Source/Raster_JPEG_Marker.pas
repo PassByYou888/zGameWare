@@ -343,14 +343,14 @@ begin
     case Item^.Tc of
       0:
         begin
-          Table := THuffmanTableList(FCodingInfo.FDCHuffmanTables)[Item^.Th];
+          Table := FCodingInfo.FDCHuffmanTables[Item^.Th];
 {$IFDEF JPEG_Debug}
           DoDebugOut(Self, wsInfo, PFormat('DC Huffman table=%d, length=%d', [Item^.Th, Count]));
 {$ENDIF JPEG_Debug}
         end;
       1:
         begin
-          Table := THuffmanTableList(FCodingInfo.FACHuffmanTables)[Item^.Th];
+          Table := FCodingInfo.FACHuffmanTables[Item^.Th];
 {$IFDEF JPEG_Debug}
           DoDebugOut(Self, wsInfo, PFormat('AC Huffman table=%d, length=%d', [Item^.Th, Count]));
 {$ENDIF JPEG_Debug}
@@ -415,8 +415,8 @@ begin
       B := Item^.Tc shl 4 + Item^.Th;
       PutByte(FStream, B);
       case Item^.Tc of
-        0: Table := THuffmanTableList(FCodingInfo.FDCHuffmanTables)[Item^.Th];
-        1: Table := THuffmanTableList(FCodingInfo.FACHuffmanTables)[Item^.Th];
+        0: Table := FCodingInfo.FDCHuffmanTables[Item^.Th];
+        1: Table := FCodingInfo.FACHuffmanTables[Item^.Th];
       end;
       Count := length(Item^.BitValues);
       // Set table length

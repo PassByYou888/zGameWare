@@ -14,7 +14,7 @@ uses
 
   TextParsing, UnicodeMixedLib, PascalStrings, CoreClasses,
   zDrawEngine, zDrawEngineInterface_FMX, MemoryRaster, Geometry2DUnit,
-  Cadencer, FMX.Colors;
+  Cadencer, FMX.Colors, FMX.Memo.Types;
 
 type
   TFileItm = record

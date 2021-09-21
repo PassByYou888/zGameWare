@@ -1348,18 +1348,18 @@ begin
       Scan := FInfo.FScans[i];
       // Create DC and AC decoders for i-th image
       if not assigned(FDCCoders[Scan.FDCTable])
-        and (THuffmanTableList(FInfo.FDCHuffmanTables)[Scan.FDCTable].Count > 0) then
+        and (FInfo.FDCHuffmanTables[Scan.FDCTable].Count > 0) then
         begin
           DC := TDCBaselineHuffmanDecoder.CreateDebug(FOwner);
           FDCCoders[Scan.FDCTable] := DC;
-          DC.GenerateLookupTables(THuffmanTableList(FInfo.FDCHuffmanTables)[Scan.FDCTable]);
+          DC.GenerateLookupTables(FInfo.FDCHuffmanTables[Scan.FDCTable]);
         end;
       if not assigned(FACCoders[Scan.FACTable])
-        and (THuffmanTableList(FInfo.FACHuffmanTables)[Scan.FACTable].Count > 0) then
+        and (FInfo.FACHuffmanTables[Scan.FACTable].Count > 0) then
         begin
           AC := TACBaselineHuffmanDecoder.CreateDebug(FOwner);
           FACCoders[Scan.FACTable] := AC;
-          AC.GenerateLookupTables(THuffmanTableList(FInfo.FACHuffmanTables)[Scan.FACTable]);
+          AC.GenerateLookupTables(FInfo.FACHuffmanTables[Scan.FACTable]);
         end;
       // Assign table numbers to MCU blocks
       for j := 0 to Maps[Scan.FComponent].McuBlockCount(FInfo.FScanCount) - 1 do
@@ -1392,17 +1392,17 @@ begin
       // Scan's i-th image component info
       Scan := FInfo.FScans[i];
       // Create DC and AC decoders for i-th image
-      if (not assigned(FDCCoders[Scan.FDCTable])) and ((THuffmanTableList(FInfo.FDCHuffmanTables)[Scan.FDCTable].Count > 0) or FIsDryRun) then
+      if (not assigned(FDCCoders[Scan.FDCTable])) and ((FInfo.FDCHuffmanTables[Scan.FDCTable].Count > 0) or FIsDryRun) then
         begin
           DC := TDCBaselineHuffmanEncoder.CreateDebug(FOwner);
           FDCCoders[Scan.FDCTable] := DC;
-          DC.GenerateCodeTable(THuffmanTableList(FInfo.FDCHuffmanTables)[Scan.FDCTable]);
+          DC.GenerateCodeTable(FInfo.FDCHuffmanTables[Scan.FDCTable]);
         end;
-      if (not assigned(FACCoders[Scan.FACTable])) and ((THuffmanTableList(FInfo.FACHuffmanTables)[Scan.FACTable].Count > 0) or FIsDryRun) then
+      if (not assigned(FACCoders[Scan.FACTable])) and ((FInfo.FACHuffmanTables[Scan.FACTable].Count > 0) or FIsDryRun) then
         begin
           AC := TACBaselineHuffmanEncoder.CreateDebug(FOwner);
           FACCoders[Scan.FACTable] := AC;
-          AC.GenerateCodeTable(THuffmanTableList(FInfo.FACHuffmanTables)[Scan.FACTable]);
+          AC.GenerateCodeTable(FInfo.FACHuffmanTables[Scan.FACTable]);
         end;
       // Assign table numbers to MCU blocks
       for j := 0 to Maps[Scan.FComponent].McuBlockCount(FInfo.FScanCount) - 1 do
@@ -1558,19 +1558,19 @@ begin
       // Create DC and AC decoders for i-th image
       if FIsDCBand
         and not assigned(FDCCoders[Scan.FDCTable])
-        and (THuffmanTableList(FInfo.FDCHuffmanTables)[Scan.FDCTable].Count > 0) then
+        and (FInfo.FDCHuffmanTables[Scan.FDCTable].Count > 0) then
         begin
           DC := TDCProgressiveHuffmanDecoder.CreateDebug(FOwner);
           FDCCoders[Scan.FDCTable] := DC;
-          DC.GenerateLookupTables(THuffmanTableList(FInfo.FDCHuffmanTables)[Scan.FDCTable]);
+          DC.GenerateLookupTables(FInfo.FDCHuffmanTables[Scan.FDCTable]);
         end;
       if not FIsDCBand
         and not assigned(FACCoders[Scan.FACTable])
-        and (THuffmanTableList(FInfo.FACHuffmanTables)[Scan.FACTable].Count > 0) then
+        and (FInfo.FACHuffmanTables[Scan.FACTable].Count > 0) then
         begin
           AC := TACProgressiveHuffmanDecoder.CreateDebug(FOwner);
           FACCoders[Scan.FACTable] := AC;
-          AC.GenerateLookupTables(THuffmanTableList(FInfo.FACHuffmanTables)[Scan.FACTable]);
+          AC.GenerateLookupTables(FInfo.FACHuffmanTables[Scan.FACTable]);
         end;
 
       // Assign table numbers to MCU blocks

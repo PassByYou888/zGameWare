@@ -53,8 +53,7 @@ const
     'IWTHDT.txt', 'IWTHSH.txt', 'key.txt', 'midmisc.txt', 'neck.txt', 'NWNSpellPortrait.txt', 'potion.txt',
     'ring.txt', 'smlmisc.txt', 'talmisc.txt', 'thnmisc.txt', 'trap.txt');
 
-  AllPropsType: TPropsMaterialTypes = [
-    pmtArrow, pmtArrowBullet, pmtBelt, pmtBigbox, pmtBook, pmtBoots, pmtBracer,
+  AllPropsType: TPropsMaterialTypes = [pmtArrow, pmtArrowBullet, pmtBelt, pmtBigbox, pmtBook, pmtBoots, pmtBracer,
     pmtBullet, pmtCloak, pmtGlove, pmtIash, pmtIWAMAR, pmtIWAMBO, pmtIWAMBU,
     pmtIWAXBT, pmtIWAXGR, pmtIWAXHN, pmtIWBLCL, pmtIWBLFH, pmtIWBLFL, pmtIWBLHL,
     pmtIWBLHW, pmtIWBLML, pmtIWBLMS, pmtIWBWLC, pmtIWBWLN, pmtIWBWSC, pmtIWBWSH,
@@ -410,6 +409,4 @@ begin
     end;
 end;
 
-end. 
- 
- 
+end.
