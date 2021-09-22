@@ -17,7 +17,7 @@ uses
   CoreClasses, ListEngine,
   ObjectData, ObjectDataManager, ItemStream, zExpression,
   MemoryStream64, MemoryRaster, Geometry2DUnit, DoStatusIO, PascalStrings,
-  UnicodeMixedLib, zDrawEngine, zDrawEngineInterface_SlowFMX, zAI_Common;
+  UnicodeMixedLib, zDrawEngine, zDrawEngineInterface_SlowFMX;
 
 type
   TFMX_FontBuildForm = class(TForm)
@@ -217,7 +217,6 @@ end;
 
 constructor TFMX_FontBuildForm.Create(AOwner: TComponent);
 begin
-  ReadAIConfig;
   dIntf := TDrawEngineInterface_FMX.Create();
   dEng := TDrawEngine.Create;
   dEng.ViewOptions := [voEdge];
@@ -281,10 +280,8 @@ var
   Cmd_: TPascalString;
   p: PPascalString;
 begin
-  if not FileExistsFromConfigure('FMX_FONTConsoleBuild.EXE') then
-      exit;
 
-  FMX_FONTConsoleBuild := WhereFileFromConfigure('FMX_FONTConsoleBuild.EXE');
+  FMX_FONTConsoleBuild := umlCombineFileName(TPath.GetLibraryPath,'FMX_FONTConsoleBuild.EXE');
   for i := 0 to fontListBox.Count - 1 do
     if fontListBox.ListItems[i].IsChecked then
       begin

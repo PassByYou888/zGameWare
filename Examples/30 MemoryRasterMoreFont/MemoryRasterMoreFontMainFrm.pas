@@ -15,9 +15,7 @@ type
     ImageViewer1: TImageViewer;
     procedure FormCreate(Sender: TObject);
   private
-    { Private declarations }
   public
-    { Public declarations }
   end;
 
 var
@@ -34,16 +32,27 @@ procedure TMemoryRasterMoreFontMainForm.FormCreate(Sender: TObject);
   var
     siz: TVec2;
     n: string;
+    drawBox, boundBox: TArrayV2R4;
+    i: Integer;
   begin
     raster.Font := f;
-    n := 'ABC abc 123 (456+xyz) !@#$%^&*()-=';
+    n := f.FontInfo + ': ' + 'ABC abc 123 (456+xyz) !@#$%^&*()-=';
     siz := raster.TextSize(n, f.FontSize);
-    raster.DrawText(n, 10, y, Vec2(0.5, 0.5), 5, 1.0, f.FontSize, RColorF(1, 1, 1));
+    // 把字符画出来
+    raster.DrawText(n, 30, y, Vec2(0.5, 0.5), 5, 1.0, f.FontSize, RColorF(1, 1, 1));
+    // 计算字符物理像素包围框
+    raster.ComputeDrawTextCoordinate(n, 30, y, Vec2(0.5, 0.5), 5, f.FontSize, drawBox, boundBox);
+    // 画物理像素包围框
+    for i := 0 to length(boundBox) - 1 do
+      // 判断物理像素是否为空,例如空格字符,或则是字体光栅库中没有该字符
+      if boundBox[i].Area > 0 then
+          raster.DrawEngine.DrawCorner(boundBox[i].Expands(1), DEColor(1, 0.5, 0.5, 1), 5, 1);
+    raster.DrawEngine.Flush;
     inc(y, round(siz[1]) + 10);
   end;
 
 var
-  rfont1, rfont2, rfont3, rfont4, rfont5, rfont6: TFontRaster;
+  rfont1, rfont2, rfont3, rfont4, rfont5, rfont6, rfont7, rfont8: TFontRaster;
   raster: TMemoryRaster;
   y, h: Integer;
   f: TFontRaster;
@@ -54,6 +63,8 @@ begin
   rfont4 := TFontRaster.Create;
   rfont5 := TFontRaster.Create;
   rfont6 := TFontRaster.Create;
+  rfont7 := TFontRaster.Create;
+  rfont8 := TFontRaster.Create;
 
   // zFont文件使用FontBuild工具创建
   // zFont存放的是字体光栅数据，它有强大的通用性，在任何平台通用
@@ -64,11 +75,13 @@ begin
   rfont4.LoadFromFile(umlCombineFileName(TPath.GetLibraryPath, 'font_demo_4.zfont'));
   rfont5.LoadFromFile(umlCombineFileName(TPath.GetLibraryPath, 'font_demo_5.zfont'));
   rfont6.LoadFromFile(umlCombineFileName(TPath.GetLibraryPath, 'font_demo_6.zfont'));
+  rfont7.LoadFromFile(umlCombineFileName(TPath.GetLibraryPath, 'font_demo_7.zfont'));
+  rfont8.LoadFromFile(umlCombineFileName(TPath.GetLibraryPath, 'font_demo_8.zfont'));
 
   raster := NewRaster;
 
   // 初始化光栅尺寸和背景
-  raster.SetSize(1024, 512, RColor(0, 0, 0));
+  raster.SetSize(1280, 768, RColor(0, 0, 0,$FF));
 
   // 从y坐标10开始画
   y := 50;
@@ -81,13 +94,15 @@ begin
   d(raster, rfont4, y);
   d(raster, rfont5, y);
   d(raster, rfont6, y);
+  d(raster, rfont7, y);
+  d(raster, rfont8, y);
 
   // 把MemoryRaster光栅转换成FMX光栅
   MemoryBitmapToBitmap(raster, ImageViewer1.Bitmap);
 
   // 释放
   disposeObject(raster);
-  disposeObject([rfont1, rfont2, rfont3, rfont4, rfont5, rfont6]);
+  disposeObject([rfont1, rfont2, rfont3, rfont4, rfont5, rfont6, rfont7, rfont8]);
 end;
 
 end.
